@@ -107,8 +107,8 @@ The first executable lock admits eight lanes: GNU builds for `bigdecimal`,
 `digest`, `json`, `stringio`, `strscan`, and CRuby, plus GNU and musl builds
 for `prism`. Their source SHAs, controller adapters, selected profile subsets,
 and Ruby 3.2.3 driver runtime are explicit. Narrowing those seven sources from
-the full nine-profile pending envelope gives the current plan 332 desired
-lanes, split into active shards of 252 and 80.
+the full nine-profile pending envelope gives the current plan 323 desired
+lanes, split into active shards of 252 and 71.
 
 That is a ceiling, not the routine workload. Each immutable executable
 fleet-lock entry binds a repository and branch result identity, then selects

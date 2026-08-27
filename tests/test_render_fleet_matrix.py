@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 332)
+        self.assertEqual(plan.desired_jobs, 323)
         self.assertEqual(sum(lane.ready for lane in plan.lanes), 8)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 80],
+            [252, 71],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
