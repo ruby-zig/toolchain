@@ -215,6 +215,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF: ${{ inputs.source-ref }}
           RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
@@ -239,6 +240,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF: ${{ inputs.source-ref }}
           RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
@@ -267,5 +269,8 @@ jobs:
             toolchain/provenance/
             source/config.log
             source/**/CMakeCache.txt
+            source/.ruby-zig-artifacts/**
+            source/build/ruby-zig/**
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14

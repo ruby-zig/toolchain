@@ -45,6 +45,15 @@ AArch64 Linux Rust linking is explicitly blocked for Zig 0.16 rather than
 dropping Rust's Cortex-A53 erratum mitigation. The exact boundary and evidence
 rules are in `CONFORMANCE.md`.
 
+Ruby extensions driven by the prebuilt GNU Ruby SDK are executable only on the
+GNU profile. Their musl artifacts remain experimental and non-certifying until
+the fleet has a target-native musl Ruby SDK.
+
+CRuby `master` has one executable native GNU baseline with its Rust JITs
+enabled. The synchronized master tip remains a continuous candidate until that
+exact descendant commit passes independently; `ruby_4_0`, `ruby_3_4`, and
+`ruby_3_3` remain tracked but pending.
+
 ## Branches
 
 - The upstream default branch is an unmodified, fast-forward-only mirror.
@@ -79,7 +88,8 @@ controller, so a source fork remains a clean fast-forward of upstream.
 Each lock entry declares an exact Ruby `x.y.z` runtime. The reusable workflow
 installs that prebuilt runtime with a commit-pinned `ruby/setup-ruby` action to
 drive `extconf.rb`, Rake, and tests. That interpreter is an external build
-input, not a CRuby artifact built or certified by this fleet.
+driver, not a fleet output. The CRuby lane builds its own `miniruby`, `ruby`,
+and shared `libruby` through the declared Zig and Rust boundary.
 
 Privileged synchronization belongs in a separate `ruby-zig/infra` repository.
 That repository has no build logic and passes no credentials to build jobs. A
@@ -93,22 +103,29 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The first executable lock admits six lanes: GNU and musl builds for
-`bigdecimal`, `json`, and `prism`. Their source SHAs, controller adapters,
-two-profile subsets, and Ruby 3.2.3 driver runtime are explicit. The remaining
-coverage stays pending instead of creating false green jobs.
+The first executable lock admits seven lanes: GNU builds for `bigdecimal`,
+`json`, `stringio`, `strscan`, and CRuby, plus GNU and musl builds for
+`prism`. Their source SHAs, controller adapters, selected profile subsets,
+and Ruby 3.2.3 driver runtime are explicit. Narrowing those six sources from
+the full nine-profile pending envelope gives the current plan 331 desired
+lanes, split into active shards of 252 and 79.
 
 That is a ceiling, not the routine workload. Each immutable executable
 fleet-lock entry binds a repository and branch result identity, then selects
 the profiles meaningful for its adapter; only those selected lanes are
-runnable. A requested Rust lane whose target is blocked remains visible as
-pending instead of disappearing. Fixture-only and no-native repositories do
-not consume runner jobs.
+runnable. Unselected profiles remain target-catalog backlog coverage; they are
+not rendered as pending lanes. Planned source identities still render their
+full pending envelope, and a selected Rust lane whose target is blocked remains
+visible as pending instead of disappearing. Fixture-only and no-native
+repositories do not consume runner jobs.
 
 The baseline lock remains immutable. Continuous sync must dispatch the exact
 post-sync commit SHA together with an allowlisted repository and tracked branch;
-a build job never resolves a moving branch ref. A weekly or manually requested
-sweep exercises the complete selected scope.
+a build job never resolves a moving branch ref. CRuby `master` therefore keeps
+the verified `89d3b11eace35b8e279b970b4ff5125f171d0d4b` baseline while a
+newer synchronized master tip is supplied only as the exact, ancestry-checked
+continuous candidate. A weekly or manually requested sweep exercises the
+complete selected scope.
 
 ## Repository layout
 

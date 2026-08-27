@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/ruby",
+  "repository": "ruby/ruby",
+  "upstream_sha": "14a257cfa3bae95c347e6cf56390e0cdd3ee12f8",
+  "source_refs": [
+    {
+      "name": "master",
+      "sha": "14a257cfa3bae95c347e6cf56390e0cdd3ee12f8",
+      "jits": ["yjit", "zjit"],
+      "status": "not-run-current",
+      "validated_baselines": [
+        {
+          "sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+          "release": "4.1.0dev",
+          "status": "run-verified-shared-native"
+        }
+      ]
+    },
+    {
+      "name": "ruby_4_0",
+      "sha": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+      "jits": ["yjit", "zjit"],
+      "status": "not-run"
+    },
+    {
+      "name": "ruby_3_4",
+      "sha": "aac3e36dd4bee40fc89893209553903706fa5666",
+      "jits": ["yjit"],
+      "status": "not-run"
+    },
+    {
+      "name": "ruby_3_3",
+      "sha": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "jits": ["yjit"],
+      "status": "not-run"
+    }
+  ],
+  "build_system": "autoconf-gnu-make-rustc",
+  "entrypoints": [
+    "bash autogen.sh",
+    "configure a shared build with exact Zig wrappers and a canonical native build/host tuple",
+    "build the Rust archive and an internal C sidecar archive",
+    "complete the ordinary build and extensions, then relink only libruby with a DSO-scoped exact export map and the normal Rust archive input",
+    "make yes-test-leaked-globals and make test",
+    "audit exports, YJIT/ZJIT runtime, native extensions, artifacts, ABI ceiling, receipts, and the process trace"
+  ],
+  "native_scope": "cruby-c-cxx-assembly-and-rust-jits",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/cruby/**"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified-baseline",
+      "source_ref": "master",
+      "source_sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+      "artifact_mode": "shared-only"
+    }
+  ],
+  "cross_status": "blocked-not-tested",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "rust": "1.98.0",
+    "baseruby": "ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]",
+    "source_ref": "master",
+    "source_sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+    "process_audit": "passed",
+    "trace_sha256": "d8c095b023b5f370456adee882aa5cdf7caf4e165d6d89fd46abb52a524949b8",
+    "receipts_sha256": "d3bada25a85ff089863b89a952b1b90f085edb0928239fda1eda675dabf9b8bd",
+    "receipt_count": 1584,
+    "tests": "2066 passed",
+    "leaked_globals": "none",
+    "runtime": {
+      "yjit": "passed",
+      "zjit": "passed",
+      "native_extensions": [
+        "date",
+        "digest",
+        "io/console",
+        "json",
+        "socket",
+        "stringio",
+        "strscan"
+      ]
+    },
+    "export_map_symbols": 3728,
+    "rust_mangled_dynamic_exports": {
+      "miniruby": 0,
+      "ruby": 0,
+      "libruby.so.4.1.0": 0
+    },
+    "required_dynamic_exports": [
+      "ruby_init",
+      "rb_yjit_enable",
+      "rb_zjit_enable"
+    ],
+    "dso_links": {
+      "total": 3,
+      "mapped": 1,
+      "mapped_is_final": true
+    },
+    "gnu_abi_ceiling": {
+      "miniruby": "GLIBC_2.17",
+      "ruby": "GLIBC_2.4",
+      "libruby.so.4.1.0": "GLIBC_2.17"
+    },
+    "artifact_sha256": {
+      "miniruby": "36325c7fe5545a11cbe4f796091eaa860a86e0503e53cebe87ca22a5bdc3410c",
+      "ruby": "2a215cc3d7c749a40fc8d8301050597fff83f68690ec46102b4f8194a4e9ba4b",
+      "libruby.so.4.1.0": "3539fd6d35b010ec97d163d9edb4ad1bf5f55f8b0bc772b0d63b329987431901",
+      "libruby-zig-c-only.a": "601296ca0b7f41fcdadfa4017fbc7fa423e4e48862a37803e48074068dce2b30",
+      "target/release/libruby.a": "23ea1649a4f30245f234a895f4d60836137d45ff408a5b80dbc42e576b8dd394",
+      "ruby-zig.exports": "dcdc5be2094a5f6f685be295eb433f4cfc7ddeb80df936d78cba9734307edb76",
+      "rbconfig.rb": "201b620594c6989ed07d33fccbdaeae984064d6c1ca90ede7ef01deaee6ff49c"
+    }
+  },
+  "limitations": [
+    "The verified result is the recorded master baseline; current master at 14a257cfa3bae95c347e6cf56390e0cdd3ee12f8 has not yet been run independently",
+    "ruby_4_0, ruby_3_4, and ruby_3_3 have exact observed SHAs but are not verified until each is run independently",
+    "Only the native x86_64-linux-gnu.2.17 shared-library profile is enabled; true cross profiles remain blocked and untested",
+    "Rust source is compiled by pinned rustc; Zig supplies native dependency compilation and final linking",
+    "Cross-compiling CRuby's Rust JITs is not enabled; a future cross adapter must disable YJIT and ZJIT unless upstream support changes"
+  ]
+}

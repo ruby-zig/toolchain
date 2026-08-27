@@ -52,6 +52,7 @@ def main() -> int:
         f"uses: ruby/setup-ruby@{SETUP_RUBY_SHA}",
         "ruby-version: ${{ inputs.ruby-version }}",
         "source-ref-name:",
+        "RZ_SOURCE_REF: ${{ inputs.source-ref }}",
         "RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}",
         "bash toolchain/scripts/validate-ref-name.sh",
         "bundler-cache: 'false'",
@@ -61,6 +62,9 @@ def main() -> int:
         "name: Record immutable build provenance",
         "bash toolchain/scripts/write-build-provenance.sh",
         "toolchain/provenance/",
+        "source/.ruby-zig-artifacts/**",
+        "source/build/ruby-zig/**",
+        "include-hidden-files: true",
         "cancel-in-progress: false",
     ):
         require_text(reusable, reusable_text, needle, errors)
@@ -69,6 +73,13 @@ def main() -> int:
     ) != 4:
         errors.append(
             f"{reusable}: validated source ref name must reach provenance and both adapter steps"
+        )
+    if reusable_text.count(
+        "RZ_SOURCE_REF: ${{ inputs.source-ref }}"
+    ) != 4:
+        errors.append(
+            f"{reusable}: exact source SHA must reach checkout validation, provenance, "
+            "and both adapter steps"
         )
     if '"source/$RZ_BUILD_SCRIPT"' in reusable_text:
         errors.append(f"{reusable}: adapter must not be loaded from the source fork")

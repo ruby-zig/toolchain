@@ -17,6 +17,25 @@ if "$root/scripts/check-trace.sh" "$work/foreign-trace" "$work/foreign-receipts"
   exit 1
 fi
 
+cat >"$work/transformer-trace" <<'EOF'
+11 execve("/usr/bin/objcopy", ["objcopy", "--strip-debug", "bad.o"], 0x0) = 0
+12 execve("/usr/bin/aarch64-linux-gnu-strip", ["aarch64-linux-gnu-strip", "bad.so"], 0x0) = 0
+EOF
+mkdir -p "$work/transformer-receipts"
+if "$root/scripts/check-trace.sh" \
+  "$work/transformer-trace" "$work/transformer-receipts" \
+  --allow-no-native 2>/dev/null; then
+  printf 'auditor accepted a foreign post-link object transformer\n' >&2
+  exit 1
+fi
+for executable in /usr/bin/objcopy /usr/bin/aarch64-linux-gnu-strip; do
+  if ! grep -Fxq "$executable" "$work/transformer-trace.forbidden"; then
+    printf 'auditor did not identify foreign transformer: %s\n' \
+      "$executable" >&2
+    exit 1
+  fi
+done
+
 cat >"$work/rust-lld-trace" <<'EOF'
 3 execve("/toolchain/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld", ["rust-lld"], 0x0) = 0
 EOF

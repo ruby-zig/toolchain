@@ -54,6 +54,8 @@ while IFS= read -r executable; do
     ld|ld.*|*-ld|*-ld.*|lld|lld-[0-9]*|ld64.lld|gold|mold|\
     rust-lld|rust-lld-*|*-rust-lld|*-rust-lld-*|\
     ar|ar-[0-9]*|*-ar|*-ar-[0-9]*|ranlib|ranlib-[0-9]*|*-ranlib|*-ranlib-[0-9]*|\
+    objcopy|objcopy-[0-9]*|*-objcopy|*-objcopy-[0-9]*|\
+    strip|strip-[0-9]*|*-strip|*-strip-[0-9]*|\
     llvm-link|llvm-lipo|as|*-as|nasm|yasm|llvm-mc|\
     collect2|cc1|cc1plus|ccache|sccache|distcc|zig|zig-*|rustc|rustc-*|*-rustc)
       printf '%s\n' "$executable" >>"$forbidden_file"

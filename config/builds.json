@@ -1581,7 +1581,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/ruby",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1941,7 +1941,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/stringio",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1953,7 +1953,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/strscan",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {

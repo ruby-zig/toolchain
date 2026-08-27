@@ -62,12 +62,15 @@ allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
 The number is a ceiling, not a reason to run every possible lane. The initial
-executable lock contains six lanes: GNU and musl for `bigdecimal`, `json`,
-and `prism`. All other coverage remains explicitly pending. Each immutable
-executable source entry in `config/fleet-lock.json` contains a nonempty,
-duplicate-free subset of declared profile IDs. The renderer emits only that
-subset. Requested Rust profiles that are currently blocked remain pending in
-the plan so an unsupported target cannot silently look green.
+executable lock contains seven lanes: GNU for `bigdecimal`, `json`, `stringio`,
+`strscan`, and CRuby, plus GNU and musl for `prism`. Those selected profiles
+make the current desired workload 331 lanes across active shards of 252 and 79.
+Each immutable executable source entry in `config/fleet-lock.json` contains a
+nonempty, duplicate-free subset of declared profile IDs. The renderer emits
+only that subset. Unselected profiles remain target-catalog backlog coverage;
+planned source identities still render their full pending envelope. A selected
+Rust profile whose link status is blocked remains pending so an unsupported
+target cannot silently look green.
 
 The baseline lock remains immutable. After a trusted fast-forward, infra must
 dispatch the allowlisted repository, tracked branch, and exact resulting SHA.
@@ -78,9 +81,11 @@ selected matrix runs on the slower sweep cadence and on demand.
 ## Immutable lane contract
 
 A tracked source-ref record binds an upstream repository, explicit branch
-name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby has
-four such planned records: `master`, `ruby_4_0`, `ruby_3_4`, and
-`ruby_3_3`; EOL `ruby_3_2` is absent.
+name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby
+`master` has an executable native GNU baseline; `ruby_4_0`, `ruby_3_4`,
+and `ruby_3_3` remain tracked pending records. EOL `ruby_3_2` is absent. A
+newer master tip is admitted only as an exact, ancestry-checked continuous
+candidate derived from that immutable baseline.
 
 A ready executable lock entry additionally binds:
 
@@ -98,9 +103,10 @@ adapter commits on their clean default branches.
 
 The pinned `ruby/setup-ruby` action supplies a prebuilt Ruby interpreter to
 run `extconf.rb`, Rake, and repository tests. That interpreter is an explicit
-external runtime input. It is not built by Zig and is not part of the fleet's
-certification claim. The claim covers only native transformations inside the
-adapter's declared source scope.
+external runtime input rather than a fleet output. The CRuby adapter builds its
+own `miniruby`, `ruby`, and shared `libruby`; certification covers those
+outputs and the native transformations inside each adapter's declared source
+scope.
 
 ## Certification boundary
 
@@ -113,6 +119,10 @@ Linux certification uses a poison `PATH`, process tracing, and wrapper receipt
 correlation. macOS currently records receipts but is not process-trace
 certified. Cross artifacts remain `build-only` until the adapter also inspects
 their ABI and, where a runner exists, executes their tests.
+
+A Ruby extension built against the GNU Ruby SDK is not a certifying musl lane,
+even when Zig emits a musl ELF artifact. That requires a target-native musl Ruby
+SDK and runtime.
 
 ## Operating sequence
 

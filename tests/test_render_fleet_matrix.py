@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 357)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 6)
+        self.assertEqual(plan.desired_jobs, 331)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 7)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 105],
+            [252, 79],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -49,7 +49,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 4 * 9)
+        self.assertEqual(len(ruby_lanes), 1 + 3 * 9)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -63,7 +63,21 @@ class FleetMatrixTests(unittest.TestCase):
                 "ruby-ruby_3_3",
             },
         )
-        self.assertTrue(all(not lane.ready for lane in ruby_lanes))
+        self.assertEqual(
+            {
+                ref_name: len(
+                    [lane for lane in ruby_lanes if lane.ref_name == ref_name]
+                )
+                for ref_name in CRUBY_REFS
+            },
+            {"master": 1, "ruby_4_0": 9, "ruby_3_4": 9, "ruby_3_3": 9},
+        )
+        ruby_master = next(lane for lane in ruby_lanes if lane.ref_name == "master")
+        self.assertTrue(ruby_master.ready)
+        self.assertEqual(ruby_master.profile["id"], "x86_64-linux-gnu.2.17")
+        self.assertTrue(
+            all(not lane.ready for lane in ruby_lanes if lane.ref_name != "master")
+        )
 
         lock = json.loads((ROOT / "config" / "fleet-lock.json").read_text())
         actual_refs = {
@@ -75,16 +89,66 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertNotIn("ruby_3_2", actual_refs)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
-            {"bigdecimal", "json", "prism"},
+            {"bigdecimal", "json", "prism", "ruby", "stringio", "strscan"},
+        )
+        self.assertEqual(
+            {source["name"]: source["profiles"] for source in lock["sources"]},
+            {
+                "bigdecimal": ["x86_64-linux-gnu.2.17"],
+                "json": ["x86_64-linux-gnu.2.17"],
+                "prism": [
+                    "x86_64-linux-gnu.2.17",
+                    "x86_64-linux-musl",
+                ],
+                "ruby": ["x86_64-linux-gnu.2.17"],
+                "stringio": ["x86_64-linux-gnu.2.17"],
+                "strscan": ["x86_64-linux-gnu.2.17"],
+            },
         )
         self.assertTrue(
-            all(
-                source["profiles"]
-                == ["x86_64-linux-gnu.2.17", "x86_64-linux-musl"]
-                and source["ruby_version"] == "3.2.3"
-                for source in lock["sources"]
-            )
+            all(source["ruby_version"] == "3.2.3" for source in lock["sources"])
         )
+        ruby_source = next(
+            source for source in lock["sources"] if source["name"] == "ruby"
+        )
+        self.assertEqual(
+            ruby_source["source_ref"],
+            "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+        )
+        self.assertTrue(ruby_source["rust"])
+        ruby_adapter = json.loads(
+            (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()
+        )
+        self.assertEqual(
+            ruby_adapter["artifacts"],
+            ["$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/cruby/**"],
+        )
+        ruby_validation = ruby_adapter["validation"]
+        self.assertEqual(
+            ruby_validation["trace_sha256"],
+            "d8c095b023b5f370456adee882aa5cdf7caf4e165d6d89fd46abb52a524949b8",
+        )
+        self.assertEqual(
+            ruby_validation["receipts_sha256"],
+            "d3bada25a85ff089863b89a952b1b90f085edb0928239fda1eda675dabf9b8bd",
+        )
+        self.assertNotIn("trace", ruby_validation)
+        self.assertNotIn("receipts", ruby_validation)
+        for name in ("bigdecimal", "json", "stringio", "strscan"):
+            adapter = json.loads(
+                (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+            )
+            musl = next(
+                profile
+                for profile in adapter["profiles"]
+                if profile["id"] == "x86_64-linux-musl"
+            )
+            self.assertEqual(musl["status"], "experimental-non-certifying")
+            self.assertEqual(
+                adapter["cross_status"],
+                "blocked-missing-target-native-musl-ruby-sdk",
+            )
+            self.assertTrue(any("GNU Ruby SDK" in gap for gap in adapter["gaps"]))
 
     def _write_fixture(
         self,

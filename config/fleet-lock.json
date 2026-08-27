@@ -349,8 +349,7 @@
       "source_ref": "9099c24e6af42c91109475217f47b77d7e830c81",
       "build_script": "adapters/repo/bigdecimal/build.sh",
       "profiles": [
-        "x86_64-linux-gnu.2.17",
-        "x86_64-linux-musl"
+        "x86_64-linux-gnu.2.17"
       ],
       "ruby_version": "3.2.3",
       "rust": false
@@ -364,8 +363,7 @@
       "source_ref": "d3c71136ca569ddc92fac5fae5dac144f21a3a13",
       "build_script": "adapters/repo/json/build.sh",
       "profiles": [
-        "x86_64-linux-gnu.2.17",
-        "x86_64-linux-musl"
+        "x86_64-linux-gnu.2.17"
       ],
       "ruby_version": "3.2.3",
       "rust": false
@@ -384,6 +382,48 @@
       ],
       "ruby_version": "3.2.3",
       "rust": true
+    },
+    {
+      "result_id": "ruby-master",
+      "name": "ruby",
+      "ref_name": "master",
+      "adapter_id": "repo/ruby",
+      "repository": "ruby-zig/ruby",
+      "source_ref": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+      "build_script": "adapters/repo/ruby/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": true
+    },
+    {
+      "result_id": "stringio-master",
+      "name": "stringio",
+      "ref_name": "master",
+      "adapter_id": "repo/stringio",
+      "repository": "ruby-zig/stringio",
+      "source_ref": "2825dc300741d34e54d59b8fd65d901828d5425d",
+      "build_script": "adapters/repo/stringio/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
+      "result_id": "strscan-master",
+      "name": "strscan",
+      "ref_name": "master",
+      "adapter_id": "repo/strscan",
+      "repository": "ruby-zig/strscan",
+      "source_ref": "63ee0ac310d6b2a89543a3e2755cd72f203bd80f",
+      "build_script": "adapters/repo/strscan/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
     }
   ]
 }

@@ -17,7 +17,7 @@ SPEC.loader.exec_module(planner)
 
 
 class ContinuousDispatchTests(unittest.TestCase):
-    def test_bigdecimal_derives_two_locked_lanes(self) -> None:
+    def test_bigdecimal_derives_its_locked_gnu_lane(self) -> None:
         candidate = "c" * 40
         plan = planner.plan_continuous(
             ROOT, "ruby-zig/bigdecimal", "master", candidate
@@ -32,13 +32,10 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(plan.build_script, "adapters/repo/bigdecimal/build.sh")
         self.assertEqual(plan.ruby_version, "3.2.3")
         self.assertFalse(plan.rust)
-        self.assertEqual(plan.ready_jobs, 2)
+        self.assertEqual(plan.ready_jobs, 1)
 
         entries = plan.matrix["include"]
-        self.assertEqual(
-            {entry["profile_id"] for entry in entries},
-            {"x86_64-linux-gnu.2.17", "x86_64-linux-musl"},
-        )
+        self.assertEqual([entry["profile_id"] for entry in entries], ["x86_64-linux-gnu.2.17"])
         self.assertTrue(all(entry["source_ref"] == candidate for entry in entries))
         self.assertTrue(
             all(entry["repository"] == "ruby-zig/bigdecimal" for entry in entries)
@@ -54,11 +51,35 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(plan.ready_jobs, 2)
         self.assertTrue(all(entry["rust"] for entry in plan.matrix["include"]))
 
-    def test_tracked_cruby_without_executable_lock_is_rejected(self) -> None:
+    def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
+        candidate = "e" * 40
+        plan = planner.plan_continuous(
+            ROOT, "ruby-zig/ruby", "master", candidate
+        )
+
+        self.assertEqual(plan.result_id, "ruby-master")
+        self.assertEqual(plan.upstream_repository, "ruby/ruby")
+        self.assertEqual(
+            plan.baseline_sha, "89d3b11eace35b8e279b970b4ff5125f171d0d4b"
+        )
+        self.assertEqual(plan.adapter_id, "repo/ruby")
+        self.assertEqual(plan.build_script, "adapters/repo/ruby/build.sh")
+        self.assertEqual(plan.ruby_version, "3.2.3")
+        self.assertTrue(plan.rust)
+        self.assertEqual(plan.ready_jobs, 1)
+        entry = plan.matrix["include"][0]
+        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+        self.assertEqual(entry["source_ref"], candidate)
+        self.assertEqual(entry["source_ref_name"], "master")
+        self.assertTrue(entry["rust"])
+
+    def test_tracked_cruby_release_without_executable_lock_is_rejected(self) -> None:
         with self.assertRaisesRegex(
             planner.renderer.PlanError, "pending.*no certified executable baseline"
         ):
-            planner.plan_continuous(ROOT, "ruby-zig/ruby", "master", "e" * 40)
+            planner.plan_continuous(
+                ROOT, "ruby-zig/ruby", "ruby_4_0", "f" * 40
+            )
 
     def test_repository_branch_and_sha_are_exactly_allowlisted(self) -> None:
         cases = (
