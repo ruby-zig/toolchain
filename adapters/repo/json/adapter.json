@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/json",
+  "repository": "ruby/json",
+  "upstream_sha": "d3c71136ca569ddc92fac5fae5dac144f21a3a13",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/json/ext/generator/extconf.rb",
+    "ext/json/ext/parser/extconf.rb"
+  ],
+  "native_scope": "project-extensions",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/json/ext/generator.so",
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/json/ext/parser.so"
+  ],
+  "feature_overrides": {
+    "JSON_DISABLE_SIMD": "1"
+  },
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "c3d37ec477db9a214e0c5c86f6cc6cfccbe3e520",
+      "trace_sha256": "f85406399ba291011d4aaed12d9a3cb457ae6fc6cd3819ac3d79bbb1e81b7f7f",
+      "receipts_sha256": "994e3328eed617b702a7bda98d6422492676a0d28003e1e0e2fa2f2299e66de7",
+      "native_receipts": 22,
+      "receipt_operations": {
+        "compile": 9,
+        "link": 13
+      },
+      "artifacts_sha256": {
+        "generator.so": "2c7f4b37a2440ecb29fc89a1844dd30417b1d600970c8a3646d5c1fc6f18e93b",
+        "parser.so": "252b250bb1bf18ec4ed57daf170df0cb1d57bb7b642d96cd89cb2aeed8870ba8"
+      },
+      "artifact_format": "ELF64 x86-64 shared objects",
+      "glibc_max": "2.14",
+      "test": "loaded both exact artifacts and verified a JSON generate/parse round trip"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "build-only",
+      "controller_sha": "c3d37ec477db9a214e0c5c86f6cc6cfccbe3e520",
+      "trace_sha256": "38db35ca6993574dee436490aed5e82ba5c224a5afe922aaaa524f08669dbfcd",
+      "receipts_sha256": "5083be2e6cd00b67ddb29534f831f886c7f873725fec7509bac741b2c3ed47aa",
+      "native_receipts": 22,
+      "receipt_operations": {
+        "compile": 9,
+        "link": 13
+      },
+      "artifacts_sha256": {
+        "generator.so": "99a0dcde4e9560f2757b257034fd951df850152e91177e1369b1aeb15b7c2bd3",
+        "parser.so": "ccee161fad3d0f7bbcee832cae1e86f1f729922c52f257d4d8316cceac8b07da"
+      }
+    }
+  ],
+  "cross_status": "x86_64-linux-musl-certified-build-only",
+  "gaps": [
+    "SIMD is disabled because Zig 0.16 cannot PIC-link JSON's __builtin_cpu_supports reference to __cpu_model",
+    "other declared profiles still need target-compatible Ruby headers and libraries"
+  ]
+}

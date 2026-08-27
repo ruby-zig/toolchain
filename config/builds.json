@@ -1,42 +1,50 @@
 {
-  "schema": 1,
+  "schema": 2,
   "owner": "ruby",
   "destination_owner": "ruby-zig",
   "native_scope_scan_date": "2026-08-26",
   "count": 190,
   "profile_source": "config/targets.json",
   "profile_count": 9,
+  "fleet_scope": {
+    "classifications": [
+      "direct-native",
+      "native-test"
+    ],
+    "repository_count": 39,
+    "source_ref_count": 42,
+    "maximum_profiles_per_source_ref": 9,
+    "maximum_desired_jobs": 378
+  },
   "sharding": {
-    "strategy": "inventory-order-contiguous",
-    "shard_count": 7,
-    "repositories_per_full_shard": 28,
-    "planning_profiles_per_repository": 9,
-    "maximum_planned_jobs_per_shard": 252
+    "strategy": "affected-lane-contiguous",
+    "shard_count": 2,
+    "jobs_per_full_shard": 252,
+    "maximum_matrix_jobs": 256,
+    "maximum_desired_jobs": 378,
+    "maximum_jobs_by_shard": [
+      252,
+      126
+    ]
   },
   "profile_policies": {
     "zig-build-only": {
-      "profiles": "all-declared",
+      "profiles": "fleet-lock-selected",
       "native_compilation": "required",
       "claim": "build-only",
       "scope": "repository-product"
     },
     "zig-test-scope-only": {
-      "profiles": "all-declared",
+      "profiles": "fleet-lock-selected",
       "native_compilation": "required",
       "claim": "build-only",
       "scope": "committed-native-tests-only"
-    },
-    "zig-fixture-scope-only": {
-      "profiles": "all-declared",
-      "native_compilation": "required",
-      "claim": "build-only",
-      "scope": "committed-fixtures-templates-examples-only"
     },
     "not-applicable": {
       "profiles": "none",
       "native_compilation": "not-applicable",
       "claim": "none",
-      "scope": "no-committed-native-source"
+      "scope": "outside-affected-native-fleet"
     }
   },
   "builds": [
@@ -50,8 +58,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "abbrev",
@@ -63,8 +70,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "actions",
@@ -76,8 +82,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "actions-coverity-scan",
@@ -89,8 +94,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "action-slack",
@@ -102,8 +106,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "all-ruby",
@@ -115,8 +118,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "b.r-l.o",
@@ -128,8 +130,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "base64",
@@ -141,8 +142,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "benchmark",
@@ -154,8 +154,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "bigdecimal",
@@ -166,9 +165,8 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/bigdecimal",
-      "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "adapter_status": "ready",
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "bitclust",
@@ -180,8 +178,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "blade.ruby-lang.org",
@@ -193,8 +190,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "bundler-graph",
@@ -206,8 +202,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "cache.r-l.o",
@@ -219,8 +214,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "cgi",
@@ -232,8 +226,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/cgi",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "chkbuild",
@@ -245,8 +238,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "cmath",
@@ -258,8 +250,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "csv",
@@ -271,8 +262,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "curses",
@@ -284,8 +274,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/curses",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "date",
@@ -297,8 +286,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/date",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "dbm",
@@ -310,8 +298,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/dbm",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "debug",
@@ -323,8 +310,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/debug",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "delegate",
@@ -336,8 +322,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "dev-meeting-log",
@@ -349,8 +334,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "did_you_mean",
@@ -362,8 +346,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "digest",
@@ -375,8 +358,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/digest",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 1
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "docker-images",
@@ -388,8 +370,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "docs.ruby-lang.org",
@@ -401,8 +382,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 1
+      "profile_policy": "not-applicable"
     },
     {
       "name": "documetrix",
@@ -414,8 +394,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "drb",
@@ -427,8 +406,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "e2mmap",
@@ -440,8 +418,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "elisp",
@@ -453,8 +430,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "elisp-rdoc-mode",
@@ -466,8 +442,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "elisp-ruby-electric",
@@ -479,8 +454,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "English",
@@ -492,8 +466,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "erb",
@@ -505,8 +478,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/erb",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "error_highlight",
@@ -518,8 +490,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "etc",
@@ -531,8 +502,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/etc",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "fcntl",
@@ -544,8 +514,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/fcntl",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "fiddle",
@@ -557,8 +526,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/fiddle",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "fileutils",
@@ -570,8 +538,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "find",
@@ -583,8 +550,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "forwardable",
@@ -596,8 +562,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "gdbm",
@@ -609,8 +574,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/gdbm",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "gem_rbs_collection",
@@ -622,8 +586,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "getoptlong",
@@ -635,8 +598,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "git.ruby-lang.org",
@@ -648,8 +610,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "gserver",
@@ -661,8 +622,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "heroku-buildpack-bugs-ruby-lang",
@@ -674,8 +634,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "heroku-buildpack-www-ruby-lang",
@@ -687,8 +646,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "iconv",
@@ -700,8 +658,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/iconv",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "io-console",
@@ -713,8 +670,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/io-console",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "io-nonblock",
@@ -726,8 +682,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/io-nonblock",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "io-wait",
@@ -739,8 +694,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/io-wait",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 2
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "ipaddr",
@@ -752,8 +706,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "irb",
@@ -765,8 +718,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 2
+      "profile_policy": "not-applicable"
     },
     {
       "name": "jruby-dev-builder",
@@ -778,8 +730,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "json",
@@ -790,9 +741,8 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/json",
-      "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 3
+      "adapter_status": "ready",
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "logger",
@@ -804,8 +754,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "logger-application",
@@ -817,8 +766,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "lrama",
@@ -828,10 +776,9 @@
       "archived": false,
       "upstream_is_fork": false,
       "classification": "fixture-template-or-example",
-      "adapter_id": "fixture/lrama",
-      "adapter_status": "planned",
-      "profile_policy": "zig-fixture-scope-only",
-      "shard": 3
+      "adapter_id": null,
+      "adapter_status": "not-applicable",
+      "profile_policy": "not-applicable"
     },
     {
       "name": "mathn",
@@ -843,8 +790,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "matrix",
@@ -856,8 +802,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "mmtk",
@@ -869,8 +814,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/mmtk",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 3
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "monitor",
@@ -882,8 +826,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "mspec",
@@ -895,8 +838,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "mutex_m",
@@ -908,8 +850,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-ftp",
@@ -921,8 +862,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-http",
@@ -934,8 +874,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-http-sspi",
@@ -947,8 +886,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-imap",
@@ -960,8 +898,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-pop",
@@ -973,8 +910,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-protocol",
@@ -986,8 +922,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-smtp",
@@ -999,8 +934,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "net-telnet",
@@ -1012,8 +946,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "nkf",
@@ -1025,8 +958,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/nkf",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 3
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "observer",
@@ -1038,8 +970,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "open3",
@@ -1051,8 +982,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "openssl",
@@ -1064,8 +994,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/openssl",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 3
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "open-uri",
@@ -1077,8 +1006,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "optparse",
@@ -1090,8 +1018,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ostruct",
@@ -1103,8 +1030,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "pathname",
@@ -1116,8 +1042,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/pathname",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 3
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "play-ruby",
@@ -1129,8 +1054,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 3
+      "profile_policy": "not-applicable"
     },
     {
       "name": "power_assert",
@@ -1142,8 +1066,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "pp",
@@ -1155,8 +1078,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "prettyprint",
@@ -1168,8 +1090,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "prime",
@@ -1181,8 +1102,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "prism",
@@ -1193,9 +1113,8 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/prism",
-      "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 4
+      "adapter_status": "ready",
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "profile",
@@ -1207,8 +1126,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "pstore",
@@ -1220,8 +1138,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "psych",
@@ -1233,8 +1150,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/psych",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 4
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "racc",
@@ -1246,8 +1162,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/racc",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 4
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "rake",
@@ -1257,10 +1172,9 @@
       "archived": false,
       "upstream_is_fork": false,
       "classification": "fixture-template-or-example",
-      "adapter_id": "fixture/rake",
-      "adapter_status": "planned",
-      "profile_policy": "zig-fixture-scope-only",
-      "shard": 4
+      "adapter_id": null,
+      "adapter_status": "not-applicable",
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rake-contrib",
@@ -1272,8 +1186,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rbmanager",
@@ -1285,8 +1198,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rbs",
@@ -1298,8 +1210,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/rbs",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 4
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "rbs_json_schema",
@@ -1311,8 +1222,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc",
@@ -1324,8 +1234,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc_chm",
@@ -1337,8 +1246,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-browser",
@@ -1350,8 +1258,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-data",
@@ -1363,8 +1270,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-generators",
@@ -1376,8 +1282,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-html_templates",
@@ -1389,8 +1294,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-perl_pod",
@@ -1402,8 +1306,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-rake",
@@ -1415,8 +1318,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-sinatra",
@@ -1428,8 +1330,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-spellcheck",
@@ -1441,8 +1342,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-tags",
@@ -1454,8 +1354,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rdoc-texinfo",
@@ -1467,8 +1366,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "readline",
@@ -1480,8 +1378,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 4
+      "profile_policy": "not-applicable"
     },
     {
       "name": "readline-ext",
@@ -1493,8 +1390,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/readline-ext",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 4
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "redmine_elasticsearch",
@@ -1506,8 +1402,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_link_to_root",
@@ -1519,8 +1414,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_mailing_list_integration",
@@ -1532,8 +1426,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_mailing_list_integration_imap_supplement",
@@ -1545,8 +1438,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_rd_formatter",
@@ -1558,8 +1450,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_ruby_lang_mailing_list_customization",
@@ -1571,8 +1462,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "redmine_s3",
@@ -1584,8 +1474,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "reline",
@@ -1597,8 +1486,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "repl_type_completor",
@@ -1610,8 +1498,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "resolv",
@@ -1623,8 +1510,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/resolv",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 5
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "resolv-replace",
@@ -1636,8 +1522,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rexml",
@@ -1649,8 +1534,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rinda",
@@ -1662,8 +1546,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rjit",
@@ -1675,8 +1558,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rss",
@@ -1688,8 +1570,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby",
@@ -1701,8 +1582,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/ruby",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 5
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "ruby.wasm",
@@ -1714,8 +1594,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/ruby.wasm",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 5
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "ruby2_keywords",
@@ -1727,8 +1606,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-bench",
@@ -1740,8 +1618,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-builder",
@@ -1753,8 +1630,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubyci",
@@ -1766,8 +1642,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubyci-alerts",
@@ -1779,8 +1654,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-ci-image",
@@ -1792,8 +1666,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-core-tasks",
@@ -1805,8 +1678,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-dev-builder",
@@ -1818,8 +1690,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubygems",
@@ -1829,10 +1700,9 @@
       "archived": false,
       "upstream_is_fork": false,
       "classification": "fixture-template-or-example",
-      "adapter_id": "fixture/rubygems",
-      "adapter_status": "planned",
-      "profile_policy": "zig-fixture-scope-only",
-      "shard": 5
+      "adapter_id": null,
+      "adapter_status": "not-applicable",
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubygems-generate_index",
@@ -1844,8 +1714,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubygems-mirror",
@@ -1857,8 +1726,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 5
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubygems-server",
@@ -1870,8 +1738,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "ruby-infra-recipe",
@@ -1883,8 +1750,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rubyspec.github.io",
@@ -1896,8 +1762,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "rurema-search",
@@ -1909,8 +1774,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "scanf",
@@ -1922,8 +1786,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "sdbm",
@@ -1935,8 +1798,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/sdbm",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 6
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "securerandom",
@@ -1948,8 +1810,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "set",
@@ -1961,8 +1822,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "setup-msys2-gcc",
@@ -1974,8 +1834,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "setup-ruby",
@@ -1987,8 +1846,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "setup-ruby-pkgs",
@@ -2000,8 +1858,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "shell",
@@ -2013,8 +1870,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "shellwords",
@@ -2026,8 +1882,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "simplecov",
@@ -2039,8 +1894,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "singleton",
@@ -2052,8 +1906,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "snap.ruby",
@@ -2065,8 +1918,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "spec",
@@ -2078,8 +1930,7 @@
       "classification": "native-test",
       "adapter_id": "test/spec",
       "adapter_status": "planned",
-      "profile_policy": "zig-test-scope-only",
-      "shard": 6
+      "profile_policy": "zig-test-scope-only"
     },
     {
       "name": "stringio",
@@ -2091,8 +1942,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/stringio",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 6
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "strscan",
@@ -2104,8 +1954,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/strscan",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 6
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "syck",
@@ -2117,8 +1966,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/syck",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 6
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "sync",
@@ -2130,8 +1978,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "syntax_suggest",
@@ -2143,8 +1990,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "syslog",
@@ -2156,8 +2002,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/syslog",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 6
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "tempfile",
@@ -2169,8 +2014,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "test-unit-ruby-core",
@@ -2182,8 +2026,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "thwait",
@@ -2195,8 +2038,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "time",
@@ -2208,8 +2050,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "timeout",
@@ -2221,8 +2062,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 6
+      "profile_policy": "not-applicable"
     },
     {
       "name": "tk",
@@ -2234,8 +2074,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/tk",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 7
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "tmpdir",
@@ -2247,8 +2086,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "tracer",
@@ -2260,8 +2098,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "truffleruby-dev-builder",
@@ -2273,8 +2110,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "TryRuby",
@@ -2286,8 +2122,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "tsort",
@@ -2299,8 +2134,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "typeprof",
@@ -2312,8 +2146,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "un",
@@ -2325,8 +2158,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "uri",
@@ -2338,8 +2170,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "vscode-rdbg",
@@ -2351,8 +2182,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "vscode-typeprof",
@@ -2364,8 +2194,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "vterm-gem",
@@ -2377,8 +2206,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/vterm-gem",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 7
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "weakref",
@@ -2390,8 +2218,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "webrick",
@@ -2403,8 +2230,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "win32api",
@@ -2416,8 +2242,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "win32ole",
@@ -2429,8 +2254,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/win32ole",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 7
+      "profile_policy": "zig-build-only"
     },
     {
       "name": "win32-registry",
@@ -2442,8 +2266,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "www.ruby-lang.org",
@@ -2455,8 +2278,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "xmlrpc",
@@ -2468,8 +2290,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "yamatanooroti",
@@ -2481,8 +2302,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "yaml",
@@ -2494,8 +2314,7 @@
       "classification": "no-committed-native",
       "adapter_id": null,
       "adapter_status": "not-applicable",
-      "profile_policy": "not-applicable",
-      "shard": 7
+      "profile_policy": "not-applicable"
     },
     {
       "name": "zlib",
@@ -2507,8 +2326,7 @@
       "classification": "direct-native",
       "adapter_id": "repo/zlib",
       "adapter_status": "planned",
-      "profile_policy": "zig-build-only",
-      "shard": 7
+      "profile_policy": "zig-build-only"
     }
   ]
 }

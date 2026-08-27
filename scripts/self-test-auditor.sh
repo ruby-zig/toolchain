@@ -84,4 +84,16 @@ printf 'time=2026-01-01T00:00:00Z\tpid=7\ttool=cc\ttarget=native\toperation=comp
 RZ_ZIG="$fake_zig" "$root/scripts/check-trace.sh" \
   "$work/descendant-trace" "$work/descendant-receipts" >/dev/null
 
+cat >"$work/thread-fork-trace" <<EOF
+41  execve("$fake_zig", ["fake-zig", "cc", "-c", "good.c"], 0x0) = 0
+41  clone(child_stack=0x1, flags=CLONE_VM|CLONE_THREAD) = 42
+42  fork() = 43
+43  execve("$fake_zig", ["fake-zig", "clang", "-cc1", "good.c"], 0x0) = 0
+EOF
+mkdir -p "$work/thread-fork-receipts"
+printf 'time=2026-01-01T00:00:00Z\tpid=41\ttool=cc\ttarget=native\toperation=compile\tcwd=/tmp\targv=-c good.c\n' \
+  >"$work/thread-fork-receipts/invocations.tsv"
+RZ_ZIG="$fake_zig" "$root/scripts/check-trace.sh" \
+  "$work/thread-fork-trace" "$work/thread-fork-receipts" >/dev/null
+
 printf 'auditor negative controls passed\n'

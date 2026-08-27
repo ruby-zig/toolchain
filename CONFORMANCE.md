@@ -11,9 +11,9 @@ lanes are receipt-only and are not process-trace certified.
 Certification runs only for owner-controlled `push`, `workflow_dispatch`, and
 `schedule` events. Pull requests receive static and advisory checks, but the
 reusable workflow rejects both `pull_request` and `pull_request_target`
-contexts. Repository source and its build adapter share a runner workspace with
-the verifier, so untrusted pull-request code cannot produce certification
-evidence until those roles are isolated.
+contexts. Repository source and the controller-owned build adapter share a runner
+workspace with the verifier, so untrusted pull-request code cannot produce
+certification evidence until those roles are isolated.
 
 ## Required compiler boundary
 
@@ -29,13 +29,18 @@ For the declared source scope:
   `CXX`, and `AR` wrappers.
 
 Platform SDKs, libc, Zig runtime libraries, Rust standard libraries, generators,
-and read-only inspection tools are declared inputs. Prebuilt third-party native
-libraries are not allowed in an exclusive lane unless the profile explicitly
-marks them as platform inputs.
+the declared Ruby runtime, and read-only inspection tools are external inputs.
+Prebuilt third-party native libraries are not allowed in an exclusive lane
+unless the profile explicitly marks them as platform inputs.
 
-Pure Ruby, documentation, JavaScript, and metadata repositories are recorded as
-`not-applicable` for native compilation. Their test lanes still run with the
-Ruby interpreter produced by the certified CRuby profile.
+Every ready lock entry declares an exact numeric Ruby `x.y.z` version. A
+commit-pinned `ruby/setup-ruby` action installs that prebuilt interpreter to
+drive `extconf.rb`, Rake, and tests. The interpreter is not built by this
+fleet, and a green lane does not certify CRuby itself as Zig-built.
+
+Pure Ruby, documentation, JavaScript, metadata, and fixture-only repositories
+remain in discovery but do not create build lanes. They are recorded as
+`not-applicable` for the affected native fleet.
 
 For musl Rust targets, `rustc -C link-self-contained=no` delegates the platform
 CRT and native system libraries to the Zig driver. Rust still supplies its
@@ -53,8 +58,9 @@ for affected Cortex-A53 hardware before that point.
 ## Evidence required for a green build-only result
 
 1. Start from a clean checkout and empty output/cache directories.
-2. Record the upstream SHA, fork SHA, Zig version and archive digest, Rust
-   version when used, runner image, target profile, and dependency lock state.
+2. Record the upstream SHA, fork SHA, Zig version and archive digest, exact
+   external Ruby runtime, Rust version when used, runner image, target profile,
+   and dependency lock state.
 3. Put failing shims for common host compilers and linkers on `PATH`.
 4. On Linux certification jobs, trace process creation and execution and reject
    direct or absolute invocations of foreign C-family compilers, linkers, and
@@ -104,8 +110,12 @@ promote any current profile beyond `build-only`.
 - Cargo profiles configure both the Rust target linker and `cc-rs` variables.
   Host build scripts/proc macros and target crates are kept separate by an
   explicit Cargo `--target`.
-- Repository adapters use fail-fast shell behavior and never suppress a failed
-  compiler, linker, archiver, or native test command.
+- Repository adapters are loaded from the pinned controller's `adapters/`
+  tree and run with the source checkout as their working directory.
+  `RZ_SOURCE_REF_NAME` is a trusted, validated tracked-branch identity that an
+  adapter may use for branch-specific configuration. Adapters use fail-fast
+  shell behavior and never suppress a failed compiler, linker, archiver, or
+  native test command.
 - Linker-plugin LTO is disabled until the Rust and Zig LLVM boundaries are
   proven compatible for the pinned versions.
 - C++ runtime selection is explicit; libc++ and libstdc++ are never mixed by

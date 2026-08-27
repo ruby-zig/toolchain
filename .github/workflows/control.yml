@@ -22,10 +22,23 @@ jobs:
         run: bash scripts/validate-config.sh
       - name: Check shell syntax
         shell: bash
-        run: bash -n scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+        run: |
+          mapfile -d '' -t adapter_scripts < <(
+            find adapters -type f -name '*.sh' -print0
+          )
+          (( ${#adapter_scripts[@]} > 0 ))
+          bash -n scripts/*.sh tests/*.sh tests/smoke/*.sh toolchain/bin/* \
+            "${adapter_scripts[@]}"
       - name: Lint shell scripts
         shell: bash
-        run: shellcheck -x -P scripts -P toolchain/bin -e SC2034 scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+        run: |
+          mapfile -d '' -t adapter_scripts < <(
+            find adapters -type f -name '*.sh' -print0
+          )
+          (( ${#adapter_scripts[@]} > 0 ))
+          shellcheck -x -P scripts -P toolchain/bin -e SC2034 \
+            scripts/*.sh tests/*.sh tests/smoke/*.sh toolchain/bin/* \
+            "${adapter_scripts[@]}"
       - name: Test wrappers and auditor
         shell: bash
         run: |

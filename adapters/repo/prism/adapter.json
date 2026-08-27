@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/prism",
+  "repository": "ruby/prism",
+  "upstream_sha": "5f4d15620500f71d9995dc1fd33cd916bb2ff16f",
+  "build_system": "ruby-templates-gnu-make-cargo",
+  "entrypoints": [
+    "ruby templates/template.rb",
+    "make all SOEXT=so",
+    "$CXX cpp/test.cpp build/static/*.o",
+    "cargo test --locked --workspace --target $RZ_RUST_TARGET"
+  ],
+  "native_scope": "c-cxx-and-rust-ffi",
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "run-verified"
+    }
+  ],
+  "cross_status": "x86_64-linux-musl-run-verified",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "rust": "1.98.0",
+    "process_audit": "passed",
+    "cpp_smoke": "passed",
+    "rust_tests": "48 passed",
+    "gnu_abi_ceiling": "GLIBC_2.17",
+    "musl_test_linkage": "static"
+  },
+  "limitations": [
+    "Profiles other than x86_64-linux-gnu.2.17 and x86_64-linux-musl are not yet validated",
+    "Rust source is compiled by pinned rustc; Zig supplies native dependency compilation and final linking"
+  ]
+}

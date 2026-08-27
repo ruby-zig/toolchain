@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render immutable, size-bounded matrices for the public runner fleet."""
+"""Render immutable, size-bounded matrices for the affected native fleet."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import json
 import math
 import re
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,11 +16,14 @@ from typing import Any
 
 MATRIX_LIMIT = 256
 SHARD_SIZE = 252
-SHARD_COUNT = 7
-NATIVE_CLASSIFICATIONS = {
+SHARD_COUNT = 2
+FLEET_CLASSIFICATIONS = {
     "direct-native",
     "native-test",
+}
+DISCOVERY_CLASSIFICATIONS = FLEET_CLASSIFICATIONS | {
     "fixture-template-or-example",
+    "no-committed-native",
 }
 STANDARD_RUNNERS = {
     "ubuntu-24.04",
@@ -28,16 +31,39 @@ STANDARD_RUNNERS = {
     "macos-15",
     "macos-15-intel",
 }
-SOURCE_KEYS = {
+LOCK_KEYS = {
+    "schema",
+    "destination_owner",
+    "source_refs",
+    "sources",
+}
+SOURCE_REF_KEYS = {
+    "result_id",
     "name",
+    "repository",
+    "ref_name",
+    "source_ref",
+    "rust",
+}
+SOURCE_KEYS = {
+    "result_id",
+    "name",
+    "ref_name",
     "adapter_id",
     "repository",
     "source_ref",
     "build_script",
+    "profiles",
+    "ruby_version",
     "rust",
 }
 SAFE_PATH = re.compile(r"^[A-Za-z0-9._][A-Za-z0-9._/-]*$")
+SAFE_REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]*$")
+SAFE_RESULT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 FULL_SHA = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+RUBY_VERSION = re.compile(
+    r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$"
+)
 
 
 class DuplicateKeyError(ValueError):
@@ -72,30 +98,147 @@ def compact(value: Any) -> str:
     return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
 
 
-def safe_evidence_id(name: str, profile_id: str, source_ref: str) -> str:
-    raw = f"{name}-{profile_id}-{source_ref[:12]}".lower()
+def safe_evidence_id(result_id: str, profile_id: str, source_ref: str) -> str:
+    raw = f"{result_id}-{profile_id}-{source_ref[:12]}".lower()
     return re.sub(r"[^a-z0-9._-]+", "-", raw).strip("-.")
 
 
-def validate_build_script(path: Any, label: str) -> str:
+def validate_ref_name(value: Any, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or not SAFE_REF_NAME.fullmatch(value)
+        or value.endswith("/")
+        or value.endswith(".")
+        or "//" in value
+        or ".." in value
+        or "@{" in value
+        or value.endswith(".lock")
+        or any(part in {".", ".."} for part in value.split("/"))
+    ):
+        raise PlanError(f"{label}: invalid ref_name")
+    return value
+
+
+def validate_build_script(root: Path, path: Any, label: str) -> str:
     if not isinstance(path, str) or not SAFE_PATH.fullmatch(path):
         raise PlanError(f"{label}: invalid build_script")
     if path.startswith("/") or "//" in path or ".." in path.split("/"):
-        raise PlanError(f"{label}: build_script must stay within the fork")
+        raise PlanError(f"{label}: build_script must stay within adapters/")
+    if not path.startswith("adapters/"):
+        raise PlanError(f"{label}: build_script must be controller-relative under adapters/")
+
+    adapters_root = (root / "adapters").resolve()
+    candidate = (root / path).resolve()
+    if adapters_root not in candidate.parents or not candidate.is_file():
+        raise PlanError(f"{label}: build_script must name an existing file under adapters/")
     return path
 
 
-def load_sources(lock: dict[str, Any], builds_by_name: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    if lock.get("schema") != 1:
-        raise PlanError("config/fleet-lock.json: schema must be 1")
+def load_source_refs(
+    lock: dict[str, Any],
+    builds_by_name: dict[str, dict[str, Any]],
+) -> dict[tuple[str, str], dict[str, Any]]:
+    if lock.get("schema") != 2:
+        raise PlanError("config/fleet-lock.json: schema must be 2")
+    missing = sorted(LOCK_KEYS - lock.keys())
+    extra = sorted(lock.keys() - LOCK_KEYS)
+    if missing or extra:
+        details = []
+        if missing:
+            details.append(f"missing {', '.join(missing)}")
+        if extra:
+            details.append(f"unexpected {', '.join(extra)}")
+        raise PlanError(f"config/fleet-lock.json: {'; '.join(details)}")
+
     owner = lock.get("destination_owner")
-    if not isinstance(owner, str) or not owner:
-        raise PlanError("config/fleet-lock.json: destination_owner must be a string")
+    if owner != "ruby-zig":
+        raise PlanError(
+            "config/fleet-lock.json: destination_owner must be exactly ruby-zig"
+        )
+    entries = lock.get("source_refs")
+    if not isinstance(entries, list):
+        raise PlanError("config/fleet-lock.json: source_refs must be an array")
+
+    result: dict[tuple[str, str], dict[str, Any]] = {}
+    result_ids: set[str] = set()
+    for index, entry in enumerate(entries):
+        label = f"fleet-lock source_ref {index}"
+        if not isinstance(entry, dict):
+            raise PlanError(f"{label}: entry must be an object")
+        missing = sorted(SOURCE_REF_KEYS - entry.keys())
+        extra = sorted(entry.keys() - SOURCE_REF_KEYS)
+        if missing or extra:
+            details = []
+            if missing:
+                details.append(f"missing {', '.join(missing)}")
+            if extra:
+                details.append(f"unexpected {', '.join(extra)}")
+            raise PlanError(f"{label}: {'; '.join(details)}")
+
+        name = entry.get("name")
+        if not isinstance(name, str) or name not in builds_by_name:
+            raise PlanError(f"{label}: unknown repository {name!r}")
+        build = builds_by_name[name]
+        if build.get("classification") not in FLEET_CLASSIFICATIONS:
+            raise PlanError(f"{name}: source_ref is outside the affected native fleet")
+        if entry["repository"] != build.get("upstream"):
+            raise PlanError(
+                f"{name}: source_ref repository must be {build.get('upstream')}"
+            )
+
+        ref_name = validate_ref_name(entry.get("ref_name"), label)
+        key = (name, ref_name)
+        if key in result:
+            raise PlanError(f"{name}: duplicate tracked ref {ref_name}")
+
+        result_id = entry.get("result_id")
+        if not isinstance(result_id, str) or not SAFE_RESULT_ID.fullmatch(result_id):
+            raise PlanError(f"{label}: invalid result_id")
+        if result_id in result_ids:
+            raise PlanError(f"config/fleet-lock.json: duplicate result_id {result_id}")
+
+        source_ref = entry.get("source_ref")
+        if not isinstance(source_ref, str) or not FULL_SHA.fullmatch(source_ref):
+            raise PlanError(f"{result_id}: source_ref must be a lowercase full commit SHA")
+        if not isinstance(entry.get("rust"), bool):
+            raise PlanError(f"{result_id}: rust must be boolean")
+
+        result[key] = entry
+        result_ids.add(result_id)
+
+    for name, build in builds_by_name.items():
+        if build.get("classification") not in FLEET_CLASSIFICATIONS:
+            continue
+        if name == "ruby":
+            expected = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3"}
+        else:
+            expected = {build.get("default_branch")}
+        actual = {
+            ref_name
+            for (repository_name, ref_name) in result
+            if repository_name == name
+        }
+        if actual != expected:
+            raise PlanError(
+                f"{name}: tracked refs {sorted(actual)!r} must be exactly "
+                f"{sorted(expected)!r}"
+            )
+    return result
+
+
+def load_sources(
+    root: Path,
+    lock: dict[str, Any],
+    builds_by_name: dict[str, dict[str, Any]],
+    profile_by_id: dict[str, dict[str, Any]],
+    source_refs: dict[tuple[str, str], dict[str, Any]],
+) -> dict[tuple[str, str], dict[str, Any]]:
+    owner = lock["destination_owner"]
     sources = lock.get("sources")
     if not isinstance(sources, list):
         raise PlanError("config/fleet-lock.json: sources must be an array")
 
-    result: dict[str, dict[str, Any]] = {}
+    result: dict[tuple[str, str], dict[str, Any]] = {}
     for index, source in enumerate(sources):
         label = f"fleet-lock source {index}"
         if not isinstance(source, dict):
@@ -103,40 +246,69 @@ def load_sources(lock: dict[str, Any], builds_by_name: dict[str, dict[str, Any]]
         missing = sorted(SOURCE_KEYS - source.keys())
         extra = sorted(source.keys() - SOURCE_KEYS)
         if missing or extra:
-            parts = []
+            details = []
             if missing:
-                parts.append(f"missing {', '.join(missing)}")
+                details.append(f"missing {', '.join(missing)}")
             if extra:
-                parts.append(f"unexpected {', '.join(extra)}")
-            raise PlanError(f"{label}: {'; '.join(parts)}")
+                details.append(f"unexpected {', '.join(extra)}")
+            raise PlanError(f"{label}: {'; '.join(details)}")
 
         name = source.get("name")
         if not isinstance(name, str) or name not in builds_by_name:
             raise PlanError(f"{label}: unknown repository {name!r}")
-        if name in result:
-            raise PlanError(f"config/fleet-lock.json: duplicate source {name}")
+        ref_name = validate_ref_name(source.get("ref_name"), label)
+        key = (name, ref_name)
+        if key in result:
+            raise PlanError(f"{name}: duplicate executable source for {ref_name}")
 
         build = builds_by_name[name]
+        if build.get("classification") not in FLEET_CLASSIFICATIONS:
+            raise PlanError(f"{name}: source lock is outside the affected native fleet")
+        tracked = source_refs.get(key)
+        if tracked is None:
+            raise PlanError(f"{name}@{ref_name}: executable source has no tracked source_ref")
+        for field in ("result_id", "source_ref", "rust"):
+            if source[field] != tracked[field]:
+                raise PlanError(
+                    f"{name}@{ref_name}: source {field} differs from tracked source_ref"
+                )
+
+        result_id = source["result_id"]
         if source["adapter_id"] != build.get("adapter_id"):
-            raise PlanError(f"{name}: lock adapter_id differs from config/builds.json")
+            raise PlanError(f"{result_id}: lock adapter_id differs from config/builds.json")
         expected_repository = f"{owner}/{name}"
         if source["repository"] != expected_repository:
             raise PlanError(
-                f"{name}: repository must be the exact fork {expected_repository}"
+                f"{result_id}: repository must be the exact fork {expected_repository}"
             )
-        source_ref = source["source_ref"]
-        if not isinstance(source_ref, str) or not FULL_SHA.fullmatch(source_ref):
-            raise PlanError(f"{name}: source_ref must be a lowercase full commit SHA")
-        validate_build_script(source["build_script"], name)
-        if not isinstance(source["rust"], bool):
-            raise PlanError(f"{name}: rust must be boolean")
-        result[name] = source
-    return result
+        validate_build_script(root, source["build_script"], result_id)
 
+        requested_profiles = source["profiles"]
+        if (
+            not isinstance(requested_profiles, list)
+            or not requested_profiles
+            or not all(isinstance(profile, str) and profile for profile in requested_profiles)
+        ):
+            raise PlanError(f"{result_id}: profiles must be a nonempty array of target ids")
+        if len(requested_profiles) != len(set(requested_profiles)):
+            raise PlanError(f"{result_id}: profiles must not contain duplicates")
+        unknown_profiles = sorted(set(requested_profiles) - profile_by_id.keys())
+        if unknown_profiles:
+            raise PlanError(
+                f"{result_id}: unknown requested profiles: {', '.join(unknown_profiles)}"
+            )
+
+        ruby_version = source["ruby_version"]
+        if not isinstance(ruby_version, str) or not RUBY_VERSION.fullmatch(ruby_version):
+            raise PlanError(f"{result_id}: ruby_version must be an exact numeric x.y.z")
+        result[key] = source
+    return result
 
 @dataclass(frozen=True)
 class Lane:
     name: str
+    result_id: str
+    ref_name: str | None
     profile: dict[str, Any]
     classification: str
     ready: bool
@@ -149,8 +321,10 @@ class FleetPlan:
     lanes: tuple[Lane, ...]
     shard_count: int
     active_shards: int
-    native_repositories: int
-    host_repositories: int
+    discovery_repositories: int
+    fleet_repositories: int
+    source_identities: int
+    maximum_jobs: int
 
     @property
     def desired_jobs(self) -> int:
@@ -178,6 +352,9 @@ def plan_fleet(root: Path) -> FleetPlan:
             raise PlanError("config/builds.json: every build needs a name")
         if name in builds_by_name:
             raise PlanError(f"config/builds.json: duplicate build {name}")
+        classification = build.get("classification")
+        if classification not in DISCOVERY_CLASSIFICATIONS:
+            raise PlanError(f"{name}: unknown classification {classification!r}")
         builds_by_name[name] = build
 
     profile_by_id: dict[str, dict[str, Any]] = {}
@@ -206,78 +383,80 @@ def plan_fleet(root: Path) -> FleetPlan:
 
     if len(matrix_profiles) != builds_document.get("profile_count"):
         raise PlanError("config/builds.json: profile_count differs from targets")
-    host_profile_id = lock.get("host_profile")
-    if host_profile_id not in profile_by_id:
-        raise PlanError("config/fleet-lock.json: host_profile is not declared in targets")
-    host_profile = profile_by_id[host_profile_id]
-    if host_profile["runner"] != "ubuntu-24.04":
-        raise PlanError("the host build/test profile must use ubuntu-24.04")
 
-    sources = load_sources(lock, builds_by_name)
+    source_refs = load_source_refs(lock, builds_by_name)
+    sources = load_sources(root, lock, builds_by_name, profile_by_id, source_refs)
+    refs_by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for (name, _), source_ref in source_refs.items():
+        refs_by_name[name].append(source_ref)
+
     lanes: list[Lane] = []
-    native_repositories = 0
-    host_repositories = 0
+    fleet_repositories = 0
+    source_identities = 0
 
     for build in builds:
         name = build["name"]
-        classification = build.get("classification")
-        adapter_status = build.get("adapter_status")
-        source = sources.get(name)
+        classification = build["classification"]
+        if classification not in FLEET_CLASSIFICATIONS:
+            continue
 
-        if classification in NATIVE_CLASSIFICATIONS:
-            native_repositories += 1
-            desired_profiles = matrix_profiles
+        fleet_repositories += 1
+        adapter_status = build.get("adapter_status")
+        variants: list[dict[str, Any] | None] = refs_by_name.get(name) or [None]
+        source_identities += len(variants)
+
+        for tracked in variants:
+            result_id = tracked["result_id"] if tracked is not None else name
+            ref_name = tracked["ref_name"] if tracked is not None else None
+            source = sources.get((name, ref_name)) if ref_name is not None else None
+            if source is None:
+                desired_profiles = matrix_profiles
+            else:
+                selected = set(source["profiles"])
+                desired_profiles = [
+                    profile for profile in matrix_profiles if profile["id"] in selected
+                ]
+
             if adapter_status == "ready" and source is not None:
                 ready, reason = True, None
+            elif adapter_status == "ready" and tracked is not None:
+                ready, reason = False, "tracked source ref lacks a certified adapter lock"
             elif adapter_status == "ready":
                 ready, reason = False, "ready adapter lacks an immutable source lock"
             elif adapter_status == "planned":
                 ready, reason = False, "native adapter is planned"
             else:
                 ready, reason = False, f"native adapter status is {adapter_status!r}"
-        elif classification == "no-committed-native":
-            host_repositories += 1
-            desired_profiles = [host_profile]
-            if adapter_status == "ready" and build.get("profile_policy") == "zig-host-build-test" and source is not None:
-                ready, reason = True, None
-            elif adapter_status == "ready" and source is None:
-                ready, reason = False, "ready host adapter lacks an immutable source lock"
-            elif adapter_status in {"planned", "ready"}:
-                ready, reason = False, "host build/test adapter is incomplete"
-            elif adapter_status == "not-applicable":
-                ready, reason = False, "host build/test adapter is not declared"
-            else:
-                ready, reason = False, f"host adapter status is {adapter_status!r}"
-        else:
-            raise PlanError(f"{name}: unknown classification {classification!r}")
+            if source is not None and adapter_status != "ready":
+                reason = f"{reason}; source lock is present before adapter is ready"
 
-        if source is not None and not ready and adapter_status != "ready":
-            reason = f"{reason}; source lock is present before adapter is ready"
-
-        for profile in desired_profiles:
-            lane_ready = ready
-            lane_reason = reason
-            if (
-                lane_ready
-                and source is not None
-                and source["rust"]
-                and profile["rust_link_status"] == "blocked"
-            ):
-                lane_ready = False
-                lane_reason = (
-                    f"Rust final linking is blocked for profile {profile['id']}"
+            for profile in desired_profiles:
+                lane_ready = ready
+                lane_reason = reason
+                if (
+                    lane_ready
+                    and source is not None
+                    and source["rust"]
+                    and profile["rust_link_status"] == "blocked"
+                ):
+                    lane_ready = False
+                    lane_reason = (
+                        f"Rust final linking is blocked for profile {profile['id']}"
+                    )
+                lanes.append(
+                    Lane(
+                        name=name,
+                        result_id=result_id,
+                        ref_name=ref_name,
+                        profile=profile,
+                        classification=classification,
+                        ready=lane_ready,
+                        reason=lane_reason,
+                        source=source if lane_ready else None,
+                    )
                 )
-            lanes.append(
-                Lane(
-                    name=name,
-                    profile=profile,
-                    classification=classification,
-                    ready=lane_ready,
-                    reason=lane_reason,
-                    source=source if lane_ready else None,
-                )
-            )
 
+    maximum_jobs = source_identities * len(matrix_profiles)
     active_shards = math.ceil(len(lanes) / SHARD_SIZE)
     if SHARD_SIZE >= MATRIX_LIMIT:
         raise PlanError("internal shard size must stay below GitHub's matrix limit")
@@ -285,20 +464,22 @@ def plan_fleet(root: Path) -> FleetPlan:
         raise PlanError(
             f"fleet requires {active_shards} shards, but only {SHARD_COUNT} are declared"
         )
-    future_envelope = len(builds) * len(matrix_profiles)
-    if future_envelope > SHARD_COUNT * SHARD_SIZE:
-        raise PlanError("seven shards do not cover the all-repository target envelope")
+    if maximum_jobs > SHARD_COUNT * SHARD_SIZE:
+        raise PlanError("two shards do not cover the affected native target envelope")
 
     return FleetPlan(
         lanes=tuple(lanes),
         shard_count=SHARD_COUNT,
         active_shards=active_shards,
-        native_repositories=native_repositories,
-        host_repositories=host_repositories,
+        discovery_repositories=len(builds),
+        fleet_repositories=fleet_repositories,
+        source_identities=source_identities,
+        maximum_jobs=maximum_jobs,
     )
 
-
 def shard_lanes(plan: FleetPlan, shard: int) -> tuple[Lane, ...]:
+    if shard < 1 or shard > plan.shard_count:
+        raise PlanError(f"shard must be between 1 and {plan.shard_count}")
     start = (shard - 1) * SHARD_SIZE
     return plan.lanes[start : start + SHARD_SIZE]
 
@@ -309,17 +490,20 @@ def matrix_entry(lane: Lane) -> dict[str, Any]:
     profile_id = lane.profile["id"]
     source_ref = lane.source["source_ref"]
     return {
-        "allow_no_native": lane.classification == "no-committed-native",
+        "allow_no_native": False,
         "build_script": lane.source["build_script"],
-        "evidence_id": safe_evidence_id(lane.name, profile_id, source_ref),
+        "evidence_id": safe_evidence_id(lane.result_id, profile_id, source_ref),
         "profile_id": profile_id,
+        "result_id": lane.result_id,
         "profiles": compact(
             [{"id": profile_id, "runner": lane.profile["runner"]}]
         ),
         "repository": lane.source["repository"],
+        "ruby_version": lane.source["ruby_version"],
         "runner": lane.profile["runner"],
         "rust": lane.source["rust"],
         "source_ref": source_ref,
+        "source_ref_name": lane.ref_name,
     }
 
 
@@ -329,10 +513,11 @@ def shard_summary(plan: FleetPlan, shard: int) -> tuple[str, dict[str, str]]:
     pending = [lane for lane in lanes if not lane.ready]
     pending_by_reason: dict[str, set[str]] = defaultdict(set)
     for lane in pending:
-        pending_by_reason[lane.reason or "adapter is not ready"].add(lane.name)
+        pending_by_reason[lane.reason or "adapter is not ready"].add(lane.result_id)
 
     matrix = {"include": [matrix_entry(lane) for lane in ready]}
-    pending_names = sorted({lane.name for lane in pending}, key=str.casefold)
+    pending_ids = sorted({lane.result_id for lane in pending}, key=str.casefold)
+    pending_repositories = sorted({lane.name for lane in pending}, key=str.casefold)
     lines = [
         f"### Fleet shard {shard}",
         "",
@@ -341,14 +526,16 @@ def shard_summary(plan: FleetPlan, shard: int) -> tuple[str, dict[str, str]]:
         f"| Desired lanes | {len(lanes)} |",
         f"| Ready lanes | {len(ready)} |",
         f"| Pending lanes | {len(pending)} |",
-        f"| Pending repositories | {len(pending_names)} |",
+        f"| Pending source identities | {len(pending_ids)} |",
+        f"| Pending repositories | {len(pending_repositories)} |",
         "",
         (
-            f"Current plan: {plan.native_repositories} native repositories across all "
-            f"declared targets, plus one host build/test for each of "
-            f"{plan.host_repositories} repositories without committed native source. "
-            f"That is {plan.desired_jobs} lanes in {plan.active_shards} active shards; "
-            f"seven shards reserve the full future target envelope."
+            f"Current plan: {plan.fleet_repositories} affected native repositories "
+            f"and {plan.source_identities} source identities from a "
+            f"{plan.discovery_repositories}-repository discovery inventory. "
+            f"Adapters currently request {plan.desired_jobs} of at most "
+            f"{plan.maximum_jobs} target lanes in {plan.active_shards} active shards. "
+            "Pure-host and fixture-only repositories do not create build lanes."
         ),
     ]
     if pending_by_reason:
@@ -364,7 +551,7 @@ def shard_summary(plan: FleetPlan, shard: int) -> tuple[str, dict[str, str]]:
         "desired_jobs": str(len(lanes)),
         "matrix": compact(matrix),
         "pending_jobs": str(len(pending)),
-        "pending_repositories": str(len(pending_names)),
+        "pending_repositories": str(len(pending_repositories)),
         "ready_jobs": str(len(ready)),
     }
     return "\n".join(lines) + "\n", outputs
@@ -395,8 +582,11 @@ def main() -> int:
         if args.check:
             print(
                 f"fleet plan valid: desired={plan.desired_jobs}; "
-                f"active-shards={plan.active_shards}; capacity-shards={plan.shard_count}; "
-                f"native={plan.native_repositories}; host={plan.host_repositories}"
+                f"maximum={plan.maximum_jobs}; active-shards={plan.active_shards}; "
+                f"capacity-shards={plan.shard_count}; "
+                f"affected={plan.fleet_repositories}; "
+                f"source-identities={plan.source_identities}; "
+                f"discovery={plan.discovery_repositories}"
             )
             return 0
         if args.shard is None:

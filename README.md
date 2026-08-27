@@ -2,9 +2,9 @@
 
 ![The Ziguana wrapped around a ruby](assets/ziguana-ruby.png)
 
-`ruby-zig` is a fleet of public forks of `ruby/*` built with a pinned Zig
-toolchain. The organization login is `ruby-zig`; its display name is
-`ruby.zig`.
+`ruby-zig` is a fleet of public forks for the affected native repositories in
+`ruby/*`, built with a pinned Zig toolchain. The organization login is
+`ruby-zig`; its display name is `ruby.zig`.
 
 The project has three rules:
 
@@ -26,10 +26,18 @@ pretend that `zig cc` parses Rust syntax.
 
 ## Current bring-up
 
-The inventory covers all 190 public `ruby/*` repositories. Of those, 42
-contain committed native source and 148 have no native compilation to route.
+The discovery inventory keeps all 190 public `ruby/*` repositories. The
+native-scope scan found 38 repositories that build a native product, one with
+committed native tests, three whose native files are only fixtures or examples,
+and 148 with no committed native source. The active fork and build fleet is the
+first 39 repositories. CRuby's maintained `master`, `ruby_4_0`, `ruby_3_4`,
+and `ruby_3_3` branches are distinct tracked sources, giving the fleet 42
+source refs in total. The EOL `ruby_3_2` branch is excluded. Fixture-only and
+no-native repositories create no fleet lanes; they re-enter automatically when
+a later scope scan changes their classification.
+
 The initial controller smoke certifies native glibc and cross-libc musl C,
-C++, archive, and Rust links on Linux. Every catalog profile remains
+C++, archive, and Rust links on Linux. Every selected catalog profile remains
 `build-only` until its repository adapter records artifact inspection and
 target execution.
 
@@ -65,7 +73,13 @@ SHA:
 
 The action configures the compiler boundary; the reusable workflow adds the
 Linux process trace, poison path, receipt correlation, and negative controls
-that make a lane certifiable.
+that make a lane certifiable. Repository adapters also live in this public
+controller, so a source fork remains a clean fast-forward of upstream.
+
+Each lock entry declares an exact Ruby `x.y.z` runtime. The reusable workflow
+installs that prebuilt runtime with a commit-pinned `ruby/setup-ruby` action to
+drive `extconf.rb`, Rake, and tests. That interpreter is an external build
+input, not a CRuby artifact built or certified by this fleet.
 
 Privileged synchronization belongs in a separate `ruby-zig/infra` repository.
 That repository has no build logic and passes no credentials to build jobs. A
@@ -74,26 +88,41 @@ trusted fleet runs; divergence is reported and never force-pushed.
 
 ## Fleet size
 
-The current full sweep is at most 526 jobs: nine target profiles for each of 42
-native-source repositories, plus one ordinary build/test job for each of the
-148 repositories where Zig is correctly reported as not applicable. GitHub
-limits a matrix to 256 jobs per workflow run, so the active sweep is split
-across three runs. The seven 252-job shards in the capacity plan cover the
-future worst case where all 190 repositories acquire native source; they are
-not launched merely to repeat no-native work.
+The affected fleet has a maximum of 378 jobs: nine target profiles for each of
+42 tracked source refs across 39 repositories. GitHub limits a matrix to 256
+jobs per workflow run, so the controller reserves two contiguous capacity
+shards of 252 and 126 lanes.
 
-Normal upstream updates rebuild only the repositories whose source SHA changed.
-A weekly or manually requested sweep exercises the complete declared scope.
+The first executable lock admits six lanes: GNU and musl builds for
+`bigdecimal`, `json`, and `prism`. Their source SHAs, controller adapters,
+two-profile subsets, and Ruby 3.2.3 driver runtime are explicit. The remaining
+coverage stays pending instead of creating false green jobs.
+
+That is a ceiling, not the routine workload. Each immutable executable
+fleet-lock entry binds a repository and branch result identity, then selects
+the profiles meaningful for its adapter; only those selected lanes are
+runnable. A requested Rust lane whose target is blocked remains visible as
+pending instead of disappearing. Fixture-only and no-native repositories do
+not consume runner jobs.
+
+The baseline lock remains immutable. Continuous sync must dispatch the exact
+post-sync commit SHA together with an allowlisted repository and tracked branch;
+a build job never resolves a moving branch ref. A weekly or manually requested
+sweep exercises the complete selected scope.
 
 ## Repository layout
 
 - `action.yml` is the reusable compiler-configuration action.
 - `config/repositories.json` is the complete generated `ruby/*` inventory.
-- `config/builds.json` assigns repository scope, adapter status, and fleet shards.
+- `config/builds.json` preserves discovery scope and identifies the 39-repository
+  affected fleet.
+- `config/fleet-lock.json` pins fork commits, exact Ruby runtimes, adapters, and
+  selected target profiles.
 - `config/zig.json` pins official Zig archives and digests.
 - `config/targets.json` declares cross profiles, verification levels, and Rust
   link status.
 - `toolchain/bin/` contains the compiler and linker drivers.
+- `adapters/` contains controller-owned repository build entry points.
 - `scripts/` inventories, forks, synchronizes, installs, and audits the fleet.
 - `.github/workflows/` contains reusable runner workflows.
 
