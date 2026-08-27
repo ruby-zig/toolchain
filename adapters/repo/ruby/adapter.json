@@ -19,7 +19,7 @@
     },
     {
       "name": "ruby_4_0",
-      "sha": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+      "sha": "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
       "jits": ["yjit", "zjit"],
       "status": "not-run"
     },

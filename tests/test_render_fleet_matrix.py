@@ -21,7 +21,7 @@ SPEC.loader.exec_module(renderer)
 
 CRUBY_REFS = {
     "master": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
-    "ruby_4_0": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+    "ruby_4_0": "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
     "ruby_3_4": "aac3e36dd4bee40fc89893209553903706fa5666",
     "ruby_3_3": "0581089df9f0af0fe6b64cb8167987c211100947",
 }
