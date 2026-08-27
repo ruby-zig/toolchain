@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 283)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 13)
+        self.assertEqual(plan.desired_jobs, 284)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 14)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 31],
+            [252, 32],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -49,7 +49,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 4)
+        self.assertEqual(len(ruby_lanes), 5)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -70,14 +70,19 @@ class FleetMatrixTests(unittest.TestCase):
                 )
                 for ref_name in CRUBY_REFS
             },
-            {"master": 1, "ruby_4_0": 1, "ruby_3_4": 1, "ruby_3_3": 1},
+            {"master": 2, "ruby_4_0": 1, "ruby_3_4": 1, "ruby_3_3": 1},
         )
         ready_ruby = [lane for lane in ruby_lanes if lane.ready]
+        self.assertEqual(len(ready_ruby), 5)
         self.assertEqual(
-            {lane.ref_name for lane in ready_ruby}, set(CRUBY_REFS)
-        )
-        self.assertTrue(
-            all(lane.profile["id"] == "x86_64-linux-gnu.2.17" for lane in ready_ruby)
+            {(lane.ref_name, lane.profile["id"]) for lane in ready_ruby},
+            {
+                ("master", "x86_64-linux-gnu.2.17"),
+                ("master", "x86_64-linux-musl"),
+                ("ruby_4_0", "x86_64-linux-gnu.2.17"),
+                ("ruby_3_4", "x86_64-linux-gnu.2.17"),
+                ("ruby_3_3", "x86_64-linux-gnu.2.17"),
+            },
         )
 
         lock = json.loads((ROOT / "config" / "fleet-lock.json").read_text())
@@ -161,12 +166,28 @@ class FleetMatrixTests(unittest.TestCase):
             {name: source["source_ref"] for name, source in ruby_source_locks.items()},
             CRUBY_REFS,
         )
+        master_source = ruby_source_locks["master"]
+        self.assertEqual(
+            master_source["profiles"],
+            ["x86_64-linux-gnu.2.17", "x86_64-linux-musl"],
+        )
+        self.assertEqual(master_source["ruby_version"], "3.2.3")
+        self.assertTrue(master_source["rust"])
+        self.assertEqual(
+            master_source["profile_overrides"]["x86_64-linux-musl"],
+            {
+                "build_script": "adapters/repo/ruby/build-musl.sh",
+                "rust": False,
+            },
+        )
         self.assertTrue(
             all(
                 source["profiles"] == ["x86_64-linux-gnu.2.17"]
                 and source["ruby_version"] == "3.2.3"
                 and source["rust"]
-                for source in ruby_source_locks.values()
+                and "profile_overrides" not in source
+                for name, source in ruby_source_locks.items()
+                if name != "master"
             )
         )
         io_console_source = next(
@@ -252,7 +273,10 @@ class FleetMatrixTests(unittest.TestCase):
             if profile["status"] == "run-verified-baseline"
         }
         self.assertEqual(profile_sources, CRUBY_REFS)
-        self.assertEqual(ruby_adapter["cross_status"], "blocked-not-tested")
+        self.assertEqual(
+            ruby_adapter["cross_status"],
+            "x86_64-linux-musl-run-verified-admitted",
+        )
 
         release_evidence = {
             "ruby_3_4": {

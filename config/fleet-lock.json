@@ -434,8 +434,15 @@
       "source_ref": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
-        "x86_64-linux-gnu.2.17"
+        "x86_64-linux-gnu.2.17",
+        "x86_64-linux-musl"
       ],
+      "profile_overrides": {
+        "x86_64-linux-musl": {
+          "build_script": "adapters/repo/ruby/build-musl.sh",
+          "rust": false
+        }
+      },
       "ruby_version": "3.2.3",
       "rust": true
     },

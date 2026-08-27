@@ -12,7 +12,8 @@ SOURCE_PATCH = RUBY_ADAPTER / "patches" / "cross-x86_64-linux-musl.patch"
 ADAPTER_METADATA = RUBY_ADAPTER / "adapter.json"
 FLEET_LOCK = ROOT / "config" / "fleet-lock.json"
 MASTER_SHA = "12e5584ddc3d05988390016e14556ab543765939"
-RUBY_4_0_SHA = "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef"
+RUBY_4_0_BASELINE_SHA = "f3a72fe0a6d35583e215422e8887d3df0a1670b8"
+RUBY_4_0_CURRENT_SHA = "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef"
 
 
 class CrubyCrossMuslContractTests(unittest.TestCase):
@@ -71,7 +72,7 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
         self.assertIn("diff --git a/tool/m4/ruby_prog_gnu_ld.m4", patch)
         self.assertIn('$LD -v 2>&1 | grep "GNU ld"', patch)
 
-    def test_metadata_records_current_master_without_admitting_the_lane(self) -> None:
+    def test_metadata_records_current_master_and_admitted_lane(self) -> None:
         adapter = json.loads(ADAPTER_METADATA.read_text(encoding="utf-8"))
 
         self.assertEqual(adapter["upstream_sha"], MASTER_SHA)
@@ -91,7 +92,7 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
         self.assertTrue(
             any(
                 baseline["sha"] == MASTER_SHA
-                and baseline["status"] == "run-verified-cross-pre-admission"
+                and baseline["status"] == "run-verified-cross-admitted"
                 and baseline["rust"] is False
                 for baseline in master["validated_baselines"]
             )
@@ -100,8 +101,15 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
         ruby_4_0 = next(
             ref for ref in adapter["source_refs"] if ref["name"] == "ruby_4_0"
         )
-        self.assertEqual(ruby_4_0["sha"], RUBY_4_0_SHA)
-        self.assertEqual(ruby_4_0["status"], "not-run")
+        self.assertEqual(ruby_4_0["sha"], RUBY_4_0_BASELINE_SHA)
+        self.assertEqual(ruby_4_0["status"], "run-verified-shared-native")
+        self.assertTrue(
+            any(
+                candidate["sha"] == RUBY_4_0_CURRENT_SHA
+                and candidate["status"] == "run-verified-continuous-candidate"
+                for candidate in ruby_4_0["validated_candidates"]
+            )
+        )
 
         gnu = next(
             profile
@@ -117,7 +125,11 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
             if profile["id"] == "x86_64-linux-musl"
         )
         self.assertEqual(musl["source_sha"], MASTER_SHA)
-        self.assertEqual(musl["status"], "run-verified-pre-admission")
+        self.assertEqual(musl["status"], "run-verified-admitted")
+        self.assertEqual(
+            adapter["cross_status"],
+            "x86_64-linux-musl-run-verified-admitted",
+        )
         self.assertIs(musl["rust"], False)
 
         cross = adapter["cross_validation"]
@@ -136,7 +148,9 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
 
         lock = json.loads(FLEET_LOCK.read_text(encoding="utf-8"))
         locked = next(
-            source for source in lock["sources"] if source["name"] == "ruby"
+            source
+            for source in lock["sources"]
+            if source["result_id"] == "ruby-master"
         )
         self.assertEqual(
             locked["source_ref"],
@@ -144,7 +158,17 @@ class CrubyCrossMuslContractTests(unittest.TestCase):
         )
         self.assertEqual(locked["build_script"], "adapters/repo/ruby/build.sh")
         self.assertTrue(locked["rust"])
-        self.assertEqual(locked["profiles"], ["x86_64-linux-gnu.2.17"])
+        self.assertEqual(
+            locked["profiles"],
+            ["x86_64-linux-gnu.2.17", "x86_64-linux-musl"],
+        )
+        self.assertEqual(
+            locked["profile_overrides"]["x86_64-linux-musl"],
+            {
+                "build_script": "adapters/repo/ruby/build-musl.sh",
+                "rust": False,
+            },
+        )
 
 if __name__ == "__main__":
     unittest.main()

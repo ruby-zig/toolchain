@@ -35,7 +35,7 @@
           "profile": "x86_64-linux-musl",
           "artifact_mode": "static-only",
           "rust": false,
-          "status": "run-verified-cross-pre-admission",
+          "status": "run-verified-cross-admitted",
           "source_patch_sha256": "a513fc938d0f838c143fd894f53c0206bb935de69538fc25f445d54be502cc3b"
         }
       ]
@@ -355,7 +355,7 @@
     },
     {
       "id": "x86_64-linux-musl",
-      "status": "run-verified-pre-admission",
+      "status": "run-verified-admitted",
       "source_ref": "master",
       "source_sha": "12e5584ddc3d05988390016e14556ab543765939",
       "artifact_mode": "static-only",
@@ -363,7 +363,7 @@
       "jits": []
     }
   ],
-  "cross_status": "x86_64-linux-musl-run-verified-pre-admission",
+  "cross_status": "x86_64-linux-musl-run-verified-admitted",
   "validation": {
     "runner": "atlas-tree Ubuntu 24.04 x86_64",
     "zig": "0.16.0",
@@ -422,11 +422,11 @@
     }
   },
   "limitations": [
-    "The native shared-library/JIT evidence remains recorded at 89d3b11eace35b8e279b970b4ff5125f171d0d4b; current master at 12e5584ddc3d05988390016e14556ab543765939 is independently run-verified in public native CI and in the pre-admission static-musl lane",
+    "The native shared-library/JIT evidence remains recorded at 89d3b11eace35b8e279b970b4ff5125f171d0d4b; current master at 12e5584ddc3d05988390016e14556ab543765939 is independently run-verified in public native CI and in the admitted static-musl lane",
     "ruby_4_0 has immutable verified baseline f3a72fe0a6d35583e215422e8887d3df0a1670b8 and independently verified continuous candidate 2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
     "ruby_3_4 baseline aac3e36dd4bee40fc89893209553903706fa5666 and ruby_3_3 baseline 0581089df9f0af0fe6b64cb8167987c211100947 are independently verified native GNU shared builds with YJIT only",
     "The ruby_3_4 and ruby_3_3 certification covers 155 built DSOs and a 26-family native-extension smoke set; fiddle, openssl, psych, and zlib are explicitly outside that certified scope",
-    "The x86_64-linux-musl cross profile is run-verified but remains outside the executable fleet lock because it requires the recorded source patch and a no-Rust lane policy the current lock schema cannot express",
+    "The x86_64-linux-musl cross profile is admitted only for master through an exact profile override; the adapter applies the recorded source patch after git apply --check and disables Rust and both JITs",
     "Rust source is compiled by pinned rustc; Zig supplies native dependency compilation and final linking",
     "Cross-compiling CRuby's Rust JITs is not supported; this cross adapter disables YJIT and ZJIT and rejects every Rust receipt"
   ],

@@ -113,12 +113,24 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(plan.build_script, "adapters/repo/ruby/build.sh")
         self.assertEqual(plan.ruby_version, "3.2.3")
         self.assertTrue(plan.rust)
-        self.assertEqual(plan.ready_jobs, 1)
-        entry = plan.matrix["include"][0]
-        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
-        self.assertEqual(entry["source_ref"], candidate)
-        self.assertEqual(entry["source_ref_name"], "master")
-        self.assertTrue(entry["rust"])
+        self.assertEqual(plan.ready_jobs, 2)
+        entries = {
+            entry["profile_id"]: entry for entry in plan.matrix["include"]
+        }
+
+        gnu = entries["x86_64-linux-gnu.2.17"]
+        self.assertEqual(gnu["build_script"], "adapters/repo/ruby/build.sh")
+        self.assertEqual(gnu["source_ref"], candidate)
+        self.assertEqual(gnu["source_ref_name"], "master")
+        self.assertTrue(gnu["rust"])
+
+        musl = entries["x86_64-linux-musl"]
+        self.assertEqual(
+            musl["build_script"], "adapters/repo/ruby/build-musl.sh"
+        )
+        self.assertEqual(musl["source_ref"], candidate)
+        self.assertEqual(musl["source_ref_name"], "master")
+        self.assertFalse(musl["rust"])
 
     def test_cruby_4_0_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "f" * 40
