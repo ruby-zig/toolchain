@@ -159,6 +159,16 @@ class FleetMatrixTests(unittest.TestCase):
             )
             self.assertTrue(any("GNU Ruby SDK" in gap for gap in adapter["gaps"]))
 
+    def test_digest_adapter_neutralizes_runner_rpath_inputs(self) -> None:
+        build = (ROOT / "adapters" / "repo" / "digest" / "build.sh").read_text()
+
+        self.assertIn('"RPATHFLAG" => ""', build)
+        self.assertIn("%w[LIBRUBYARG LIBRUBYARG_SHARED]", build)
+        self.assertIn(
+            'value.gsub(/(?:\\A|\\s)-Wl,-rpath(?:,|=)[^\\s]+/, "").strip',
+            build,
+        )
+
     def _write_fixture(
         self,
         root: Path,

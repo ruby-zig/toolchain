@@ -86,8 +86,15 @@ configure_extension() {
       "CXXFLAGS" => "-O2 -Wno-default-const-init-field-unsafe",
       "CPPFLAGS" => "",
       "LDFLAGS" => "",
-      "DLDFLAGS" => ""
+      "DLDFLAGS" => "",
+      "RPATHFLAG" => ""
     }.each do |key, value|
+      RbConfig::CONFIG[key] = value
+      RbConfig::MAKEFILE_CONFIG[key] = value
+    end
+    %w[LIBRUBYARG LIBRUBYARG_SHARED].each do |key|
+      value = RbConfig::CONFIG[key].to_s
+      value = value.gsub(/(?:\A|\s)-Wl,-rpath(?:,|=)[^\s]+/, "").strip
       RbConfig::CONFIG[key] = value
       RbConfig::MAKEFILE_CONFIG[key] = value
     end
