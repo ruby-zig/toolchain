@@ -15,8 +15,25 @@
     {
       "id": "x86_64-linux-gnu.2.17",
       "status": "run-verified",
+      "controller_sha": "5db6238471472e7cdf72c9743916eebf7cdbfbd6",
+      "trace_sha256": "f6486211aad9d14ea7c7648ce28d08041e20fb04821a3e603a1d6333cee44809",
+      "receipts_sha256": "2fb7d9203f42209bd5b9b62e74b32dcb57c433e4d02e1c6e905c3683d9762f87",
+      "native_receipts": 6,
+      "receipt_tools": {
+        "cc": 5,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 3,
+        "link": 3
+      },
+      "artifact_sha256": "bde16205d7f812284a47aff33fb09e54b78fb30c5d8dd8c2f67ed38aaa28619f",
       "artifact_format": "ELF64 x86-64 shared object",
       "glibc_ceiling": "2.17",
+      "glibc_max": "2.2.5",
+      "mkmf_log_sha256": "07d8cea80bf2c6ebdc8c717e8d9b8b3e81b3107abc88aa6d979ae176d65afea9",
+      "evidence_archive": "ruby-zig-io-family-cert-5db6238-r3-evidence.tar.xz",
+      "evidence_sha256": "5ecf9b08ade03280548aea913c9b4134147a188b0e5800b01efd9518200fb61c",
       "test": "loads the exact artifact and verifies nonblocking mode, restoration, and pipe transfer"
     }
   ],
@@ -25,7 +42,8 @@
     "runner": "atlas-tree Ubuntu 24.04 x86_64",
     "zig": "0.16.0",
     "ruby": "3.2.3",
-    "process_audit": "strace-receipt-correlated",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
     "source_clean_before_build": true,
     "source_clean_after_build": true,
     "exported_entrypoint": "Init_nonblock"

@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 284)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 14)
+        self.assertEqual(plan.desired_jobs, 260)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 17)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 32],
+            [252, 8],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -93,14 +93,17 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 12)
+        self.assertEqual(len(lock["sources"]), 15)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
                 "bigdecimal",
                 "date",
                 "digest",
+                "fcntl",
                 "io-console",
+                "io-nonblock",
+                "io-wait",
                 "json",
                 "prism",
                 "ruby",
@@ -114,7 +117,10 @@ class FleetMatrixTests(unittest.TestCase):
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
                 "digest": ["x86_64-linux-gnu.2.17"],
+                "fcntl": ["x86_64-linux-gnu.2.17"],
                 "io-console": ["x86_64-linux-gnu.2.17"],
+                "io-nonblock": ["x86_64-linux-gnu.2.17"],
+                "io-wait": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
@@ -228,6 +234,111 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(
             io_console_adapter["cross_status"],
             "pending-target-native-ruby-sdks-and-runtimes",
+        )
+        io_family_evidence = {
+            "fcntl": {
+                "source_ref": "43347f8b6b0f5ef13997182bb9a703e0c072d101",
+                "trace_sha256": "936a9ddf9524308a67a1f2cd94756240b5178f75825111081898ca2f342ad4a5",
+                "receipts_sha256": "9a1bb4375fe212e964962d771911a6b889c7d403b3281d3b24d0c19736105b9c",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "e58edbb2b1764e6592245c6bf58b8b0a90f05ea6d6e2b9cdc44717ea37027c1a",
+            },
+            "io-nonblock": {
+                "source_ref": "04ae796039e3c90b4e09af61128fc27e44120c86",
+                "trace_sha256": "f6486211aad9d14ea7c7648ce28d08041e20fb04821a3e603a1d6333cee44809",
+                "receipts_sha256": "2fb7d9203f42209bd5b9b62e74b32dcb57c433e4d02e1c6e905c3683d9762f87",
+                "native_receipts": 6,
+                "receipt_tools": {"cc": 5, "shared": 1},
+                "receipt_operations": {"compile": 3, "link": 3},
+                "artifact_sha256": "bde16205d7f812284a47aff33fb09e54b78fb30c5d8dd8c2f67ed38aaa28619f",
+            },
+            "io-wait": {
+                "source_ref": "2a8d689fdaeae482cf97d18722a5c8fb8b5c1aeb",
+                "trace_sha256": "5ed049b07e9992e0b2464cce5f7d17cf23e5cf74c1d0f5b3457b2f03bbc29c60",
+                "receipts_sha256": "bf7615d69c584bc645d9be93617c9a96c84012de336b4b8fbe96e7d965707617",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "8b41ca09d682f744caa60f3924bfb3dd3d84ba04caa9de03c6ec6f8217bbb65e",
+            },
+        }
+        for name, expected in io_family_evidence.items():
+            with self.subTest(name=name):
+                source = next(
+                    item for item in lock["sources"] if item["name"] == name
+                )
+                self.assertEqual(source["result_id"], f"{name}-master")
+                self.assertEqual(source["repository"], f"ruby-zig/{name}")
+                self.assertEqual(source["source_ref"], expected["source_ref"])
+                self.assertEqual(source["adapter_id"], f"repo/{name}")
+                self.assertEqual(
+                    source["build_script"], f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(source["profiles"], ["x86_64-linux-gnu.2.17"])
+                self.assertFalse(source["rust"])
+
+                adapter = json.loads(
+                    (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+                )
+                self.assertEqual(adapter["upstream_sha"], expected["source_ref"])
+                self.assertEqual(
+                    adapter["cross_status"],
+                    "pending-target-native-ruby-sdks-and-runtimes",
+                )
+                self.assertEqual(len(adapter["profiles"]), 1)
+                profile = adapter["profiles"][0]
+                self.assertEqual(profile["id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(profile["status"], "run-verified")
+                self.assertEqual(
+                    profile["controller_sha"],
+                    "5db6238471472e7cdf72c9743916eebf7cdbfbd6",
+                )
+                for key in (
+                    "trace_sha256",
+                    "receipts_sha256",
+                    "native_receipts",
+                    "receipt_tools",
+                    "receipt_operations",
+                    "artifact_sha256",
+                ):
+                    self.assertEqual(profile[key], expected[key])
+                self.assertEqual(
+                    profile["evidence_archive"],
+                    "ruby-zig-io-family-cert-5db6238-r3-evidence.tar.xz",
+                )
+                self.assertEqual(
+                    profile["evidence_sha256"],
+                    "5ecf9b08ade03280548aea913c9b4134147a188b0e5800b01efd9518200fb61c",
+                )
+                self.assertEqual(adapter["validation"]["process_audit"], "passed")
+                self.assertEqual(
+                    adapter["validation"]["foreign_compiler_linker_invocations"],
+                    0,
+                )
+                self.assertTrue(adapter["validation"]["source_clean_after_build"])
+
+        io_nonblock = json.loads(
+            (ROOT / "adapters" / "repo" / "io-nonblock" / "adapter.json").read_text()
+        )
+        self.assertEqual(io_nonblock["profiles"][0]["glibc_max"], "2.2.5")
+        self.assertEqual(
+            io_nonblock["profiles"][0]["mkmf_log_sha256"],
+            "07d8cea80bf2c6ebdc8c717e8d9b8b3e81b3107abc88aa6d979ae176d65afea9",
+        )
+        for name in ("fcntl", "io-wait"):
+            adapter = json.loads(
+                (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+            )
+            self.assertEqual(
+                adapter["profiles"][0]["glibc_version_dependencies"], 0
+            )
+        io_wait = json.loads(
+            (ROOT / "adapters" / "repo" / "io-wait" / "adapter.json").read_text()
+        )
+        self.assertEqual(
+            io_wait["native_scope"], "project-extension-compatibility-stub"
         )
         ruby_adapter = json.loads(
             (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()

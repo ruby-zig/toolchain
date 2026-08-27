@@ -109,14 +109,19 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The executable lock admits thirteen lanes: GNU builds for `bigdecimal`, `date`,
-`digest`, `io-console`, `json`, `stringio`, `strscan`, and all four maintained
-CRuby refs, plus GNU and musl builds for `prism`. Their source SHAs, controller
-adapters, selected profile subsets, and Ruby 3.2.3 driver runtime are explicit.
-Narrowing those twelve executable source identities from the full nine-profile
-pending envelope gives the current plan 283 desired lanes, split into active
-shards of 252 and 31. The io-console lane loads the exact built extension and
-exercises raw, noecho, window-size, and getpass behavior on a pseudoterminal.
+The executable lock admits sixteen lanes: GNU builds for `bigdecimal`, `date`,
+`digest`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`, `json`, `stringio`,
+`strscan`, and all four maintained CRuby refs, plus GNU and musl builds for
+`prism`. Their source SHAs, controller adapters, selected profile subsets, and
+Ruby 3.2.3 driver runtime are explicit. Narrowing those fifteen executable
+source identities from the full nine-profile pending envelope gives the current
+plan 259 desired lanes, split into active shards of 252 and 7.
+
+The io-console lane loads the exact built extension and exercises raw, noecho,
+window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
+descriptor flag changes, while io-nonblock verifies nonblocking pipe transfer
+and flag restoration. The io-wait lane loads its exact compiled compatibility
+stub, then exercises the wait behavior built into Ruby.
 
 That is a ceiling, not the routine workload. Each immutable executable
 fleet-lock entry binds a repository and branch result identity, then selects

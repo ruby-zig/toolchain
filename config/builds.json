@@ -513,7 +513,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/fcntl",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -681,7 +681,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/io-nonblock",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -693,7 +693,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/io-wait",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {

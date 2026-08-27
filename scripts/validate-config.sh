@@ -33,5 +33,8 @@ bash tests/test_stringio_source_contract.sh
 bash adapters/repo/strscan/test-source-contract.sh
 bash adapters/repo/io-console/test-source-contract.sh
 bash adapters/repo/digest/test-source-contract.sh
+bash adapters/repo/fcntl/test-source-contract.sh
+bash adapters/repo/io-nonblock/test-source-contract.sh
+bash adapters/repo/io-wait/test-source-contract.sh
 
 printf 'configuration invariants passed\n'
