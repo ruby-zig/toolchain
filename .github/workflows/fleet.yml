@@ -1,0 +1,79 @@
+name: Zig fleet dispatcher
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zig-fleet-dispatch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: dispatch shard ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - name: Check out the controller commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Plan shard
+        id: plan
+        shell: bash
+        env:
+          RZ_SHARD: ${{ matrix.shard }}
+        run: >-
+          python3 scripts/render-fleet-matrix.py
+          --shard "$RZ_SHARD"
+          --github-output "$GITHUB_OUTPUT"
+          --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Start immutable shard run
+        if: steps.plan.outputs.ready_jobs != '0'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RZ_API_URL: ${{ github.api_url }}
+          RZ_CONTROLLER_REF: ${{ github.sha }}
+          RZ_DISPATCH_REF: ${{ github.ref_name }}
+          RZ_REPOSITORY: ${{ github.repository }}
+          RZ_SHARD: ${{ matrix.shard }}
+        run: |
+          payload="$(jq -cn \
+            --arg ref "$RZ_DISPATCH_REF" \
+            --arg shard "$RZ_SHARD" \
+            --arg controller_ref "$RZ_CONTROLLER_REF" \
+            '{ref: $ref, inputs: {shard: $shard, "controller-ref": $controller_ref}}')"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --data "$payload" \
+            "$RZ_API_URL/repos/$RZ_REPOSITORY/actions/workflows/fleet-shard.yml/dispatches"
+
+      - name: Require complete adapter coverage
+        if: steps.plan.outputs.pending_jobs != '0'
+        shell: bash
+        env:
+          RZ_PENDING_JOBS: ${{ steps.plan.outputs.pending_jobs }}
+          RZ_PENDING_REPOSITORIES: ${{ steps.plan.outputs.pending_repositories }}
+        run: |
+          printf '%s pending lanes across %s repositories; see the shard summary.\n' \
+            "$RZ_PENDING_JOBS" "$RZ_PENDING_REPOSITORIES" >&2
+          exit 1

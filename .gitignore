@@ -1,0 +1,5 @@
+.ruby-zig/
+artifacts/
+receipts/
+trace/
+tmp/

@@ -1,0 +1,87 @@
+{
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "runner": "ubuntu-24.04",
+      "zig_target": "x86_64-linux-gnu.2.17",
+      "rust_target": "x86_64-unknown-linux-gnu",
+      "rust_link_status": "smoke-verified",
+      "autoconf_host": "x86_64-linux-gnu",
+      "verification": "build-only"
+    },
+    {
+      "id": "aarch64-linux-gnu.2.17",
+      "runner": "ubuntu-24.04-arm",
+      "zig_target": "aarch64-linux-gnu.2.17",
+      "rust_target": "aarch64-unknown-linux-gnu",
+      "rust_link_status": "blocked",
+      "rust_link_blocker": "https://codeberg.org/ziglang/zig/issues/36624",
+      "autoconf_host": "aarch64-linux-gnu",
+      "verification": "build-only"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "runner": "ubuntu-24.04",
+      "zig_target": "x86_64-linux-musl",
+      "rust_target": "x86_64-unknown-linux-musl",
+      "rust_link_status": "smoke-verified",
+      "autoconf_host": "x86_64-linux-musl",
+      "verification": "build-only"
+    },
+    {
+      "id": "aarch64-linux-musl",
+      "runner": "ubuntu-24.04",
+      "zig_target": "aarch64-linux-musl",
+      "rust_target": "aarch64-unknown-linux-musl",
+      "rust_link_status": "blocked",
+      "rust_link_blocker": "https://codeberg.org/ziglang/zig/issues/36624",
+      "autoconf_host": "aarch64-linux-musl",
+      "verification": "build-only"
+    },
+    {
+      "id": "riscv64-linux-musl",
+      "runner": "ubuntu-24.04",
+      "zig_target": "riscv64-linux-musl",
+      "rust_target": "riscv64gc-unknown-linux-musl",
+      "rust_link_status": "unverified",
+      "autoconf_host": "riscv64-linux-musl",
+      "verification": "build-only"
+    },
+    {
+      "id": "x86_64-windows-gnu",
+      "runner": "ubuntu-24.04",
+      "zig_target": "x86_64-windows-gnu",
+      "rust_target": "x86_64-pc-windows-gnu",
+      "rust_link_status": "unverified",
+      "autoconf_host": "x86_64-w64-mingw32",
+      "verification": "build-only"
+    },
+    {
+      "id": "aarch64-windows-gnu",
+      "runner": "ubuntu-24.04",
+      "zig_target": "aarch64-windows-gnu",
+      "rust_target": "aarch64-pc-windows-gnullvm",
+      "rust_link_status": "unverified",
+      "autoconf_host": "aarch64-w64-mingw32",
+      "verification": "build-only"
+    },
+    {
+      "id": "x86_64-macos",
+      "runner": "macos-15-intel",
+      "zig_target": "x86_64-macos",
+      "rust_target": "x86_64-apple-darwin",
+      "rust_link_status": "unverified",
+      "autoconf_host": "x86_64-apple-darwin",
+      "verification": "build-only"
+    },
+    {
+      "id": "aarch64-macos",
+      "runner": "macos-15",
+      "zig_target": "aarch64-macos",
+      "rust_target": "aarch64-apple-darwin",
+      "rust_link_status": "unverified",
+      "autoconf_host": "aarch64-apple-darwin",
+      "verification": "build-only"
+    }
+  ]
+}

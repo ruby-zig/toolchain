@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "scan_date": "2026-08-26",
+  "direct_native": [
+    "bigdecimal",
+    "cgi",
+    "curses",
+    "date",
+    "dbm",
+    "debug",
+    "digest",
+    "erb",
+    "etc",
+    "fcntl",
+    "fiddle",
+    "gdbm",
+    "iconv",
+    "io-console",
+    "io-nonblock",
+    "io-wait",
+    "json",
+    "mmtk",
+    "nkf",
+    "openssl",
+    "pathname",
+    "prism",
+    "psych",
+    "racc",
+    "rbs",
+    "readline-ext",
+    "resolv",
+    "ruby",
+    "ruby.wasm",
+    "sdbm",
+    "stringio",
+    "strscan",
+    "syck",
+    "syslog",
+    "tk",
+    "vterm-gem",
+    "win32ole",
+    "zlib"
+  ],
+  "native_test_scope": [
+    "spec"
+  ],
+  "fixture_template_or_example_scope": [
+    "lrama",
+    "rake",
+    "rubygems"
+  ],
+  "rust_product_scope": [
+    "mmtk",
+    "prism",
+    "rbs",
+    "ruby",
+    "ruby.wasm"
+  ],
+  "rust_fixture_scope": [
+    "rubygems"
+  ],
+  "summary": {
+    "repositories_with_committed_native_source": 42,
+    "direct_native": 38,
+    "meaningful_initial_targets_including_spec": 39,
+    "no_committed_native_source": 148
+  }
+}

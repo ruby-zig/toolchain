@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+rz_require_zig() {
+  : "${RZ_ZIG:?RZ_ZIG must name the pinned Zig executable}"
+  case "$RZ_ZIG" in
+    /*) ;;
+    *) printf 'RZ_ZIG must be an absolute path: %s\n' "$RZ_ZIG" >&2; exit 64 ;;
+  esac
+  if [[ ! -x "$RZ_ZIG" ]]; then
+    printf 'Pinned Zig executable is not executable: %s\n' "$RZ_ZIG" >&2
+    exit 66
+  fi
+}
+
+rz_require_rustc() {
+  : "${RZ_RUSTC:?RZ_RUSTC must name the pinned rustc executable}"
+  case "$RZ_RUSTC" in
+    /*) ;;
+    *) printf 'RZ_RUSTC must be an absolute path: %s\n' "$RZ_RUSTC" >&2; exit 64 ;;
+  esac
+  if [[ ! -x "$RZ_RUSTC" ]]; then
+    printf 'Pinned rustc executable is not executable: %s\n' "$RZ_RUSTC" >&2
+    exit 66
+  fi
+}
+
+rz_receipt() {
+  local tool="$1"
+  local target="$2"
+  local operation="$3"
+  shift 3
+  local directory="${RZ_RECEIPT_DIR:-}"
+  [[ -n "$directory" ]] || return 0
+  mkdir -p "$directory"
+  local prefix argv=''
+  printf -v prefix 'time=%q\tpid=%q\ttool=%q\ttarget=%q\toperation=%q\tcwd=%q\targv=' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$$" "$tool" "$target" "$operation" "$PWD"
+  if [[ $# -gt 0 ]]; then
+    printf -v argv '%q ' "$@"
+  fi
+  printf '%s%s\n' "$prefix" "$argv" >>"$directory/invocations.tsv"
+}
+
+rz_classify_driver_operation() {
+  local argument
+  local compile=0
+  local preprocess=0
+  local syntax_only=0
+  local input=0
+  for argument in "$@"; do
+    case "$argument" in
+      -c|-S) compile=1 ;;
+      -E|-M|-MM) preprocess=1 ;;
+      -fsyntax-only) syntax_only=1 ;;
+      *.c|*.cc|*.cp|*.cpp|*.cxx|*.c++|*.m|*.mm|*.s|*.S|*.o|*.obj|*.a|*.so|*.dylib|*.lib|*.rlib)
+        input=1
+        ;;
+    esac
+  done
+  if [[ $syntax_only -eq 1 || $preprocess -eq 1 ]]; then
+    RZ_OPERATION='probe'
+  elif [[ $compile -eq 1 && $input -eq 1 ]]; then
+    RZ_OPERATION='compile'
+  elif [[ $input -eq 1 ]]; then
+    RZ_OPERATION='link'
+  else
+    RZ_OPERATION='probe'
+  fi
+}
+
+rz_classify_archive_operation() {
+  case "${1:-}" in
+    *[rqmds]*) RZ_OPERATION='archive' ;;
+    *) RZ_OPERATION='probe' ;;
+  esac
+}
+
+rz_classify_ranlib_operation() {
+  case "${1:-}" in
+    ''|--help|--version|-h|-V) RZ_OPERATION='probe' ;;
+    *) RZ_OPERATION='archive' ;;
+  esac
+}
+
+rz_reject_driver_overrides() {
+  local argument
+  for argument in "$@"; do
+    case "$argument" in
+      @*)
+        printf 'Response files are not accepted in certified wrapper invocations: %s\n' "$argument" >&2
+        exit 64
+        ;;
+      -target|--target|-target=*|--target=*|-isysroot|-isysroot=*|--sysroot|--sysroot=*|\
+      -fuse-ld=*|--ld-path=*|-B|-B?*|-Wl,*fuse-ld*|-Wl,*--ld-path*)
+        printf 'Conflicting target, sysroot, or linker override: %s\n' "$argument" >&2
+        exit 64
+        ;;
+    esac
+  done
+}
+
+rz_target_arguments() {
+  RZ_TARGET_ARGUMENTS=()
+  if [[ -n "${RZ_ZIG_TARGET:-}" ]]; then
+    RZ_TARGET_ARGUMENTS=(-target "$RZ_ZIG_TARGET")
+  fi
+}
+
+rz_host_target_arguments() {
+  RZ_TARGET_ARGUMENTS=()
+  if [[ -n "${RZ_ZIG_HOST_TARGET:-}" ]]; then
+    RZ_TARGET_ARGUMENTS=(-target "$RZ_ZIG_HOST_TARGET")
+  fi
+}

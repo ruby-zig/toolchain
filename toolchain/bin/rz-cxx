@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=rz-common
+source "$here/rz-common"
+rz_require_zig
+rz_reject_driver_overrides "$@"
+rz_classify_driver_operation "$@"
+rz_target_arguments
+rz_receipt cxx "${RZ_ZIG_TARGET:-native}" "$RZ_OPERATION" "${RZ_TARGET_ARGUMENTS[@]}" "$@"
+exec "$RZ_ZIG" c++ "${RZ_TARGET_ARGUMENTS[@]}" "$@"

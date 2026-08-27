@@ -1,0 +1,150 @@
+name: ruby.zig toolchain
+description: Configure the pinned Zig compiler wrappers for a declared ruby.zig target profile
+
+inputs:
+  profile:
+    description: Target profile declared in config/targets.json
+    required: true
+  rust:
+    description: Install the pinned Rust toolchain and route native linking through Zig
+    required: false
+    default: "false"
+
+outputs:
+  profile:
+    description: Validated target profile
+    value: ${{ steps.profile.outputs.profile }}
+  runner:
+    description: GitHub-hosted runner declared for the profile
+    value: ${{ steps.profile.outputs.runner }}
+  zig-version:
+    description: Installed pinned Zig version
+    value: ${{ steps.zig.outputs.version }}
+  zig-path:
+    description: Absolute path to the pinned Zig executable
+    value: ${{ steps.zig.outputs.zig }}
+  zig-sha256:
+    description: Verified SHA-256 digest of the Zig archive
+    value: ${{ steps.zig.outputs.sha256 }}
+  zig-target:
+    description: Zig compilation target for the profile
+    value: ${{ steps.environment.outputs.zig-target }}
+  rust-enabled:
+    description: Whether the pinned Rust toolchain was configured
+    value: ${{ steps.environment.outputs.rust-enabled }}
+  rust-toolchain:
+    description: Pinned Rust toolchain version
+    value: ${{ steps.profile.outputs.rust-toolchain }}
+  rust-target:
+    description: Rust target for the profile
+    value: ${{ steps.environment.outputs.rust-target }}
+  rust-link-status:
+    description: Declared Rust link status for the profile
+    value: ${{ steps.environment.outputs.rust-link-status }}
+  autoconf-host:
+    description: Autoconf host tuple for the profile
+    value: ${{ steps.environment.outputs.autoconf-host }}
+  verification:
+    description: Declared verification level for the profile
+    value: ${{ steps.environment.outputs.verification }}
+  toolchain-bin:
+    description: Absolute path containing the ruby.zig compiler wrappers
+    value: ${{ steps.environment.outputs.toolchain-bin }}
+  action-revision:
+    description: Immutable commit used to load this action
+    value: ${{ steps.profile.outputs.action-revision }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate profile and action revision
+      id: profile
+      shell: bash
+      env:
+        RZ_ACTION_REF: ${{ github.action_ref }}
+        RZ_ACTION_ROOT: ${{ github.action_path }}
+        RZ_PROFILE_INPUT: ${{ inputs.profile }}
+        RZ_RUST_INPUT: ${{ inputs.rust }}
+      run: |
+        set -euo pipefail
+
+        if [[ ! "$RZ_ACTION_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
+          printf 'ruby.zig/toolchain must be referenced by a full commit SHA; got %q\n' "$RZ_ACTION_REF" >&2
+          exit 64
+        fi
+        case "$RZ_RUST_INPUT" in
+          true|false) ;;
+          *)
+            printf 'rust must be true or false; got %q\n' "$RZ_RUST_INPUT" >&2
+            exit 64
+            ;;
+        esac
+        command -v jq >/dev/null || {
+          printf 'jq is required on the runner\n' >&2
+          exit 69
+        }
+
+        profile_json="$(jq -cer --arg id "$RZ_PROFILE_INPUT" \
+          '.profiles[] | select(.id == $id)' \
+          "$RZ_ACTION_ROOT/config/targets.json")" || {
+          printf 'unknown target profile: %s\n' "$RZ_PROFILE_INPUT" >&2
+          exit 65
+        }
+        rust_status="$(jq -r .rust_link_status <<<"$profile_json")"
+        if [[ "$RZ_RUST_INPUT" == true && "$rust_status" == blocked ]]; then
+          blocker="$(jq -r '.rust_link_blocker // "not recorded"' <<<"$profile_json")"
+          printf 'Rust final linking is blocked for profile %s: %s\n' "$RZ_PROFILE_INPUT" "$blocker" >&2
+          exit 78
+        fi
+
+        {
+          printf 'profile=%s\n' "$RZ_PROFILE_INPUT"
+          printf 'runner=%s\n' "$(jq -r .runner <<<"$profile_json")"
+          printf 'rust-target=%s\n' "$(jq -r .rust_target <<<"$profile_json")"
+          printf 'rust-toolchain=%s\n' "$(jq -r .toolchain "$RZ_ACTION_ROOT/config/rust.json")"
+          printf 'action-revision=%s\n' "$(tr '[:upper:]' '[:lower:]' <<<"$RZ_ACTION_REF")"
+        } >>"$GITHUB_OUTPUT"
+
+    - name: Install pinned Zig
+      id: zig
+      shell: pwsh
+      env:
+        RZ_ACTION_ROOT: ${{ github.action_path }}
+      run: |
+        $destination = Join-Path $env:RUNNER_TEMP 'ruby-zig-zig'
+        & (Join-Path $env:RZ_ACTION_ROOT 'scripts/install-zig.ps1') `
+          -Config (Join-Path $env:RZ_ACTION_ROOT 'config/zig.json') `
+          -Destination $destination
+
+    - name: Install pinned Rust
+      if: inputs.rust == 'true'
+      shell: bash
+      env:
+        RZ_RUST_TARGET: ${{ steps.profile.outputs.rust-target }}
+        RZ_RUST_TOOLCHAIN: ${{ steps.profile.outputs.rust-toolchain }}
+      run: |
+        set -euo pipefail
+        command -v rustup >/dev/null || {
+          printf 'rustup is required when rust is enabled\n' >&2
+          exit 69
+        }
+        rustup toolchain install "$RZ_RUST_TOOLCHAIN" --profile minimal --no-self-update
+        rustup target add --toolchain "$RZ_RUST_TOOLCHAIN" "$RZ_RUST_TARGET"
+
+    - name: Export compiler environment
+      id: environment
+      shell: bash
+      env:
+        RZ_ACTION_ROOT: ${{ github.action_path }}
+        RZ_ENABLE_RUST: ${{ inputs.rust }}
+        RZ_PROFILE_INPUT: ${{ inputs.profile }}
+        RZ_RUST_TOOLCHAIN: ${{ steps.profile.outputs.rust-toolchain }}
+        RZ_ZIG: ${{ steps.zig.outputs.zig }}
+      run: |
+        set -euo pipefail
+        export RZ_RECEIPT_DIR="$RUNNER_TEMP/ruby-zig/receipts/$RZ_PROFILE_INPUT"
+        bash "$RZ_ACTION_ROOT/scripts/export-github-action.sh" "$RZ_PROFILE_INPUT"
+
+branding:
+  icon: hexagon
+  color: red

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=rz-common
+source "$here/rz-common"
+rz_require_rustc
+
+target=''
+provided_linker=''
+operation=probe
+expect_target=0
+expect_codegen=0
+for argument in "$@"; do
+  case "$argument" in
+    @*)
+      printf 'Response files are not accepted in certified rustc invocations: %s\n' "$argument" >&2
+      exit 64
+      ;;
+    *.rs) operation=rust-compile ;;
+  esac
+  if [[ $expect_target -eq 1 ]]; then
+    target="$argument"
+    expect_target=0
+    continue
+  fi
+  if [[ $expect_codegen -eq 1 ]]; then
+    case "$argument" in
+      linker=*) provided_linker="${argument#linker=}" ;;
+      linker-features=*|link-self-contained=*|linker-flavor=*|link-arg=*fuse-ld*|link-args=*fuse-ld*)
+        printf 'Conflicting rustc linker control: %s\n' "$argument" >&2
+        exit 64
+        ;;
+    esac
+    expect_codegen=0
+    continue
+  fi
+  case "$argument" in
+    --target) expect_target=1 ;;
+    --target=*) target="${argument#--target=}" ;;
+    -C) expect_codegen=1 ;;
+    -Clinker=*) provided_linker="${argument#-Clinker=}" ;;
+    -Clinker-features=*|-Clink-self-contained=*|-Clinker-flavor=*|-Clink-arg=*fuse-ld*|-Clink-args=*fuse-ld*)
+      printf 'Conflicting rustc linker control: %s\n' "$argument" >&2
+      exit 64
+      ;;
+  esac
+done
+if [[ $expect_target -eq 1 || $expect_codegen -eq 1 ]]; then
+  printf 'Incomplete rustc option in argument list\n' >&2
+  exit 64
+fi
+
+if [[ -n "$target" ]]; then
+  if [[ "$target" != "${RZ_RUST_TARGET:?RZ_RUST_TARGET is required}" ]]; then
+    printf 'Rust target %s does not match certified target %s\n' "$target" "$RZ_RUST_TARGET" >&2
+    exit 64
+  fi
+  effective_target="$RZ_RUST_TARGET"
+  linker="$here/rz-rust-linker"
+  receipt_kind='rustc-target'
+else
+  effective_target="${RZ_RUST_HOST_TARGET:?RZ_RUST_HOST_TARGET is required}"
+  if [[ "$RZ_RUST_HOST_TARGET" == "${RZ_RUST_TARGET:-}" ]]; then
+    linker="$here/rz-rust-linker"
+  else
+    linker="$here/rz-rust-host-linker"
+  fi
+  receipt_kind='rustc-host'
+fi
+
+if [[ -n "$provided_linker" && "$provided_linker" != "$linker" ]]; then
+  printf 'Rust linker %s does not match certified linker %s\n' "$provided_linker" "$linker" >&2
+  exit 64
+fi
+
+linker_flags=()
+if [[ -z "$provided_linker" ]]; then
+  linker_flags+=(-C "linker=$linker")
+fi
+case "$effective_target" in
+  *-unknown-linux-musl)
+    linker_flags+=(-C 'link-self-contained=no')
+    ;;
+  x86_64-unknown-linux-gnu)
+    linker_flags+=(-C 'link-self-contained=-linker' -C 'linker-features=-lld')
+    ;;
+esac
+
+rz_receipt "$receipt_kind" "$effective_target" "$operation" "$@" "${linker_flags[@]}"
+exec "$RZ_RUSTC" "$@" "${linker_flags[@]}"

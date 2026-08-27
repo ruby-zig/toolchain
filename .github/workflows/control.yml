@@ -1,0 +1,103 @@
+name: control repository
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: static and advisory checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate configuration
+        shell: bash
+        run: bash scripts/validate-config.sh
+      - name: Check shell syntax
+        shell: bash
+        run: bash -n scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+      - name: Lint shell scripts
+        shell: bash
+        run: shellcheck -x -P scripts -P toolchain/bin -e SC2034 scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+      - name: Test wrappers and auditor
+        shell: bash
+        run: |
+          chmod +x scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+          scripts/self-test-auditor.sh
+          scripts/self-test-wrappers.sh
+
+  smoke:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - profile: x86_64-linux-gnu.2.17
+            rust: true
+            run-artifact: true
+          - profile: x86_64-linux-musl
+            rust: true
+            run-artifact: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Zig
+        id: zig
+        shell: pwsh
+        run: >-
+          ./scripts/install-zig.ps1
+          -Config ./config/zig.json
+          -Destination "$env:RUNNER_TEMP/ruby-zig/zig"
+
+      - name: Prepare wrappers and smoke adapter
+        shell: bash
+        run: chmod +x scripts/*.sh tests/smoke/*.sh toolchain/bin/*
+
+      - name: Install pinned Rust
+        if: matrix.rust
+        id: rust
+        shell: bash
+        env:
+          RZ_PROFILE_ID: ${{ matrix.profile }}
+        run: |
+          toolchain="$(jq -r '.toolchain' config/rust.json)"
+          profile="$(jq -r '.profile' config/rust.json)"
+          target="$(jq -er --arg id "$RZ_PROFILE_ID" '.profiles[] | select(.id == $id) | .rust_target' config/targets.json)"
+          rustup toolchain install "$toolchain" --profile "$profile" --target "$target"
+          printf 'toolchain=%s\n' "$toolchain" >> "$GITHUB_OUTPUT"
+
+      - name: Compile and audit smoke target
+        shell: bash
+        env:
+          RZ_ENABLE_RUST: ${{ matrix.rust }}
+          RZ_PROFILE_ID: ${{ matrix.profile }}
+          RZ_RUN_ARTIFACT: ${{ matrix.run-artifact }}
+          RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
+          RZ_SMOKE_OUT: ${{ runner.temp }}/ruby-zig-smoke/${{ matrix.profile }}
+          RZ_ZIG: ${{ steps.zig.outputs.zig }}
+        run: |
+          source scripts/export-toolchain.sh "$RZ_PROFILE_ID"
+          scripts/self-test-auditor.sh
+          scripts/run-certified.sh -- bash tests/smoke/build.sh
+
+      - name: Upload smoke evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: control-evidence-${{ matrix.profile }}
+          path: |
+            receipts/
+            trace/
+          if-no-files-found: warn
+          retention-days: 14

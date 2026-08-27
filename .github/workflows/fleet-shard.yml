@@ -1,0 +1,127 @@
+name: Zig fleet shard
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: Capacity shard to run
+        required: true
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+          - '6'
+          - '7'
+      controller-ref:
+        description: Exact toolchain commit; blank uses this workflow commit
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zig-fleet-${{ inputs.controller-ref || github.sha }}-shard-${{ inputs.shard }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: render immutable shard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      controller-ref: ${{ steps.ref.outputs.controller_ref }}
+      desired-jobs: ${{ steps.matrix.outputs.desired_jobs }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      pending-jobs: ${{ steps.matrix.outputs.pending_jobs }}
+      pending-repositories: ${{ steps.matrix.outputs.pending_repositories }}
+      ready-jobs: ${{ steps.matrix.outputs.ready_jobs }}
+    steps:
+      - name: Resolve and verify controller commit
+        id: ref
+        shell: bash
+        env:
+          RZ_EVENT_SHA: ${{ github.sha }}
+          RZ_REQUESTED_REF: ${{ inputs.controller-ref }}
+        run: |
+          controller_ref="${RZ_REQUESTED_REF:-$RZ_EVENT_SHA}"
+          [[ "$controller_ref" =~ ^([0-9a-f]{40}|[0-9a-f]{64})$ ]] || {
+            printf 'controller-ref must be a lowercase full commit SHA\n' >&2
+            exit 64
+          }
+          [[ "$controller_ref" == "$RZ_EVENT_SHA" ]] || {
+            printf 'Dispatch ref moved: event=%s requested=%s\n' \
+              "$RZ_EVENT_SHA" "$controller_ref" >&2
+            exit 78
+          }
+          printf 'controller_ref=%s\n' "$controller_ref" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the pinned controller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.ref.outputs.controller_ref }}
+          persist-credentials: false
+
+      - name: Render shard matrix
+        id: matrix
+        shell: bash
+        env:
+          RZ_SHARD: ${{ inputs.shard }}
+        run: >-
+          python3 scripts/render-fleet-matrix.py
+          --shard "$RZ_SHARD"
+          --github-output "$GITHUB_OUTPUT"
+          --summary "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: ${{ matrix.repository }} / ${{ matrix.profile_id }}
+    needs: plan
+    if: needs.plan.outputs.ready-jobs != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/reusable-zig.yml
+    with:
+      profiles: ${{ matrix.profiles }}
+      build-script: ${{ matrix.build_script }}
+      toolchain-ref: ${{ needs.plan.outputs.controller-ref }}
+      source-repository: ${{ matrix.repository }}
+      source-ref: ${{ matrix.source_ref }}
+      evidence-id: ${{ matrix.evidence_id }}
+      rust: ${{ matrix.rust }}
+      allow-no-native: ${{ matrix.allow_no_native }}
+
+  coverage:
+    name: require complete shard coverage
+    needs: [plan, build]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check build and adapter coverage
+        shell: bash
+        env:
+          RZ_BUILD_RESULT: ${{ needs.build.result }}
+          RZ_PENDING_JOBS: ${{ needs.plan.outputs.pending-jobs }}
+          RZ_PENDING_REPOSITORIES: ${{ needs.plan.outputs.pending-repositories }}
+          RZ_PLAN_RESULT: ${{ needs.plan.result }}
+          RZ_READY_JOBS: ${{ needs.plan.outputs.ready-jobs }}
+        run: |
+          [[ "$RZ_PLAN_RESULT" == 'success' ]] || {
+            printf 'Shard planning failed.\n' >&2
+            exit 1
+          }
+          if [[ "$RZ_READY_JOBS" != '0' && "$RZ_BUILD_RESULT" != 'success' ]]; then
+            printf 'Ready lanes finished with result: %s\n' "$RZ_BUILD_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$RZ_PENDING_JOBS" != '0' ]]; then
+            printf '%s pending lanes across %s repositories; see the plan summary.\n' \
+              "$RZ_PENDING_JOBS" "$RZ_PENDING_REPOSITORIES" >&2
+            exit 1
+          fi
+          printf 'All declared shard lanes passed.\n'

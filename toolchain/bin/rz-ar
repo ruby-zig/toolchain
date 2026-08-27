@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=rz-common
+source "$here/rz-common"
+rz_require_zig
+rz_classify_archive_operation "$@"
+rz_receipt ar "${RZ_ZIG_TARGET:-native}" "$RZ_OPERATION" "$@"
+exec "$RZ_ZIG" ar "$@"

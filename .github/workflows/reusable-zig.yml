@@ -1,0 +1,228 @@
+name: reusable Zig build
+
+on:
+  workflow_call:
+    inputs:
+      profiles:
+        description: JSON array containing id and runner fields
+        required: true
+        type: string
+      build-script:
+        description: Executable repository-relative build adapter
+        required: true
+        type: string
+      toolchain-ref:
+        description: Immutable ruby-zig/toolchain commit SHA
+        required: true
+        type: string
+      source-repository:
+        description: Exact ruby-zig fork to check out
+        required: true
+        type: string
+      source-ref:
+        description: Immutable source commit SHA
+        required: true
+        type: string
+      evidence-id:
+        description: Safe repository and source identity for artifacts
+        required: true
+        type: string
+      rust:
+        description: Install the pinned Rust toolchain and declared target
+        required: false
+        default: false
+        type: boolean
+      allow-no-native:
+        description: Allow a lane with no native compiler receipts
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  certification-context:
+    name: authorize certification context
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require an owner-controlled event
+        shell: bash
+        env:
+          RZ_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          case "$RZ_EVENT_NAME" in
+            push|workflow_dispatch|schedule) ;;
+            pull_request|pull_request_target)
+              printf 'Certification is disabled for pull request event: %s\n' "$RZ_EVENT_NAME" >&2
+              exit 78
+              ;;
+            *)
+              printf 'Certification requires push, workflow_dispatch, or schedule; got: %s\n' "$RZ_EVENT_NAME" >&2
+              exit 78
+              ;;
+          esac
+
+  build:
+    name: ${{ inputs.evidence-id }} / ${{ matrix.id }}
+    needs: certification-context
+    runs-on: ${{ contains(fromJSON('["ubuntu-24.04","ubuntu-24.04-arm","macos-15","macos-15-intel"]'), matrix.runner) && matrix.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        include: ${{ fromJSON(inputs.profiles) }}
+    concurrency:
+      group: zig-${{ inputs.evidence-id }}-${{ matrix.id }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Validate immutable inputs and runner
+        shell: bash
+        env:
+          RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
+          RZ_EVIDENCE_ID: ${{ inputs.evidence-id }}
+          RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_REQUESTED_RUNNER: ${{ matrix.runner }}
+          RZ_SOURCE_REF: ${{ inputs.source-ref }}
+          RZ_SOURCE_REPOSITORY: ${{ inputs.source-repository }}
+          RZ_TOOLCHAIN_REF: ${{ inputs.toolchain-ref }}
+        run: |
+          case "$RZ_REQUESTED_RUNNER" in
+            ubuntu-24.04|ubuntu-24.04-arm|macos-15|macos-15-intel) ;;
+            *) printf 'Unsupported standard runner: %s\n' "$RZ_REQUESTED_RUNNER" >&2; exit 64 ;;
+          esac
+          [[ "$RZ_TOOLCHAIN_REF" =~ ^([0-9a-f]{40}|[0-9a-f]{64})$ ]] || {
+            printf 'toolchain-ref must be a lowercase full commit SHA\n' >&2
+            exit 64
+          }
+          [[ "$RZ_SOURCE_REF" =~ ^([0-9a-f]{40}|[0-9a-f]{64})$ ]] || {
+            printf 'source-ref must be a lowercase full commit SHA\n' >&2
+            exit 64
+          }
+          [[ "$RZ_SOURCE_REPOSITORY" =~ ^ruby-zig/[A-Za-z0-9._-]+$ ]] || {
+            printf 'source-repository must name a ruby-zig fork\n' >&2
+            exit 64
+          }
+          case "${RZ_SOURCE_REPOSITORY#ruby-zig/}" in
+            .|..) printf 'Invalid source repository name\n' >&2; exit 64 ;;
+          esac
+          [[ "$RZ_EVIDENCE_ID" =~ ^[a-z0-9][a-z0-9._-]{0,119}$ ]] || {
+            printf 'Invalid evidence id: %s\n' "$RZ_EVIDENCE_ID" >&2
+            exit 64
+          }
+          [[ "$RZ_PROFILE_ID" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || {
+            printf 'Invalid profile id: %s\n' "$RZ_PROFILE_ID" >&2
+            exit 64
+          }
+          [[ "$RZ_BUILD_SCRIPT" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]] || {
+            printf 'Invalid build adapter path: %s\n' "$RZ_BUILD_SCRIPT" >&2
+            exit 64
+          }
+          case "/$RZ_BUILD_SCRIPT/" in
+            */../*|*//*) printf 'Build adapter must stay within the repository\n' >&2; exit 64 ;;
+          esac
+
+      - name: Check out immutable fork source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.source-repository }}
+          ref: ${{ inputs.source-ref }}
+          path: source
+          persist-credentials: false
+
+      - name: Check out pinned toolchain
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ruby-zig/toolchain
+          ref: ${{ inputs.toolchain-ref }}
+          path: toolchain
+          persist-credentials: false
+
+      - name: Install pinned Zig
+        id: zig
+        shell: pwsh
+        run: >-
+          ./toolchain/scripts/install-zig.ps1
+          -Config ./toolchain/config/zig.json
+          -Destination "$env:RUNNER_TEMP/ruby-zig/zig"
+
+      - name: Prepare toolchain and adapter
+        shell: bash
+        env:
+          RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
+        run: chmod +x toolchain/toolchain/bin/* toolchain/scripts/*.sh "source/$RZ_BUILD_SCRIPT"
+
+      - name: Install pinned Rust toolchain and target
+        if: inputs.rust
+        id: rust
+        shell: bash
+        env:
+          RZ_PROFILE_ID: ${{ matrix.id }}
+        run: |
+          toolchain="$(jq -r '.toolchain' toolchain/config/rust.json)"
+          profile="$(jq -r '.profile' toolchain/config/rust.json)"
+          target="$(jq -er --arg id "$RZ_PROFILE_ID" '.profiles[] | select(.id == $id) | .rust_target' toolchain/config/targets.json)"
+          rustup toolchain install "$toolchain" --profile "$profile" --target "$target"
+          printf 'toolchain=%s\n' "$toolchain" >> "$GITHUB_OUTPUT"
+
+      - name: Run certified Linux build-only lane
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          RZ_ALLOW_NO_NATIVE: ${{ inputs.allow-no-native }}
+          RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
+          RZ_ENABLE_RUST: ${{ inputs.rust }}
+          RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
+          RZ_ZIG: ${{ steps.zig.outputs.zig }}
+        run: |
+          source "$GITHUB_WORKSPACE/toolchain/scripts/export-toolchain.sh" "$RZ_PROFILE_ID"
+          [[ "$RZ_VERIFICATION" == 'build-only' ]] || {
+            printf 'Reusable workflow does not yet implement %s verification\n' "$RZ_VERIFICATION" >&2
+            exit 65
+          }
+          mode=()
+          if [[ "$RZ_ALLOW_NO_NATIVE" == 'true' ]]; then mode+=(--allow-no-native); fi
+          "$GITHUB_WORKSPACE/toolchain/scripts/self-test-auditor.sh"
+          adapter="$GITHUB_WORKSPACE/source/$RZ_BUILD_SCRIPT"
+          cd "$GITHUB_WORKSPACE/source"
+          "$GITHUB_WORKSPACE/toolchain/scripts/run-certified.sh" "${mode[@]}" -- bash "$adapter"
+
+      - name: Run non-certified receipt-only macOS lane
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          RZ_ALLOW_NO_NATIVE: ${{ inputs.allow-no-native }}
+          RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
+          RZ_ENABLE_RUST: ${{ inputs.rust }}
+          RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
+          RZ_ZIG: ${{ steps.zig.outputs.zig }}
+        run: |
+          source "$GITHUB_WORKSPACE/toolchain/scripts/export-toolchain.sh" "$RZ_PROFILE_ID"
+          [[ "$RZ_VERIFICATION" == 'build-only' ]] || {
+            printf 'Reusable workflow does not yet implement %s verification\n' "$RZ_VERIFICATION" >&2
+            exit 65
+          }
+          adapter="$GITHUB_WORKSPACE/source/$RZ_BUILD_SCRIPT"
+          cd "$GITHUB_WORKSPACE/source"
+          bash "$adapter"
+          if [[ "$RZ_ALLOW_NO_NATIVE" != 'true' ]]; then
+            grep -Eq $'\toperation=(compile|link|archive|rust-compile)\t' "$RZ_RECEIPT_DIR/invocations.tsv"
+          fi
+          printf 'This macOS lane records Zig receipts but is not process-trace certified.\n' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build-only evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zig-evidence-${{ inputs.evidence-id }}-${{ matrix.id }}-${{ github.run_attempt }}
+          path: |
+            toolchain/receipts/
+            toolchain/trace/
+            source/config.log
+            source/**/CMakeCache.txt
+          if-no-files-found: warn
+          retention-days: 14

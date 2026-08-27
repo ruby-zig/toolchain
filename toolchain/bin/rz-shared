@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=rz-common
+source "$here/rz-common"
+rz_require_zig
+rz_reject_driver_overrides "$@"
+rz_target_arguments
+rz_receipt shared "${RZ_ZIG_TARGET:-native}" link "${RZ_TARGET_ARGUMENTS[@]}" -shared "$@"
+exec "$RZ_ZIG" cc "${RZ_TARGET_ARGUMENTS[@]}" -shared "$@"
