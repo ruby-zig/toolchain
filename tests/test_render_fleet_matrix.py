@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 299)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 11)
+        self.assertEqual(plan.desired_jobs, 291)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 12)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 47],
+            [252, 39],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -88,16 +88,26 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 9)
+        self.assertEqual(len(lock["sources"]), 11)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
-            {"bigdecimal", "date", "json", "prism", "ruby", "stringio", "strscan"},
+            {
+                "bigdecimal",
+                "date",
+                "io-console",
+                "json",
+                "prism",
+                "ruby",
+                "stringio",
+                "strscan",
+            },
         )
         self.assertEqual(
             {source["name"]: source["profiles"] for source in lock["sources"]},
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
+                "io-console": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
@@ -156,6 +166,45 @@ class FleetMatrixTests(unittest.TestCase):
                 and source["rust"]
                 for source in ruby_source_locks.values()
             )
+        )
+        io_console_source = next(
+            source for source in lock["sources"] if source["name"] == "io-console"
+        )
+        self.assertEqual(
+            io_console_source["source_ref"],
+            "deb5c1ffc4e22bb7e9c28f5534e0d81e5cdc2015",
+        )
+        self.assertFalse(io_console_source["rust"])
+        io_console_adapter = json.loads(
+            (ROOT / "adapters" / "repo" / "io-console" / "adapter.json").read_text()
+        )
+        self.assertEqual(
+            [profile["id"] for profile in io_console_adapter["profiles"]],
+            ["x86_64-linux-gnu.2.17"],
+        )
+        io_console_gnu = io_console_adapter["profiles"][0]
+        self.assertEqual(io_console_gnu["status"], "run-verified")
+        self.assertEqual(
+            io_console_gnu["controller_sha"],
+            "72fd9634e1c303ce4efd936358d429b84e6966f9",
+        )
+        self.assertEqual(
+            io_console_gnu["trace_sha256"],
+            "d7cf1a8a137b39dd7fbba14a5a6ee3ea7de6ac434f58a0afd66d697b965cdfec",
+        )
+        self.assertEqual(
+            io_console_gnu["receipts_sha256"],
+            "fd3d5d9f33c2a1d4df6f2af0a583deabd031174b3ff4875abed2ff9acb1bbff9",
+        )
+        self.assertEqual(io_console_gnu["native_receipts"], 22)
+        self.assertEqual(io_console_gnu["receipt_operations"], {"compile": 6, "link": 16})
+        self.assertEqual(
+            io_console_gnu["artifact_sha256"],
+            "e9342aeddba338ab96e3a44ba708742e213d6ffeda2c27572be8a9e00bc1f1b6",
+        )
+        self.assertEqual(
+            io_console_adapter["cross_status"],
+            "pending-target-native-ruby-sdks-and-runtimes",
         )
         ruby_adapter = json.loads(
             (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()

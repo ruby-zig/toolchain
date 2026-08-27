@@ -72,6 +72,30 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(entry["source_ref"], candidate)
         self.assertEqual(entry["source_ref_name"], "master")
 
+    def test_io_console_derives_locked_gnu_pty_lane(self) -> None:
+        candidate = "b" * 40
+        plan = planner.plan_continuous(
+            ROOT, "ruby-zig/io-console", "master", candidate
+        )
+
+        self.assertEqual(plan.result_id, "io-console-master")
+        self.assertEqual(plan.upstream_repository, "ruby/io-console")
+        self.assertEqual(
+            plan.baseline_sha, "deb5c1ffc4e22bb7e9c28f5534e0d81e5cdc2015"
+        )
+        self.assertEqual(plan.adapter_id, "repo/io-console")
+        self.assertEqual(
+            plan.build_script, "adapters/repo/io-console/build.sh"
+        )
+        self.assertEqual(plan.ruby_version, "3.2.3")
+        self.assertFalse(plan.rust)
+        self.assertEqual(plan.ready_jobs, 1)
+        entry = plan.matrix["include"][0]
+        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+        self.assertEqual(entry["source_ref"], candidate)
+        self.assertEqual(entry["source_ref_name"], "master")
+        self.assertFalse(entry["rust"])
+
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(
