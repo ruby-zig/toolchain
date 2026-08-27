@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the fleet build manifest against its two source inventories."""
+"""Validate the discovery manifest and affected native fleet metadata."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
 
 ENTRY_KEYS = {
     "name",
@@ -22,7 +23,6 @@ ENTRY_KEYS = {
     "adapter_id",
     "adapter_status",
     "profile_policy",
-    "shard",
 }
 
 CLASSIFICATIONS = {
@@ -31,35 +31,31 @@ CLASSIFICATIONS = {
     "fixture-template-or-example",
     "no-committed-native",
 }
+FLEET_CLASSIFICATIONS = ["direct-native", "native-test"]
 
 PROFILE_POLICIES = {
     "zig-build-only": {
-        "profiles": "all-declared",
+        "profiles": "fleet-lock-selected",
         "native_compilation": "required",
         "claim": "build-only",
         "scope": "repository-product",
     },
     "zig-test-scope-only": {
-        "profiles": "all-declared",
+        "profiles": "fleet-lock-selected",
         "native_compilation": "required",
         "claim": "build-only",
         "scope": "committed-native-tests-only",
-    },
-    "zig-fixture-scope-only": {
-        "profiles": "all-declared",
-        "native_compilation": "required",
-        "claim": "build-only",
-        "scope": "committed-fixtures-templates-examples-only",
     },
     "not-applicable": {
         "profiles": "none",
         "native_compilation": "not-applicable",
         "claim": "none",
-        "scope": "no-committed-native-source",
+        "scope": "outside-affected-native-fleet",
     },
 }
 
 GITHUB_MATRIX_JOB_LIMIT = 256
+SHARD_SIZE = 252
 
 
 class DuplicateKeyError(ValueError):
@@ -91,19 +87,24 @@ def expected_route(
     direct_native: set[str],
     native_test: set[str],
     fixture_scope: set[str],
-) -> tuple[str, str | None, str, str]:
+) -> tuple[str, str | None, set[str], str]:
     if name in direct_native:
-        return "direct-native", f"repo/{name}", "planned", "zig-build-only"
+        return "direct-native", f"repo/{name}", {"planned", "ready"}, "zig-build-only"
     if name in native_test:
-        return "native-test", f"test/{name}", "planned", "zig-test-scope-only"
+        return "native-test", f"test/{name}", {"planned", "ready"}, "zig-test-scope-only"
     if name in fixture_scope:
         return (
             "fixture-template-or-example",
-            f"fixture/{name}",
-            "planned",
-            "zig-fixture-scope-only",
+            None,
+            {"not-applicable"},
+            "not-applicable",
         )
-    return "no-committed-native", None, "not-applicable", "not-applicable"
+    return (
+        "no-committed-native",
+        None,
+        {"not-applicable"},
+        "not-applicable",
+    )
 
 
 def main() -> int:
@@ -120,6 +121,7 @@ def main() -> int:
     inventory = read_json(root / "config" / "repositories.json")
     native_scope = read_json(root / "config" / "native-scope.json")
     manifest = read_json(root / "config" / "builds.json")
+    fleet_lock = read_json(root / "config" / "fleet-lock.json")
 
     errors: list[str] = []
 
@@ -212,8 +214,12 @@ def main() -> int:
         name = build.get("name")
         label = name if isinstance(name, str) else f"entry {index}"
         absent = sorted(ENTRY_KEYS - build.keys())
+        extra_keys = sorted(build.keys() - ENTRY_KEYS)
         if absent:
             errors.append(f"{label}: missing keys: {', '.join(absent)}")
+        if extra_keys:
+            errors.append(f"{label}: unexpected keys: {', '.join(extra_keys)}")
+        if absent or extra_keys:
             continue
 
         classification = build["classification"]
@@ -238,24 +244,29 @@ def main() -> int:
                     f"({build[key]!r} != {source.get(key)!r})"
                 )
 
-        expected = expected_route(name, direct_native, native_test, fixture_scope)
-        actual = (
-            build["classification"],
-            build["adapter_id"],
-            build["adapter_status"],
-            build["profile_policy"],
+        expected_class, expected_adapter, allowed_statuses, expected_policy = (
+            expected_route(name, direct_native, native_test, fixture_scope)
         )
-        if actual != expected:
-            errors.append(f"{label}: route {actual!r} should be {expected!r}")
-
-        expected_shard = index // 28 + 1
-        if build["shard"] != expected_shard:
+        if build["classification"] != expected_class:
             errors.append(
-                f"{label}: shard {build['shard']!r} should be {expected_shard}"
+                f"{label}: classification {build['classification']!r} "
+                f"should be {expected_class!r}"
             )
-
-    if set(classification_counts) - CLASSIFICATIONS:
-        errors.append("manifest contains an unrecognized classification")
+        if build["adapter_id"] != expected_adapter:
+            errors.append(
+                f"{label}: adapter_id {build['adapter_id']!r} "
+                f"should be {expected_adapter!r}"
+            )
+        if build["adapter_status"] not in allowed_statuses:
+            errors.append(
+                f"{label}: adapter_status {build['adapter_status']!r} "
+                f"must be one of {sorted(allowed_statuses)!r}"
+            )
+        if build["profile_policy"] != expected_policy:
+            errors.append(
+                f"{label}: profile_policy {build['profile_policy']!r} "
+                f"should be {expected_policy!r}"
+            )
 
     expected_counts = {
         "direct-native": len(direct_native),
@@ -269,8 +280,8 @@ def main() -> int:
             f"should be {expected_counts!r}"
         )
 
-    if manifest.get("schema") != 1:
-        errors.append("manifest schema must be 1")
+    if manifest.get("schema") != 2:
+        errors.append("manifest schema must be 2")
     if manifest.get("owner") != inventory.get("owner"):
         errors.append("manifest owner differs from inventory owner")
     if manifest.get("native_scope_scan_date") != native_scope.get("scan_date"):
@@ -301,43 +312,110 @@ def main() -> int:
             f"profile_count {manifest.get('profile_count')!r} should be {profile_count}"
         )
 
-    shard_plan = manifest.get("sharding")
-    if not isinstance(shard_plan, dict):
-        errors.append("sharding must be an object")
-        shard_plan = {}
+    fleet_names = direct_native | native_test
+    fleet_repository_count = len(fleet_names)
+    if fleet_lock.get("destination_owner") != "ruby-zig":
+        errors.append("fleet-lock destination_owner must be exactly ruby-zig")
+    source_refs = fleet_lock.get("source_refs")
+    source_ref_counts: Counter[str] = Counter()
+    actual_ref_names = {name: set() for name in fleet_names}
+    seen_source_refs: set[tuple[str, str]] = set()
+    seen_result_ids: set[str] = set()
+    if not isinstance(source_refs, list):
+        errors.append("fleet-lock source_refs must be an array")
+    else:
+        for index, source_ref in enumerate(source_refs):
+            label = f"fleet-lock source_ref {index}"
+            if not isinstance(source_ref, dict):
+                errors.append(f"{label} must be an object")
+                continue
+            name = source_ref.get("name")
+            ref_name = source_ref.get("ref_name")
+            result_id = source_ref.get("result_id")
+            if not isinstance(name, str) or name not in fleet_names:
+                errors.append(f"{label} names a repository outside the affected fleet")
+                continue
+            if not isinstance(ref_name, str) or not ref_name:
+                errors.append(f"{label} has no ref_name")
+                continue
+            key = (name, ref_name)
+            if key in seen_source_refs:
+                errors.append(f"{label} duplicates {name}@{ref_name}")
+            seen_source_refs.add(key)
+            actual_ref_names[name].add(ref_name)
+            if not isinstance(result_id, str) or not result_id:
+                errors.append(f"{label} has no result_id")
+            elif result_id in seen_result_ids:
+                errors.append(f"{label} duplicates result_id {result_id}")
+            else:
+                seen_result_ids.add(result_id)
+            source_ref_counts[name] += 1
 
-    repositories_per_shard = shard_plan.get("repositories_per_full_shard")
-    shard_count = shard_plan.get("shard_count")
-    expected_shard_count = math.ceil(len(repositories) / 28)
-    expected_max_jobs = 28 * profile_count
-    expected_sharding = {
-        "strategy": "inventory-order-contiguous",
-        "shard_count": expected_shard_count,
-        "repositories_per_full_shard": 28,
-        "planning_profiles_per_repository": profile_count,
-        "maximum_planned_jobs_per_shard": expected_max_jobs,
+    build_default_branches = {
+        build.get("name"): build.get("default_branch")
+        for build in builds
+        if isinstance(build, dict)
     }
-    if shard_plan != expected_sharding:
-        errors.append(f"sharding {shard_plan!r} should be {expected_sharding!r}")
-    if expected_shard_count != 7:
-        errors.append(f"inventory requires {expected_shard_count} shards, expected seven")
-    if expected_max_jobs > GITHUB_MATRIX_JOB_LIMIT:
+    for name in sorted(fleet_names):
+        if name == "ruby":
+            expected_refs = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3"}
+        else:
+            expected_refs = {build_default_branches.get(name)}
+        if actual_ref_names[name] != expected_refs:
+            errors.append(
+                f"{name}: tracked refs {sorted(actual_ref_names[name])!r} "
+                f"must be exactly {sorted(expected_refs)!r}"
+            )
+
+    source_ref_count = sum(source_ref_counts.values())
+    maximum_desired_jobs = source_ref_count * profile_count
+    expected_fleet_scope = {
+        "classifications": FLEET_CLASSIFICATIONS,
+        "repository_count": fleet_repository_count,
+        "source_ref_count": source_ref_count,
+        "maximum_profiles_per_source_ref": profile_count,
+        "maximum_desired_jobs": maximum_desired_jobs,
+    }
+    if manifest.get("fleet_scope") != expected_fleet_scope:
         errors.append(
-            f"planned shard can create {expected_max_jobs} jobs; "
-            f"GitHub matrix limit is {GITHUB_MATRIX_JOB_LIMIT}"
+            f"fleet_scope {manifest.get('fleet_scope')!r} "
+            f"should be {expected_fleet_scope!r}"
         )
 
-    shard_counts = Counter(
-        build.get("shard") for build in builds if isinstance(build, dict)
-    )
-    expected_shard_counts = {
-        shard: min(28, len(repositories) - (shard - 1) * 28)
+    expected_shard_count = math.ceil(maximum_desired_jobs / SHARD_SIZE)
+    maximum_jobs_by_shard = [
+        min(SHARD_SIZE, maximum_desired_jobs - (shard - 1) * SHARD_SIZE)
         for shard in range(1, expected_shard_count + 1)
+    ]
+    expected_sharding = {
+        "strategy": "affected-lane-contiguous",
+        "shard_count": expected_shard_count,
+        "jobs_per_full_shard": SHARD_SIZE,
+        "maximum_matrix_jobs": GITHUB_MATRIX_JOB_LIMIT,
+        "maximum_desired_jobs": maximum_desired_jobs,
+        "maximum_jobs_by_shard": maximum_jobs_by_shard,
     }
-    if dict(sorted(shard_counts.items())) != expected_shard_counts:
+    if manifest.get("sharding") != expected_sharding:
         errors.append(
-            f"shard counts {dict(sorted(shard_counts.items()))!r} "
-            f"should be {expected_shard_counts!r}"
+            f"sharding {manifest.get('sharding')!r} should be {expected_sharding!r}"
+        )
+    if SHARD_SIZE >= GITHUB_MATRIX_JOB_LIMIT:
+        errors.append(
+            f"shard size {SHARD_SIZE} must stay below GitHub's "
+            f"{GITHUB_MATRIX_JOB_LIMIT}-job matrix limit"
+        )
+    if fleet_repository_count != 39:
+        errors.append(
+            f"affected native fleet has {fleet_repository_count} repositories, expected 39"
+        )
+    if source_ref_count != 42:
+        errors.append(
+            f"affected fleet has {source_ref_count} tracked source refs, expected 42"
+        )
+    if maximum_desired_jobs != 378 or maximum_jobs_by_shard != [252, 126]:
+        errors.append(
+            f"affected fleet envelope is {maximum_desired_jobs} lanes in "
+            f"{maximum_jobs_by_shard!r}, expected 378 in [252, 126]"
         )
 
     if errors:
@@ -354,11 +432,12 @@ def main() -> int:
             "no-committed-native",
         )
     )
-    shard_sizes = ",".join(str(expected_shard_counts[shard]) for shard in expected_shard_counts)
+    shard_sizes = ",".join(str(size) for size in maximum_jobs_by_shard)
     print(
-        f"build manifest valid: {len(builds)} repositories; {counts}; "
-        f"shards={shard_sizes}; profiles={profile_count}; "
-        f"max-planned-jobs={expected_max_jobs}"
+        f"build manifest valid: {len(builds)} discovery repositories; {counts}; "
+        f"affected={fleet_repository_count}; source-refs={source_ref_count}; "
+        f"profiles={profile_count}; maximum-lanes={maximum_desired_jobs}; "
+        f"shards={shard_sizes}"
     )
     return 0
 

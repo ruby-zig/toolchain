@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/bigdecimal",
+  "repository": "ruby/bigdecimal",
+  "upstream_sha": "9099c24e6af42c91109475217f47b77d7e830c81",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/bigdecimal/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/bigdecimal.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "c3d37ec477db9a214e0c5c86f6cc6cfccbe3e520",
+      "trace_sha256": "7b5e7895b0812d9a16c4bb95a700e0db7f128639c6a61ac6ddd37b0869c0e828",
+      "receipts_sha256": "140496f8d8047bfe4f393c93825052628898195c891bc9556bcb69383202bc14",
+      "native_receipts": 25,
+      "receipt_operations": {
+        "compile": 16,
+        "link": 9
+      },
+      "artifact_sha256": "5dfc0a631869673fa2778d0a06e585657c791f1b91bee68be8f4dfc93c59bf96",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_max": "2.14",
+      "test": "loaded the exact artifact and verified 1.25 + 2.75 == 4"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "build-only",
+      "controller_sha": "c3d37ec477db9a214e0c5c86f6cc6cfccbe3e520",
+      "trace_sha256": "12d7bf84c7533943220a5d4ec9c5f67c5a4b956817e3205244491b2e7148fbf4",
+      "receipts_sha256": "a60b7adf75799a76b8b6bbe2f97a177f3d921417b80c0f2a3ea4df81dc532448",
+      "native_receipts": 25,
+      "receipt_operations": {
+        "compile": 16,
+        "link": 9
+      },
+      "artifact_sha256": "ce43aa4aa520b6ee95d8bde87d9e7462950e0e8ca7349655d7740e2813ce2e4b"
+    }
+  ],
+  "cross_status": "x86_64-linux-musl-certified-build-only",
+  "gaps": [
+    "other declared profiles still need target-compatible Ruby headers and libraries"
+  ]
+}

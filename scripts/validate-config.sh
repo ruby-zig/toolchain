@@ -23,5 +23,6 @@ jq -e '.summary.repositories_with_committed_native_source == 42' config/native-s
 python3 scripts/validate-build-manifest.py --root "$root"
 python3 scripts/render-fleet-matrix.py --root "$root" --check
 python3 -m unittest discover -s tests -p 'test_*.py'
+bash tests/test_validate_ref_name.sh
 
 printf 'configuration invariants passed\n'

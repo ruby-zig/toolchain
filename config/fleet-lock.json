@@ -1,6 +1,389 @@
 {
-  "schema": 1,
+  "schema": 2,
   "destination_owner": "ruby-zig",
-  "host_profile": "x86_64-linux-gnu.2.17",
-  "sources": []
+  "source_refs": [
+    {
+      "result_id": "bigdecimal-master",
+      "name": "bigdecimal",
+      "repository": "ruby/bigdecimal",
+      "ref_name": "master",
+      "source_ref": "9099c24e6af42c91109475217f47b77d7e830c81",
+      "rust": false
+    },
+    {
+      "result_id": "cgi-master",
+      "name": "cgi",
+      "repository": "ruby/cgi",
+      "ref_name": "master",
+      "source_ref": "7f08c896d3fb726584e50172ebe8ddb6f3379b75",
+      "rust": false
+    },
+    {
+      "result_id": "curses-master",
+      "name": "curses",
+      "repository": "ruby/curses",
+      "ref_name": "master",
+      "source_ref": "eef32a8622ff001a348775ea7cb21e2c31e758af",
+      "rust": false
+    },
+    {
+      "result_id": "date-master",
+      "name": "date",
+      "repository": "ruby/date",
+      "ref_name": "master",
+      "source_ref": "afb25b87590fd5b2f23f07fd851f06a31fa19288",
+      "rust": false
+    },
+    {
+      "result_id": "dbm-master",
+      "name": "dbm",
+      "repository": "ruby/dbm",
+      "ref_name": "master",
+      "source_ref": "5e13bb4e8079c9e5ef21f9e2f834b5ccad15d988",
+      "rust": false
+    },
+    {
+      "result_id": "debug-master",
+      "name": "debug",
+      "repository": "ruby/debug",
+      "ref_name": "master",
+      "source_ref": "6510cfbc7496c55ebbefa437a25c17ca58f7c5eb",
+      "rust": false
+    },
+    {
+      "result_id": "digest-master",
+      "name": "digest",
+      "repository": "ruby/digest",
+      "ref_name": "master",
+      "source_ref": "cb79debac4f03ac7d907d37615ed91a85dd7da26",
+      "rust": false
+    },
+    {
+      "result_id": "erb-master",
+      "name": "erb",
+      "repository": "ruby/erb",
+      "ref_name": "master",
+      "source_ref": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+      "rust": false
+    },
+    {
+      "result_id": "etc-master",
+      "name": "etc",
+      "repository": "ruby/etc",
+      "ref_name": "master",
+      "source_ref": "9ad32f8c8e199f34ae01e38bd647ab7e30a72406",
+      "rust": false
+    },
+    {
+      "result_id": "fcntl-master",
+      "name": "fcntl",
+      "repository": "ruby/fcntl",
+      "ref_name": "master",
+      "source_ref": "43347f8b6b0f5ef13997182bb9a703e0c072d101",
+      "rust": false
+    },
+    {
+      "result_id": "fiddle-master",
+      "name": "fiddle",
+      "repository": "ruby/fiddle",
+      "ref_name": "master",
+      "source_ref": "195c8d133bb8e225f27ba54f1bc476b8d488e217",
+      "rust": false
+    },
+    {
+      "result_id": "gdbm-master",
+      "name": "gdbm",
+      "repository": "ruby/gdbm",
+      "ref_name": "master",
+      "source_ref": "b661295c58cd71ea8f8d035d34283a8daa673d9e",
+      "rust": false
+    },
+    {
+      "result_id": "iconv-master",
+      "name": "iconv",
+      "repository": "ruby/iconv",
+      "ref_name": "master",
+      "source_ref": "07cceadf29439d5070b2be62ea644ca01fa7f940",
+      "rust": false
+    },
+    {
+      "result_id": "io-console-master",
+      "name": "io-console",
+      "repository": "ruby/io-console",
+      "ref_name": "master",
+      "source_ref": "deb5c1ffc4e22bb7e9c28f5534e0d81e5cdc2015",
+      "rust": false
+    },
+    {
+      "result_id": "io-nonblock-master",
+      "name": "io-nonblock",
+      "repository": "ruby/io-nonblock",
+      "ref_name": "master",
+      "source_ref": "04ae796039e3c90b4e09af61128fc27e44120c86",
+      "rust": false
+    },
+    {
+      "result_id": "io-wait-master",
+      "name": "io-wait",
+      "repository": "ruby/io-wait",
+      "ref_name": "master",
+      "source_ref": "2a8d689fdaeae482cf97d18722a5c8fb8b5c1aeb",
+      "rust": false
+    },
+    {
+      "result_id": "json-master",
+      "name": "json",
+      "repository": "ruby/json",
+      "ref_name": "master",
+      "source_ref": "d3c71136ca569ddc92fac5fae5dac144f21a3a13",
+      "rust": false
+    },
+    {
+      "result_id": "mmtk-main",
+      "name": "mmtk",
+      "repository": "ruby/mmtk",
+      "ref_name": "main",
+      "source_ref": "47ecd934701009ec3d29d6f96c7b486a96089347",
+      "rust": true
+    },
+    {
+      "result_id": "nkf-master",
+      "name": "nkf",
+      "repository": "ruby/nkf",
+      "ref_name": "master",
+      "source_ref": "0cbafd2db231e331ac8f10e77ef406c71e3b9fbe",
+      "rust": false
+    },
+    {
+      "result_id": "openssl-master",
+      "name": "openssl",
+      "repository": "ruby/openssl",
+      "ref_name": "master",
+      "source_ref": "baa28f57f2fa5d9dc6d7e4dd4fbb0fdbf3099623",
+      "rust": false
+    },
+    {
+      "result_id": "pathname-master",
+      "name": "pathname",
+      "repository": "ruby/pathname",
+      "ref_name": "master",
+      "source_ref": "f0217bbd486b2f7d5c7de1ff3951c7422d42c761",
+      "rust": false
+    },
+    {
+      "result_id": "prism-main",
+      "name": "prism",
+      "repository": "ruby/prism",
+      "ref_name": "main",
+      "source_ref": "5f4d15620500f71d9995dc1fd33cd916bb2ff16f",
+      "rust": true
+    },
+    {
+      "result_id": "psych-master",
+      "name": "psych",
+      "repository": "ruby/psych",
+      "ref_name": "master",
+      "source_ref": "9b12bb3fb679c2bc2399ffec0bed15b58ce839e8",
+      "rust": false
+    },
+    {
+      "result_id": "racc-master",
+      "name": "racc",
+      "repository": "ruby/racc",
+      "ref_name": "master",
+      "source_ref": "4d858d91239b5c26b0308d362a9e96d43190674a",
+      "rust": false
+    },
+    {
+      "result_id": "rbs-master",
+      "name": "rbs",
+      "repository": "ruby/rbs",
+      "ref_name": "master",
+      "source_ref": "5de6ecda19eaec2bd225db301674dc650dc220c3",
+      "rust": true
+    },
+    {
+      "result_id": "readline-ext-master",
+      "name": "readline-ext",
+      "repository": "ruby/readline-ext",
+      "ref_name": "master",
+      "source_ref": "eb0e5ee22dba55a9abd603a3efa8917b5c0831d4",
+      "rust": false
+    },
+    {
+      "result_id": "resolv-master",
+      "name": "resolv",
+      "repository": "ruby/resolv",
+      "ref_name": "master",
+      "source_ref": "fcff0a19e401a6e75917e85a244b3a9563987d6e",
+      "rust": false
+    },
+    {
+      "result_id": "ruby-master",
+      "name": "ruby",
+      "repository": "ruby/ruby",
+      "ref_name": "master",
+      "source_ref": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+      "rust": true
+    },
+    {
+      "result_id": "ruby-ruby_4_0",
+      "name": "ruby",
+      "repository": "ruby/ruby",
+      "ref_name": "ruby_4_0",
+      "source_ref": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+      "rust": true
+    },
+    {
+      "result_id": "ruby-ruby_3_4",
+      "name": "ruby",
+      "repository": "ruby/ruby",
+      "ref_name": "ruby_3_4",
+      "source_ref": "aac3e36dd4bee40fc89893209553903706fa5666",
+      "rust": true
+    },
+    {
+      "result_id": "ruby-ruby_3_3",
+      "name": "ruby",
+      "repository": "ruby/ruby",
+      "ref_name": "ruby_3_3",
+      "source_ref": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "rust": true
+    },
+    {
+      "result_id": "ruby.wasm-main",
+      "name": "ruby.wasm",
+      "repository": "ruby/ruby.wasm",
+      "ref_name": "main",
+      "source_ref": "78711dba06a0f5edde564be66933868916b98296",
+      "rust": true
+    },
+    {
+      "result_id": "sdbm-master",
+      "name": "sdbm",
+      "repository": "ruby/sdbm",
+      "ref_name": "master",
+      "source_ref": "7b0c143d6dc970b3e5d897e36876be5ec9e15889",
+      "rust": false
+    },
+    {
+      "result_id": "spec-master",
+      "name": "spec",
+      "repository": "ruby/spec",
+      "ref_name": "master",
+      "source_ref": "b4d52112c4c52e2016a66d6d37b22a52f599665c",
+      "rust": false
+    },
+    {
+      "result_id": "stringio-master",
+      "name": "stringio",
+      "repository": "ruby/stringio",
+      "ref_name": "master",
+      "source_ref": "2825dc300741d34e54d59b8fd65d901828d5425d",
+      "rust": false
+    },
+    {
+      "result_id": "strscan-master",
+      "name": "strscan",
+      "repository": "ruby/strscan",
+      "ref_name": "master",
+      "source_ref": "63ee0ac310d6b2a89543a3e2755cd72f203bd80f",
+      "rust": false
+    },
+    {
+      "result_id": "syck-master",
+      "name": "syck",
+      "repository": "ruby/syck",
+      "ref_name": "master",
+      "source_ref": "0b76192bc3b8cd5dfe814e1166265ab38d82e41b",
+      "rust": false
+    },
+    {
+      "result_id": "syslog-master",
+      "name": "syslog",
+      "repository": "ruby/syslog",
+      "ref_name": "master",
+      "source_ref": "6d3616575bc81a09182144c17c303e46f4d2ef9f",
+      "rust": false
+    },
+    {
+      "result_id": "tk-master",
+      "name": "tk",
+      "repository": "ruby/tk",
+      "ref_name": "master",
+      "source_ref": "9df4519c8671eb19497ebd0e5c97fe118ac1b21b",
+      "rust": false
+    },
+    {
+      "result_id": "vterm-gem-master",
+      "name": "vterm-gem",
+      "repository": "ruby/vterm-gem",
+      "ref_name": "master",
+      "source_ref": "ab90c9c1b42f84c90d862d8f75751abc23a06c89",
+      "rust": false
+    },
+    {
+      "result_id": "win32ole-master",
+      "name": "win32ole",
+      "repository": "ruby/win32ole",
+      "ref_name": "master",
+      "source_ref": "ae9bc90a7f8699ec136e49f1f42c99b442293013",
+      "rust": false
+    },
+    {
+      "result_id": "zlib-master",
+      "name": "zlib",
+      "repository": "ruby/zlib",
+      "ref_name": "master",
+      "source_ref": "c87e5ed1403144010b00ff1787e860e5d084511b",
+      "rust": false
+    }
+  ],
+  "sources": [
+    {
+      "result_id": "bigdecimal-master",
+      "name": "bigdecimal",
+      "ref_name": "master",
+      "adapter_id": "repo/bigdecimal",
+      "repository": "ruby-zig/bigdecimal",
+      "source_ref": "9099c24e6af42c91109475217f47b77d7e830c81",
+      "build_script": "adapters/repo/bigdecimal/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17",
+        "x86_64-linux-musl"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
+      "result_id": "json-master",
+      "name": "json",
+      "ref_name": "master",
+      "adapter_id": "repo/json",
+      "repository": "ruby-zig/json",
+      "source_ref": "d3c71136ca569ddc92fac5fae5dac144f21a3a13",
+      "build_script": "adapters/repo/json/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17",
+        "x86_64-linux-musl"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
+      "result_id": "prism-main",
+      "name": "prism",
+      "ref_name": "main",
+      "adapter_id": "repo/prism",
+      "repository": "ruby-zig/prism",
+      "source_ref": "5f4d15620500f71d9995dc1fd33cd916bb2ff16f",
+      "build_script": "adapters/repo/prism/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17",
+        "x86_64-linux-musl"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": true
+    }
+  ]
 }

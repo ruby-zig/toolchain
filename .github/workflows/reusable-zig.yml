@@ -8,7 +8,11 @@ on:
         required: true
         type: string
       build-script:
-        description: Executable repository-relative build adapter
+        description: Controller-relative build adapter under adapters/
+        required: true
+        type: string
+      ruby-version:
+        description: Exact numeric x.y.z Ruby runtime used to drive the build
         required: true
         type: string
       toolchain-ref:
@@ -21,6 +25,10 @@ on:
         type: string
       source-ref:
         description: Immutable source commit SHA
+        required: true
+        type: string
+      source-ref-name:
+        description: Tracked upstream branch identity
         required: true
         type: string
       evidence-id:
@@ -85,6 +93,7 @@ jobs:
           RZ_EVIDENCE_ID: ${{ inputs.evidence-id }}
           RZ_PROFILE_ID: ${{ matrix.id }}
           RZ_REQUESTED_RUNNER: ${{ matrix.runner }}
+          RZ_RUBY_VERSION: ${{ inputs.ruby-version }}
           RZ_SOURCE_REF: ${{ inputs.source-ref }}
           RZ_SOURCE_REPOSITORY: ${{ inputs.source-repository }}
           RZ_TOOLCHAIN_REF: ${{ inputs.toolchain-ref }}
@@ -116,13 +125,31 @@ jobs:
             printf 'Invalid profile id: %s\n' "$RZ_PROFILE_ID" >&2
             exit 64
           }
-          [[ "$RZ_BUILD_SCRIPT" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]] || {
-            printf 'Invalid build adapter path: %s\n' "$RZ_BUILD_SCRIPT" >&2
+          [[ "$RZ_RUBY_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+            printf 'ruby-version must be an exact numeric x.y.z\n' >&2
+            exit 64
+          }
+          [[ "$RZ_BUILD_SCRIPT" =~ ^adapters/[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]] || {
+            printf 'Build adapter must be controller-relative under adapters/: %s\n' "$RZ_BUILD_SCRIPT" >&2
             exit 64
           }
           case "/$RZ_BUILD_SCRIPT/" in
-            */../*|*//*) printf 'Build adapter must stay within the repository\n' >&2; exit 64 ;;
+            */../*|*//*) printf 'Build adapter must stay within adapters/\n' >&2; exit 64 ;;
           esac
+
+      - name: Check out pinned toolchain
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ruby-zig/toolchain
+          ref: ${{ inputs.toolchain-ref }}
+          path: toolchain
+          persist-credentials: false
+
+      - name: Validate tracked source ref name
+        shell: bash
+        env:
+          RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
+        run: bash toolchain/scripts/validate-ref-name.sh "$RZ_SOURCE_REF_NAME"
 
       - name: Check out immutable fork source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -132,13 +159,11 @@ jobs:
           path: source
           persist-credentials: false
 
-      - name: Check out pinned toolchain
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install declared Ruby runtime
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
         with:
-          repository: ruby-zig/toolchain
-          ref: ${{ inputs.toolchain-ref }}
-          path: toolchain
-          persist-credentials: false
+          ruby-version: ${{ inputs.ruby-version }}
+          bundler-cache: 'false'
 
       - name: Install pinned Zig
         id: zig
@@ -152,7 +177,7 @@ jobs:
         shell: bash
         env:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
-        run: chmod +x toolchain/toolchain/bin/* toolchain/scripts/*.sh "source/$RZ_BUILD_SCRIPT"
+        run: chmod +x toolchain/toolchain/bin/* toolchain/scripts/*.sh "toolchain/$RZ_BUILD_SCRIPT"
 
       - name: Install pinned Rust toolchain and target
         if: inputs.rust
@@ -175,6 +200,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
         run: |
@@ -186,7 +212,7 @@ jobs:
           mode=()
           if [[ "$RZ_ALLOW_NO_NATIVE" == 'true' ]]; then mode+=(--allow-no-native); fi
           "$GITHUB_WORKSPACE/toolchain/scripts/self-test-auditor.sh"
-          adapter="$GITHUB_WORKSPACE/source/$RZ_BUILD_SCRIPT"
+          adapter="$GITHUB_WORKSPACE/toolchain/$RZ_BUILD_SCRIPT"
           cd "$GITHUB_WORKSPACE/source"
           "$GITHUB_WORKSPACE/toolchain/scripts/run-certified.sh" "${mode[@]}" -- bash "$adapter"
 
@@ -198,6 +224,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
         run: |
@@ -206,7 +233,7 @@ jobs:
             printf 'Reusable workflow does not yet implement %s verification\n' "$RZ_VERIFICATION" >&2
             exit 65
           }
-          adapter="$GITHUB_WORKSPACE/source/$RZ_BUILD_SCRIPT"
+          adapter="$GITHUB_WORKSPACE/toolchain/$RZ_BUILD_SCRIPT"
           cd "$GITHUB_WORKSPACE/source"
           bash "$adapter"
           if [[ "$RZ_ALLOW_NO_NATIVE" != 'true' ]]; then
