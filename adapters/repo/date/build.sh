@@ -108,6 +108,12 @@ mkdir -p "$build_dir" "$artifact_dir"
       RbConfig::CONFIG[key] = value
       RbConfig::MAKEFILE_CONFIG[key] = value
     end
+    %w[LIBRUBYARG LIBRUBYARG_SHARED].each do |key|
+      value = RbConfig::CONFIG[key].to_s
+      value = value.gsub(/(?:\A|\s)-Wl,-rpath(?:,|=)[^\s]+/, "").strip
+      RbConfig::CONFIG[key] = value
+      RbConfig::MAKEFILE_CONFIG[key] = value
+    end
     script = File.expand_path(ARGV.shift)
     ARGV.unshift("--srcdir=#{File.dirname(script)}")
     load script
