@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 323)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 8)
+        self.assertEqual(plan.desired_jobs, 307)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 10)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 71],
+            [252, 55],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -49,7 +49,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 2 + 2 * 9)
+        self.assertEqual(len(ruby_lanes), 4)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -70,21 +70,14 @@ class FleetMatrixTests(unittest.TestCase):
                 )
                 for ref_name in CRUBY_REFS
             },
-            {"master": 1, "ruby_4_0": 1, "ruby_3_4": 9, "ruby_3_3": 9},
+            {"master": 1, "ruby_4_0": 1, "ruby_3_4": 1, "ruby_3_3": 1},
         )
         ready_ruby = [lane for lane in ruby_lanes if lane.ready]
         self.assertEqual(
-            {lane.ref_name for lane in ready_ruby}, {"master", "ruby_4_0"}
+            {lane.ref_name for lane in ready_ruby}, set(CRUBY_REFS)
         )
         self.assertTrue(
             all(lane.profile["id"] == "x86_64-linux-gnu.2.17" for lane in ready_ruby)
-        )
-        self.assertTrue(
-            all(
-                not lane.ready
-                for lane in ruby_lanes
-                if lane.ref_name in {"ruby_3_4", "ruby_3_3"}
-            )
         )
 
         lock = json.loads((ROOT / "config" / "fleet-lock.json").read_text())
@@ -95,6 +88,7 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
+        self.assertEqual(len(lock["sources"]), 9)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {"bigdecimal", "json", "prism", "ruby", "stringio", "strscan"},
@@ -137,6 +131,23 @@ class FleetMatrixTests(unittest.TestCase):
             ruby_release_source["profiles"], ["x86_64-linux-gnu.2.17"]
         )
         self.assertTrue(ruby_release_source["rust"])
+        ruby_source_locks = {
+            source["ref_name"]: source
+            for source in lock["sources"]
+            if source["name"] == "ruby"
+        }
+        self.assertEqual(
+            {name: source["source_ref"] for name, source in ruby_source_locks.items()},
+            CRUBY_REFS,
+        )
+        self.assertTrue(
+            all(
+                source["profiles"] == ["x86_64-linux-gnu.2.17"]
+                and source["ruby_version"] == "3.2.3"
+                and source["rust"]
+                for source in ruby_source_locks.values()
+            )
+        )
         ruby_adapter = json.loads(
             (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()
         )
@@ -155,6 +166,103 @@ class FleetMatrixTests(unittest.TestCase):
         )
         self.assertNotIn("trace", ruby_validation)
         self.assertNotIn("receipts", ruby_validation)
+        source_records = {
+            source["name"]: source
+            for source in ruby_adapter["source_refs"]
+            if source["name"] in CRUBY_REFS
+        }
+        evidence_by_ref = {
+            name: next(
+                evidence
+                for evidence in source["validated_baselines"]
+                if evidence["sha"] == CRUBY_REFS[name]
+            )
+            for name, source in source_records.items()
+        }
+        self.assertEqual(set(evidence_by_ref), set(CRUBY_REFS))
+        self.assertTrue(
+            all(
+                evidence["status"] == "run-verified-shared-native"
+                for evidence in evidence_by_ref.values()
+            )
+        )
+        profile_sources = {
+            profile["source_ref"]: profile["source_sha"]
+            for profile in ruby_adapter["profiles"]
+            if profile["status"] == "run-verified-baseline"
+        }
+        self.assertEqual(profile_sources, CRUBY_REFS)
+        self.assertEqual(ruby_adapter["cross_status"], "blocked-not-tested")
+
+        release_evidence = {
+            "ruby_3_4": {
+                "release": "3.4.10",
+                "receipts": 1518,
+                "receipts_sha256": "fd81a503f54e9126448f1cbe8168120be9acb8e836c497302e1368ecf0fed973",
+                "trace_sha256": "ddae8a775037a43541d9dd2a702ad9d8d2151b72b74250e5e2b861d45d81e3c3",
+                "transcript_sha256": "81c89343f7817c0f0d82d59904f2333ba87931137718f2b3e0bedb2484bfa2d4",
+                "manifest_sha256": "1659e3db96e003a968f844d649637719e142b8838aadd446868d57f54f1406a9",
+                "dso_list_sha256": "ec22e1646f14e3a5781830d616427d2632f161241fc1677e1ccf8469f2ffad44",
+                "export_map_symbols": 3212,
+            },
+            "ruby_3_3": {
+                "release": "3.3.12",
+                "receipts": 1538,
+                "receipts_sha256": "4b2a6cc08485d480bc18e4854ac134b4fdf314bf9ff6237939867f838a9b9759",
+                "trace_sha256": "2dbf06dca21fa7bdf4ce2734339d1d88f1d8b628a8df1ee70c5511b49812c566",
+                "transcript_sha256": "29498e70840b58cd6547c13bc3cab4f18eb38334d24136595954ae4eed69e3d4",
+                "manifest_sha256": "564467a1ed8faaf240246e4783b8039b6446ac3b54610217e1ddcf2106dea732",
+                "dso_list_sha256": "19d0b261835a0ec23c788128a5ba61215053398620fa207c53e110e3bdc1b5ef",
+                "export_map_symbols": 3047,
+            },
+        }
+        for name, expected in release_evidence.items():
+            evidence = evidence_by_ref[name]
+            self.assertEqual(evidence["release"], expected["release"])
+            self.assertEqual(evidence["receipt_count"], expected["receipts"])
+            self.assertEqual(evidence["receipts_sha256"], expected["receipts_sha256"])
+            self.assertEqual(evidence["trace_sha256"], expected["trace_sha256"])
+            self.assertEqual(evidence["transcript_sha256"], expected["transcript_sha256"])
+            self.assertEqual(
+                evidence["curated_manifest_sha256"], expected["manifest_sha256"]
+            )
+            self.assertEqual(evidence["dso_list_sha256"], expected["dso_list_sha256"])
+            self.assertEqual(
+                evidence["export_map_symbols"], expected["export_map_symbols"]
+            )
+            self.assertEqual(
+                evidence["controller"],
+                {
+                    "commit": "6f54fe9902c60b7a5862b91868e875a7eb694f1f",
+                    "tree": "9d7acb8350766f14ca4fcbff08a07a9ca3cd1b34",
+                    "bundle_sha256": "e9d625a78b234078fde3f91e18692780003e52311b408e3590a41cc0d066f9ae",
+                    "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22",
+                    "source_contract_sha256": "39a5d2e6832855b885bca44e4cb6b28255e67f0aac015961dbf9874828b5c5e4",
+                },
+            )
+            self.assertEqual(evidence["tests"]["basic_groups"], 30)
+            self.assertEqual(evidence["tests"]["assertions"], 894)
+            self.assertEqual(evidence["native_extension_scope"]["built_dsos"], 155)
+            self.assertEqual(evidence["native_extension_scope"]["smoke_families"], 26)
+            self.assertEqual(
+                evidence["native_extension_scope"]["excluded_from_certification"],
+                ["fiddle", "openssl", "psych", "zlib"],
+            )
+            self.assertEqual(
+                evidence["export_audit"],
+                {
+                    "rust_mangled_dynamic_exports": 0,
+                    "partial_link_products": 0,
+                    "forbidden_processes": 0,
+                },
+            )
+            self.assertEqual(
+                evidence["dso_links"],
+                {"total": 2, "mapped": 1, "mapped_is_final": True},
+            )
+            self.assertEqual(evidence["gnu_abi_ceiling"]["miniruby"], "GLIBC_2.17")
+            self.assertEqual(evidence["gnu_abi_ceiling"]["ruby"], "GLIBC_2.4")
+
         for name in ("bigdecimal", "json", "stringio", "strscan"):
             adapter = json.loads(
                 (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()

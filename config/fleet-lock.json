@@ -412,6 +412,34 @@
       "rust": true
     },
     {
+      "result_id": "ruby-ruby_3_4",
+      "name": "ruby",
+      "ref_name": "ruby_3_4",
+      "adapter_id": "repo/ruby",
+      "repository": "ruby-zig/ruby",
+      "source_ref": "aac3e36dd4bee40fc89893209553903706fa5666",
+      "build_script": "adapters/repo/ruby/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": true
+    },
+    {
+      "result_id": "ruby-ruby_3_3",
+      "name": "ruby",
+      "ref_name": "ruby_3_3",
+      "adapter_id": "repo/ruby",
+      "repository": "ruby-zig/ruby",
+      "source_ref": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "build_script": "adapters/repo/ruby/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": true
+    },
+    {
       "result_id": "stringio-master",
       "name": "stringio",
       "ref_name": "master",

@@ -95,6 +95,46 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(entry["source_ref_name"], "ruby_4_0")
         self.assertTrue(entry["rust"])
 
+    def test_cruby_3_4_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
+        candidate = "1" * 40
+        plan = planner.plan_continuous(
+            ROOT, "ruby-zig/ruby", "ruby_3_4", candidate
+        )
+
+        self.assertEqual(plan.result_id, "ruby-ruby_3_4")
+        self.assertEqual(
+            plan.baseline_sha, "aac3e36dd4bee40fc89893209553903706fa5666"
+        )
+        self.assertEqual(plan.adapter_id, "repo/ruby")
+        self.assertEqual(plan.build_script, "adapters/repo/ruby/build.sh")
+        self.assertEqual(plan.ruby_version, "3.2.3")
+        self.assertTrue(plan.rust)
+        self.assertEqual(plan.ready_jobs, 1)
+        entry = plan.matrix["include"][0]
+        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+        self.assertEqual(entry["source_ref"], candidate)
+        self.assertEqual(entry["source_ref_name"], "ruby_3_4")
+
+    def test_cruby_3_3_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
+        candidate = "2" * 40
+        plan = planner.plan_continuous(
+            ROOT, "ruby-zig/ruby", "ruby_3_3", candidate
+        )
+
+        self.assertEqual(plan.result_id, "ruby-ruby_3_3")
+        self.assertEqual(
+            plan.baseline_sha, "0581089df9f0af0fe6b64cb8167987c211100947"
+        )
+        self.assertEqual(plan.adapter_id, "repo/ruby")
+        self.assertEqual(plan.build_script, "adapters/repo/ruby/build.sh")
+        self.assertEqual(plan.ruby_version, "3.2.3")
+        self.assertTrue(plan.rust)
+        self.assertEqual(plan.ready_jobs, 1)
+        entry = plan.matrix["include"][0]
+        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+        self.assertEqual(entry["source_ref"], candidate)
+        self.assertEqual(entry["source_ref_name"], "ruby_3_3")
+
     def test_repository_branch_and_sha_are_exactly_allowlisted(self) -> None:
         cases = (
             (

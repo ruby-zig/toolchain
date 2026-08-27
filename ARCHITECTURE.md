@@ -61,12 +61,12 @@ The maximum coverage envelope is therefore `42 * 9 = 378` lanes. GitHub
 allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
-The number is a ceiling, not a reason to run every possible lane. The initial
-executable lock contains eight lanes: GNU for `bigdecimal`, `json`,
-`stringio`, `strscan`, and both executable CRuby branches, plus GNU and
-musl for `prism`. Those selected profiles make the current desired workload
-323 lanes across active shards of 252 and 71. Each immutable executable source
-entry in `config/fleet-lock.json` contains a
+The number is a ceiling, not a reason to run every possible lane. The
+executable lock contains ten lanes: GNU for `bigdecimal`, `json`,
+`stringio`, `strscan`, and all four maintained CRuby refs, plus GNU and
+musl for `prism`. Those nine executable source identities make the current
+desired workload 307 lanes across active shards of 252 and 55. Each immutable
+executable source entry in `config/fleet-lock.json` contains a
 nonempty, duplicate-free subset of declared profile IDs. The renderer emits
 only that subset. Unselected profiles remain target-catalog backlog coverage;
 planned source identities still render their full pending envelope. A selected
@@ -83,12 +83,17 @@ selected matrix runs on the slower sweep cadence and on demand.
 
 A tracked source-ref record binds an upstream repository, explicit branch
 name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby
-`master` and `ruby_4_0` have executable native GNU baselines;
-`ruby_3_4` and `ruby_3_3` remain tracked pending records. EOL `ruby_3_2`
-is absent. A newer tracked-branch tip is admitted only as an exact,
-ancestry-checked continuous candidate derived from that branch's immutable
-baseline. For `ruby_4_0`, that baseline is
-`f3a72fe0a6d35583e215422e8887d3df0a1670b8`.
+`master`, `ruby_4_0`, `ruby_3_4`, and `ruby_3_3` all have executable
+native GNU shared baselines. EOL `ruby_3_2` is absent. Master and 4.0 certify
+YJIT and ZJIT; 3.4 and 3.3 are YJIT-only. The older-release certification
+covers 155 built DSOs and a 26-family native-extension smoke set, explicitly
+excluding `fiddle`, `openssl`, `psych`, and `zlib`. A newer tracked-branch
+tip is admitted only as an exact, ancestry-checked continuous candidate derived
+from that branch's immutable baseline. The release baselines are
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`,
+`aac3e36dd4bee40fc89893209553903706fa5666`, and
+`0581089df9f0af0fe6b64cb8167987c211100947` for 4.0, 3.4, and 3.3
+respectively.
 
 A ready executable lock entry additionally binds:
 
@@ -120,8 +125,9 @@ dependencies.
 
 Linux certification uses a poison `PATH`, process tracing, and wrapper receipt
 correlation. macOS currently records receipts but is not process-trace
-certified. Cross artifacts remain `build-only` until the adapter also inspects
-their ABI and, where a runner exists, executes their tests.
+certified. All cross profiles remain uncertified catalog backlog until the
+adapter inspects their ABI and, where a runner exists, executes their tests;
+none of the four CRuby baseline locks admits a cross profile.
 
 A Ruby extension built against the GNU Ruby SDK is not a certifying musl lane,
 even when Zig emits a musl ELF artifact. That requires a target-native musl Ruby

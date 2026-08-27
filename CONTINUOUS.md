@@ -19,12 +19,15 @@ subset, exact external Ruby runtime, and Rust boundary. The candidate SHA
 replaces only the baseline source SHA in the derived matrix. There is no input
 through which a caller can broaden the build.
 
-A tracked source without an executable entry is rejected. CRuby `master` and
-`ruby_4_0` have certified native GNU baselines and executable entries;
-`ruby_3_4` and `ruby_3_3` remain visible but pending. The `ruby_4_0`
-entry remains pinned to baseline
-`f3a72fe0a6d35583e215422e8887d3df0a1670b8`, while each synchronized
-descendant is dispatched by exact SHA.
+A tracked source without an executable entry is rejected. All four maintained
+CRuby refs have certified native GNU shared baselines and executable entries.
+The immutable baselines are `89d3b11eace35b8e279b970b4ff5125f171d0d4b`
+for `master`, `f3a72fe0a6d35583e215422e8887d3df0a1670b8` for
+`ruby_4_0`, `aac3e36dd4bee40fc89893209553903706fa5666` for
+`ruby_3_4`, and `0581089df9f0af0fe6b64cb8167987c211100947` for
+`ruby_3_3`. Master and 4.0 certify YJIT and ZJIT; 3.4 and 3.3 are
+YJIT-only. Each synchronized descendant is dispatched by exact SHA. Cross
+profiles remain uncertified catalog backlog and are absent from these locks.
 
 ## Public graph proof
 
