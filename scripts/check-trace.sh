@@ -19,7 +19,12 @@ fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 wrapper_dir="$root/toolchain/bin"
 forbidden_file="$trace.forbidden"
+executables_file="$trace.executables"
+processes_file="$trace.processes"
 : >"$forbidden_file"
+sed -n 's/.*execve("\([^"]*\)".*/\1/p' "$trace" >"$executables_file"
+sed -n 's/^\([0-9][0-9]*\)[[:space:]]\+.*execve("\([^"]*\)".*/\1\t\2/p' \
+  "$trace" >"$processes_file"
 
 while IFS= read -r executable; do
   case "$executable" in
@@ -54,7 +59,7 @@ while IFS= read -r executable; do
       printf '%s\n' "$executable" >>"$forbidden_file"
       ;;
   esac
-done < <(sed -n 's/.*execve("\([^"]*\)".*/\1/p' "$trace")
+done <"$executables_file"
 
 if [[ -s "$forbidden_file" ]]; then
   printf 'foreign native tool invocation detected:\n' >&2
@@ -112,8 +117,8 @@ while IFS=$'\t' read -r parent child; do
   parent_by_pid["$child"]="$parent"
 done < <(
   awk '
-    ($0 ~ /^[0-9]+ (clone|clone3|fork|vfork)\(/ ||
-     $0 ~ /^[0-9]+ <\.\.\. (clone|clone3|fork|vfork) resumed>/) &&
+    ($0 ~ /^[0-9]+[[:space:]]+(clone|clone3|fork|vfork)\(/ ||
+     $0 ~ /^[0-9]+[[:space:]]+<\.\.\. (clone|clone3|fork|vfork) resumed>/) &&
     $(NF - 1) == "=" && $NF ~ /^[0-9]+$/ {
       print $1 "\t" $NF
     }
@@ -143,6 +148,6 @@ while IFS=$'\t' read -r pid executable; do
       "$pid" "$compiler_kind" >&2
     exit 8
   fi
-done < <(sed -n 's/^\([0-9][0-9]*\).*execve("\([^"]*\)".*/\1\t\2/p' "$trace")
+done <"$processes_file"
 
 printf 'toolchain trace accepted\n'
