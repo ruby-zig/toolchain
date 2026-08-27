@@ -21,7 +21,7 @@ SPEC.loader.exec_module(renderer)
 
 CRUBY_REFS = {
     "master": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
-    "ruby_4_0": "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
+    "ruby_4_0": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
     "ruby_3_4": "aac3e36dd4bee40fc89893209553903706fa5666",
     "ruby_3_3": "0581089df9f0af0fe6b64cb8167987c211100947",
 }
@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 331)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 7)
+        self.assertEqual(plan.desired_jobs, 323)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 8)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 79],
+            [252, 71],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -49,7 +49,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 1 + 3 * 9)
+        self.assertEqual(len(ruby_lanes), 2 + 2 * 9)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -70,13 +70,21 @@ class FleetMatrixTests(unittest.TestCase):
                 )
                 for ref_name in CRUBY_REFS
             },
-            {"master": 1, "ruby_4_0": 9, "ruby_3_4": 9, "ruby_3_3": 9},
+            {"master": 1, "ruby_4_0": 1, "ruby_3_4": 9, "ruby_3_3": 9},
         )
-        ruby_master = next(lane for lane in ruby_lanes if lane.ref_name == "master")
-        self.assertTrue(ruby_master.ready)
-        self.assertEqual(ruby_master.profile["id"], "x86_64-linux-gnu.2.17")
+        ready_ruby = [lane for lane in ruby_lanes if lane.ready]
+        self.assertEqual(
+            {lane.ref_name for lane in ready_ruby}, {"master", "ruby_4_0"}
+        )
         self.assertTrue(
-            all(not lane.ready for lane in ruby_lanes if lane.ref_name != "master")
+            all(lane.profile["id"] == "x86_64-linux-gnu.2.17" for lane in ready_ruby)
+        )
+        self.assertTrue(
+            all(
+                not lane.ready
+                for lane in ruby_lanes
+                if lane.ref_name in {"ruby_3_4", "ruby_3_3"}
+            )
         )
 
         lock = json.loads((ROOT / "config" / "fleet-lock.json").read_text())
@@ -116,6 +124,19 @@ class FleetMatrixTests(unittest.TestCase):
             "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
         )
         self.assertTrue(ruby_source["rust"])
+        ruby_release_source = next(
+            source
+            for source in lock["sources"]
+            if source["result_id"] == "ruby-ruby_4_0"
+        )
+        self.assertEqual(
+            ruby_release_source["source_ref"],
+            "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+        )
+        self.assertEqual(
+            ruby_release_source["profiles"], ["x86_64-linux-gnu.2.17"]
+        )
+        self.assertTrue(ruby_release_source["rust"])
         ruby_adapter = json.loads(
             (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()
         )

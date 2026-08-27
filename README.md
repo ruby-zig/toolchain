@@ -49,10 +49,12 @@ Ruby extensions driven by the prebuilt GNU Ruby SDK are executable only on the
 GNU profile. Their musl artifacts remain experimental and non-certifying until
 the fleet has a target-native musl Ruby SDK.
 
-CRuby `master` has one executable native GNU baseline with its Rust JITs
-enabled. The synchronized master tip remains a continuous candidate until that
-exact descendant commit passes independently; `ruby_4_0`, `ruby_3_4`, and
-`ruby_3_3` remain tracked but pending.
+CRuby `master` and `ruby_4_0` each have an executable native GNU baseline
+with their Rust JITs enabled. The `ruby_4_0` lane keeps
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8` as its immutable baseline; exact
+descendants are admitted only through continuous graph proof, and current
+`2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef` has also passed independently.
+`ruby_3_4` and `ruby_3_3` remain tracked but pending.
 
 ## Branches
 
@@ -103,12 +105,13 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The first executable lock admits seven lanes: GNU builds for `bigdecimal`,
-`json`, `stringio`, `strscan`, and CRuby, plus GNU and musl builds for
-`prism`. Their source SHAs, controller adapters, selected profile subsets,
-and Ruby 3.2.3 driver runtime are explicit. Narrowing those six sources from
-the full nine-profile pending envelope gives the current plan 331 desired
-lanes, split into active shards of 252 and 79.
+The first executable lock admits eight lanes: GNU builds for `bigdecimal`,
+`json`, `stringio`, `strscan`, and both executable CRuby branches, plus
+GNU and musl builds for `prism`. Their source SHAs, controller adapters,
+selected profile subsets, and Ruby 3.2.3 driver runtime are explicit.
+Narrowing those seven executable source identities from the full nine-profile
+pending envelope gives the current plan 323 desired lanes, split into active
+shards of 252 and 71.
 
 That is a ceiling, not the routine workload. Each immutable executable
 fleet-lock entry binds a repository and branch result identity, then selects
@@ -124,8 +127,11 @@ post-sync commit SHA together with an allowlisted repository and tracked branch;
 a build job never resolves a moving branch ref. CRuby `master` therefore keeps
 the verified `89d3b11eace35b8e279b970b4ff5125f171d0d4b` baseline while a
 newer synchronized master tip is supplied only as the exact, ancestry-checked
-continuous candidate. A weekly or manually requested sweep exercises the
-complete selected scope.
+continuous candidate. CRuby `ruby_4_0` likewise keeps verified
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`; its independently certified
+`2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef` descendant demonstrates the same
+continuous path. A weekly or manually requested sweep exercises the complete
+selected scope.
 
 ## Repository layout
 

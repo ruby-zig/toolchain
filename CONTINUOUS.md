@@ -19,10 +19,12 @@ subset, exact external Ruby runtime, and Rust boundary. The candidate SHA
 replaces only the baseline source SHA in the derived matrix. There is no input
 through which a caller can broaden the build.
 
-A tracked source without an executable entry is rejected. This includes the
-four CRuby branches at present: they remain visible in fleet planning, but no
-continuous CRuby source is executed until a CRuby adapter and baseline are
-explicitly certified in the lock.
+A tracked source without an executable entry is rejected. CRuby `master` and
+`ruby_4_0` have certified native GNU baselines and executable entries;
+`ruby_3_4` and `ruby_3_3` remain visible but pending. The `ruby_4_0`
+entry remains pinned to baseline
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`, while each synchronized
+descendant is dispatched by exact SHA.
 
 ## Public graph proof
 

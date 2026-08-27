@@ -62,10 +62,11 @@ allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
 The number is a ceiling, not a reason to run every possible lane. The initial
-executable lock contains seven lanes: GNU for `bigdecimal`, `json`, `stringio`,
-`strscan`, and CRuby, plus GNU and musl for `prism`. Those selected profiles
-make the current desired workload 331 lanes across active shards of 252 and 79.
-Each immutable executable source entry in `config/fleet-lock.json` contains a
+executable lock contains eight lanes: GNU for `bigdecimal`, `json`,
+`stringio`, `strscan`, and both executable CRuby branches, plus GNU and
+musl for `prism`. Those selected profiles make the current desired workload
+323 lanes across active shards of 252 and 71. Each immutable executable source
+entry in `config/fleet-lock.json` contains a
 nonempty, duplicate-free subset of declared profile IDs. The renderer emits
 only that subset. Unselected profiles remain target-catalog backlog coverage;
 planned source identities still render their full pending envelope. A selected
@@ -82,10 +83,12 @@ selected matrix runs on the slower sweep cadence and on demand.
 
 A tracked source-ref record binds an upstream repository, explicit branch
 name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby
-`master` has an executable native GNU baseline; `ruby_4_0`, `ruby_3_4`,
-and `ruby_3_3` remain tracked pending records. EOL `ruby_3_2` is absent. A
-newer master tip is admitted only as an exact, ancestry-checked continuous
-candidate derived from that immutable baseline.
+`master` and `ruby_4_0` have executable native GNU baselines;
+`ruby_3_4` and `ruby_3_3` remain tracked pending records. EOL `ruby_3_2`
+is absent. A newer tracked-branch tip is admitted only as an exact,
+ancestry-checked continuous candidate derived from that branch's immutable
+baseline. For `ruby_4_0`, that baseline is
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`.
 
 A ready executable lock entry additionally binds:
 
