@@ -14,11 +14,37 @@
   "profiles": [
     {
       "id": "x86_64-linux-gnu.2.17",
-      "status": "implementation-ready-evidence-pending",
+      "status": "run-verified",
+      "controller_sha": "72fd9634e1c303ce4efd936358d429b84e6966f9",
+      "trace_sha256": "d7cf1a8a137b39dd7fbba14a5a6ee3ea7de6ac434f58a0afd66d697b965cdfec",
+      "receipts_sha256": "fd3d5d9f33c2a1d4df6f2af0a583deabd031174b3ff4875abed2ff9acb1bbff9",
+      "native_receipts": 22,
+      "receipt_tools": {
+        "cc": 21,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 6,
+        "link": 16
+      },
+      "artifact_sha256": "e9342aeddba338ab96e3a44ba708742e213d6ffeda2c27572be8a9e00bc1f1b6",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_max": "2.2.5",
+      "mkmf_log_sha256": "77d815f134c771dc593ab8b8f2b1c63b7f7e177a05b1708cd735a2d67572bcc3",
       "test": "loads the exact artifact and verifies raw, noecho, winsize, and getpass behavior on a pseudoterminal"
     }
   ],
   "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_console"
+  },
   "gaps": [
     "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
   ]

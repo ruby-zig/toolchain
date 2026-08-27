@@ -140,6 +140,26 @@ class FleetMatrixTests(unittest.TestCase):
             [profile["id"] for profile in io_console_adapter["profiles"]],
             ["x86_64-linux-gnu.2.17"],
         )
+        io_console_gnu = io_console_adapter["profiles"][0]
+        self.assertEqual(io_console_gnu["status"], "run-verified")
+        self.assertEqual(
+            io_console_gnu["controller_sha"],
+            "72fd9634e1c303ce4efd936358d429b84e6966f9",
+        )
+        self.assertEqual(
+            io_console_gnu["trace_sha256"],
+            "d7cf1a8a137b39dd7fbba14a5a6ee3ea7de6ac434f58a0afd66d697b965cdfec",
+        )
+        self.assertEqual(
+            io_console_gnu["receipts_sha256"],
+            "fd3d5d9f33c2a1d4df6f2af0a583deabd031174b3ff4875abed2ff9acb1bbff9",
+        )
+        self.assertEqual(io_console_gnu["native_receipts"], 22)
+        self.assertEqual(io_console_gnu["receipt_operations"], {"compile": 6, "link": 16})
+        self.assertEqual(
+            io_console_gnu["artifact_sha256"],
+            "e9342aeddba338ab96e3a44ba708742e213d6ffeda2c27572be8a9e00bc1f1b6",
+        )
         self.assertEqual(
             io_console_adapter["cross_status"],
             "pending-target-native-ruby-sdks-and-runtimes",
