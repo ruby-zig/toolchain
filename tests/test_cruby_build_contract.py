@@ -9,7 +9,7 @@ BUILD_SCRIPT = ROOT / "adapters" / "repo" / "ruby" / "build.sh"
 
 
 class CrubyBuildContractTests(unittest.TestCase):
-    def test_strip_probe_fails_then_make_uses_inert_command(self) -> None:
+    def test_strip_is_verified_then_normalized_before_make(self) -> None:
         script = BUILD_SCRIPT.read_text(encoding="utf-8")
 
         configure_start = script.index('"$source_root/configure"')
@@ -26,10 +26,33 @@ class CrubyBuildContractTests(unittest.TestCase):
             'awk \'index($0, "S[\\"STRIP\\"]=") == 1 {print}\' config.status',
             script,
         )
-        self.assertIn(
-            """if [[ "$configured_strip_record" != 'S["STRIP"]="/bin/false"' ]]; then""",
-            script,
+        self.assertEqual(
+            script.count(
+                'configured_strip_record="$(config_status_strip_records)"'
+            ),
+            2,
         )
+        failed_probe_check = (
+            """if [[ "$configured_strip_record" != """
+            """'S["STRIP"]="/bin/false"' ]]; then"""
+        )
+        normalization = (
+            r"""sed -i 's|^S\["STRIP"\]="/bin/false"$|"""
+            r"""S["STRIP"]=":"|' config.status"""
+        )
+        normalized_check = (
+            """if [[ "$configured_strip_record" != """
+            """'S["STRIP"]=":"' ]]; then"""
+        )
+        first_make = "make -s --no-print-directory"
+
+        failed_probe_index = script.index(failed_probe_check)
+        normalization_index = script.index(normalization)
+        normalized_check_index = script.index(normalized_check)
+        first_make_index = script.index(first_make)
+        self.assertLess(failed_probe_index, normalization_index)
+        self.assertLess(normalization_index, normalized_check_index)
+        self.assertLess(normalized_check_index, first_make_index)
 
         overrides_start = script.index("base_overrides=(")
         overrides_end = script.index("\n)", overrides_start)

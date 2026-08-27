@@ -167,11 +167,23 @@ if [[ "$configured_objcopy" != : ]]; then
   exit 65
 fi
 
-configured_strip_record="$(
+config_status_strip_records() {
   awk 'index($0, "S[\"STRIP\"]=") == 1 {print}' config.status
-)"
+}
+
+configured_strip_record="$(config_status_strip_records)"
 if [[ "$configured_strip_record" != 'S["STRIP"]="/bin/false"' ]]; then
   printf 'config.status has unexpected STRIP record: %s\n' \
+    "${configured_strip_record:-unset}" >&2
+  exit 65
+fi
+
+# mkconfig.rb reads STRIP from config.status. Normalize only the verified
+# generated record before any make target can create rbconfig.rb.
+sed -i 's|^S\["STRIP"\]="/bin/false"$|S["STRIP"]=":"|' config.status
+configured_strip_record="$(config_status_strip_records)"
+if [[ "$configured_strip_record" != 'S["STRIP"]=":"' ]]; then
+  printf 'could not normalize config.status STRIP record: %s\n' \
     "${configured_strip_record:-unset}" >&2
   exit 65
 fi
