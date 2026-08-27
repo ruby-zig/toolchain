@@ -102,7 +102,8 @@ mkdir -p "$build_dir" "$artifact_dir"
       "CXXFLAGS" => "-O2 -Wno-default-const-init-field-unsafe",
       "CPPFLAGS" => "",
       "LDFLAGS" => "",
-      "DLDFLAGS" => ""
+      "DLDFLAGS" => "",
+      "RPATHFLAG" => ""
     }.each do |key, value|
       RbConfig::CONFIG[key] = value
       RbConfig::MAKEFILE_CONFIG[key] = value
