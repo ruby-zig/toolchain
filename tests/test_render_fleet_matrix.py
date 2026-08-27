@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 291)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 12)
+        self.assertEqual(plan.desired_jobs, 283)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 13)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 39],
+            [252, 31],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -88,12 +88,13 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 11)
+        self.assertEqual(len(lock["sources"]), 12)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
                 "bigdecimal",
                 "date",
+                "digest",
                 "io-console",
                 "json",
                 "prism",
@@ -107,6 +108,7 @@ class FleetMatrixTests(unittest.TestCase):
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
+                "digest": ["x86_64-linux-gnu.2.17"],
                 "io-console": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
@@ -346,6 +348,16 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(
             date_adapter["cross_status"],
             "blocked-missing-target-native-ruby-sdk-and-runtime",
+        )
+
+    def test_digest_adapter_neutralizes_runner_rpath_inputs(self) -> None:
+        build = (ROOT / "adapters" / "repo" / "digest" / "build.sh").read_text()
+
+        self.assertIn('"RPATHFLAG" => ""', build)
+        self.assertIn("%w[LIBRUBYARG LIBRUBYARG_SHARED]", build)
+        self.assertIn(
+            'value.gsub(/(?:\\A|\\s)-Wl,-rpath(?:,|=)[^\\s]+/, "").strip',
+            build,
         )
 
     def _write_fixture(

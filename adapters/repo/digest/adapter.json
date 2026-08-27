@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/digest",
+  "repository": "ruby/digest",
+  "upstream_sha": "cb79debac4f03ac7d907d37615ed91a85dd7da26",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/digest/extconf.rb",
+    "ext/digest/{md5,rmd160,sha1,sha2,bubblebabble,crc32,blake3}/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/digest/**"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "25d3ca452b9d0b485b3af783821b24d8bb8c77ba",
+      "runner": "atlas-tree Ubuntu 24.04 x86_64",
+      "zig": "0.16.0",
+      "ruby_version": "3.2.3",
+      "expected_native_artifacts": 8,
+      "process_audit": "passed",
+      "trace_sha256": "f5399e609f23d09bc6a6277d1af9bdebabfddab9811537242fa1a3c4b1de5273",
+      "receipts_sha256": "3e99aaab4f252aee181b0c3fdc6f2b261576c4fa215ac01ac1ef1cf2f9422677",
+      "native_receipts": 53,
+      "receipt_tools": {
+        "cc": 45,
+        "shared": 8
+      },
+      "receipt_operations": {
+        "compile": 39,
+        "link": 14
+      },
+      "artifact_sha256": {
+        "digest.so": "baf90619600998a0f8e637a49222bf1e445b6fb72afc24cb19dcac56325ca597",
+        "digest/md5.so": "682e4117051315f4cbd5f00a2be756a87c9692b3284edec7ea8e96d8c403a924",
+        "digest/rmd160.so": "af80c48c058f32f4111a7890ec88bca437fefb49284bedb2cf3ea7a44df6f0e8",
+        "digest/sha1.so": "53fc698c24f63daf0d3e694571ba573f12e12db2102d733f3d4a968282995999",
+        "digest/sha2.so": "473b28cc212f29c9efe631cd37dc9054151dffa7ca7226cc94e872fcf500a958",
+        "digest/bubblebabble.so": "074189c15fccc8324bc8c99d6af7403fef84f8c19ca4523ff678fd013f424046",
+        "digest/crc32.so": "249021a614e7c921fd904a85a204726024e4a53230f512bf361d901cc6173836",
+        "digest/blake3.so": "5181f5c9813552f51e453bc7ffa72d11ae28e596c3c3464da37c15f876248d55"
+      },
+      "artifact_format": "ELF64 x86-64 shared objects",
+      "glibc_max": "2.14",
+      "evidence_archive": "ruby-zig-digest-evidence-25d3ca4-v2.tar.gz",
+      "evidence_sha256": "1be32b416137d9c743e8a66fecd3c6862baf8e6607b26ede2d612ea732fc0fb9",
+      "test": "load all exact artifacts and verify every algorithm, boundary vectors, clone, reset, and streaming behavior"
+    }
+  ],
+  "cross_status": "blocked-missing-target-native-ruby-sdk-and-runtime",
+  "gaps": [
+    "cross-target profiles need target-native Ruby headers, libraries, and a matching runtime before certification",
+    "no musl or non-x86_64 artifact is claimed by this adapter"
+  ]
+}
