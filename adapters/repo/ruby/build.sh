@@ -151,25 +151,29 @@ cd "$build_root"
   LDSHARED="$LDSHARED" \
   RUSTC="$RUSTC" \
   OBJCOPY=: \
+  STRIP=: \
   LIBS=-lgcc_s \
   warnflags='-Wall -Wextra -Werror=unknown-warning-option -Wno-missing-field-initializers -Wno-unused-parameter'
 
 cp config.log "$source_root/config.log"
 
-configured_objcopy="$(awk -F '[[:space:]]*=[[:space:]]*' \
-  '$1 == "OBJCOPY" {print $2; exit}' Makefile)"
-if [[ "$configured_objcopy" != : ]]; then
-  printf 'configured OBJCOPY must be inert; got %s\n' \
-    "${configured_objcopy:-unset}" >&2
-  exit 65
-fi
+for inert_tool in OBJCOPY STRIP; do
+  configured_inert_tool="$(awk -v tool="$inert_tool" \
+    -F '[[:space:]]*=[[:space:]]*' \
+    '$1 == tool {print $2; exit}' Makefile)"
+  if [[ "$configured_inert_tool" != : ]]; then
+    printf 'configured %s must be inert; got %s\n' \
+      "$inert_tool" "${configured_inert_tool:-unset}" >&2
+    exit 65
+  fi
+done
 
 make_value() {
   local name=$1
   local rule
   printf -v rule \
     "ruby_zig_print:;@printf \"%%s\\\\n\" \"\$(%s)\"" "$name"
-  make -s --no-print-directory -f Makefile 'OBJCOPY=:' \
+  make -s --no-print-directory -f Makefile 'OBJCOPY=:' 'STRIP=:' \
     --eval="$rule" ruby_zig_print
 }
 
@@ -197,13 +201,14 @@ export_map="$build_root/ruby-zig.exports"
 base_overrides=(
   'RUST_LIBOBJ='
   'OBJCOPY=:'
+  'STRIP=:'
   "LIBRUBY_A=$c_archive"
   "MAINLIBS=$rust_archive $mainlibs"
   "SOLIBS=$rust_archive $mainlibs"
   "EXE_LDFLAGS=$ldflags"
 )
 
-make -j"$jobs" V=1 'OBJCOPY=:' rust-lib
+make -j"$jobs" V=1 'OBJCOPY=:' 'STRIP=:' rust-lib
 if [[ ! -s "$rust_archive" ]]; then
   printf 'CRuby Rust archive was not built: %s\n' "$rust_archive" >&2
   exit 66
@@ -308,6 +313,7 @@ export LD_LIBRARY_PATH="$build_root${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     "LDSHARED" => ENV.fetch("LDSHARED"),
     "RUSTC" => ENV.fetch("RUSTC"),
     "OBJCOPY" => ":",
+    "STRIP" => ":",
   }
   required.each do |key, expected|
     actual = RbConfig::CONFIG.fetch(key)
