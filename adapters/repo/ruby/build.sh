@@ -180,6 +180,38 @@ if [[ "$configured_strip_record" != 'S["STRIP"]=":"' ]]; then
   exit 65
 fi
 
+# Stable branches make extmk probes select LIBRUBYARG_STATIC through rbconfig.
+# This profile is shared-only, so bind that generated value to the configured
+# shared libruby before config.status creates Makefile or rbconfig.rb.
+if [[ "$source_branch" != master ]]; then
+  shared_config_librubyarg="$(sed -n \
+    's/^S\["LIBRUBYARG_SHARED"\]="\(.*\)"$/\1/p' config.status)"
+  if [[ -z "$shared_config_librubyarg" ]]; then
+    printf 'config.status LIBRUBYARG_SHARED is empty\n' >&2
+    exit 65
+  fi
+  awk -v value="$shared_config_librubyarg" '
+    /^S\["LIBRUBYARG_STATIC"\]=/ {
+      print "S[\"LIBRUBYARG_STATIC\"]=\"" value "\""
+      replaced = 1
+      next
+    }
+    { print }
+    END { if (!replaced) exit 42 }
+  ' config.status >config.status.ruby-zig || {
+    printf 'could not bind stable rbconfig probes to shared libruby\n' >&2
+    exit 65
+  }
+  chmod --reference=config.status config.status.ruby-zig
+  mv config.status.ruby-zig config.status
+  configured_static_librubyarg="$(sed -n \
+    's/^S\["LIBRUBYARG_STATIC"\]="\(.*\)"$/\1/p' config.status)"
+  if [[ "$configured_static_librubyarg" != "$shared_config_librubyarg" ]]; then
+    printf 'stable rbconfig probes did not select shared libruby\n' >&2
+    exit 65
+  fi
+fi
+
 ./config.status Makefile
 
 configured_strip_record="$(config_status_strip_records)"
@@ -195,6 +227,18 @@ if [[ "$configured_objcopy" != : ]]; then
   printf 'configured OBJCOPY must be inert; got %s\n' \
     "${configured_objcopy:-unset}" >&2
   exit 65
+fi
+
+if [[ "$source_branch" != master ]]; then
+  shared_librubyarg="$(sed -n \
+    's/^LIBRUBYARG_SHARED[[:space:]]*=[[:space:]]*//p' Makefile)"
+  static_librubyarg="$(sed -n \
+    's/^LIBRUBYARG_STATIC[[:space:]]*=[[:space:]]*//p' Makefile)"
+  if [[ -z "$shared_librubyarg" ||
+        "$static_librubyarg" != "$shared_librubyarg" ]]; then
+    printf 'stable extension probes did not select shared libruby\n' >&2
+    exit 65
+  fi
 fi
 
 make_value() {
