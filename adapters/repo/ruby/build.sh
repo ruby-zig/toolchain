@@ -131,6 +131,8 @@ export ZIG_LOCAL_CACHE_DIR="$build_root/.zig-local-cache"
 export ZIG_GLOBAL_CACHE_DIR="$build_root/.zig-global-cache"
 cd "$build_root"
 
+# CRuby appends -A -n when its strip probe succeeds. A configure-time `:`
+# would therefore become `: -A -n`; make the probe fail without invoking strip.
 "$source_root/configure" \
   --srcdir="$source_root" \
   --build="$build_tuple" \
@@ -151,22 +153,28 @@ cd "$build_root"
   LDSHARED="$LDSHARED" \
   RUSTC="$RUSTC" \
   OBJCOPY=: \
-  STRIP=: \
+  STRIP=/bin/false \
   LIBS=-lgcc_s \
   warnflags='-Wall -Wextra -Werror=unknown-warning-option -Wno-missing-field-initializers -Wno-unused-parameter'
 
 cp config.log "$source_root/config.log"
 
-for inert_tool in OBJCOPY STRIP; do
-  configured_inert_tool="$(awk -v tool="$inert_tool" \
-    -F '[[:space:]]*=[[:space:]]*' \
-    '$1 == tool {print $2; exit}' Makefile)"
-  if [[ "$configured_inert_tool" != : ]]; then
-    printf 'configured %s must be inert; got %s\n' \
-      "$inert_tool" "${configured_inert_tool:-unset}" >&2
-    exit 65
-  fi
-done
+configured_objcopy="$(awk -F '[[:space:]]*=[[:space:]]*' \
+  '$1 == "OBJCOPY" {print $2; exit}' Makefile)"
+if [[ "$configured_objcopy" != : ]]; then
+  printf 'configured OBJCOPY must be inert; got %s\n' \
+    "${configured_objcopy:-unset}" >&2
+  exit 65
+fi
+
+configured_strip_record="$(
+  awk 'index($0, "S[\"STRIP\"]=") == 1 {print}' config.status
+)"
+if [[ "$configured_strip_record" != 'S["STRIP"]="/bin/false"' ]]; then
+  printf 'config.status has unexpected STRIP record: %s\n' \
+    "${configured_strip_record:-unset}" >&2
+  exit 65
+fi
 
 make_value() {
   local name=$1

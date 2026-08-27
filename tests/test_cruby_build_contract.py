@@ -9,17 +9,27 @@ BUILD_SCRIPT = ROOT / "adapters" / "repo" / "ruby" / "build.sh"
 
 
 class CrubyBuildContractTests(unittest.TestCase):
-    def test_strip_is_inert_from_configure_through_rbconfig(self) -> None:
+    def test_strip_probe_fails_then_make_uses_inert_command(self) -> None:
         script = BUILD_SCRIPT.read_text(encoding="utf-8")
 
         configure_start = script.index('"$source_root/configure"')
         configure_end = script.index("\n\ncp config.log", configure_start)
         configure = script[configure_start:configure_end]
-        self.assertIn("  OBJCOPY=: \\\n  STRIP=: \\", configure)
+        self.assertIn("  OBJCOPY=: \\\n  STRIP=/bin/false \\", configure)
+        self.assertNotIn("  STRIP=:", configure)
+        self.assertIn("A configure-time `:`", script)
+        self.assertIn("would therefore become `: -A -n`", script)
 
-        self.assertIn("for inert_tool in OBJCOPY STRIP; do", script)
-        self.assertIn("'$1 == tool {print $2; exit}' Makefile", script)
-        self.assertIn('if [[ "$configured_inert_tool" != : ]]; then', script)
+        self.assertIn("'$1 == \"OBJCOPY\" {print $2; exit}' Makefile", script)
+        self.assertIn('if [[ "$configured_objcopy" != : ]]; then', script)
+        self.assertIn(
+            'awk \'index($0, "S[\\"STRIP\\"]=") == 1 {print}\' config.status',
+            script,
+        )
+        self.assertIn(
+            """if [[ "$configured_strip_record" != 'S["STRIP"]="/bin/false"' ]]; then""",
+            script,
+        )
 
         overrides_start = script.index("base_overrides=(")
         overrides_end = script.index("\n)", overrides_start)
