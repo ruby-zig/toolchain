@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/fcntl",
+  "repository": "ruby/fcntl",
+  "upstream_sha": "43347f8b6b0f5ef13997182bb9a703e0c072d101",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/fcntl/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/fcntl.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact and verifies F_GETFL, F_SETFL, and O_NONBLOCK behavior"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "strace-receipt-correlated",
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_fcntl"
+  },
+  "gaps": [
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}
