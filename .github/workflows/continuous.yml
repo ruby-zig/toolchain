@@ -1,0 +1,94 @@
+name: continuous Zig build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-repository:
+        description: Exact allowlisted ruby-zig fork
+        required: true
+        type: string
+      source-ref-name:
+        description: Exact allowlisted tracked branch
+        required: true
+        type: string
+      source-sha:
+        description: Exact lowercase 40-character post-sync commit SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zig-continuous-${{ inputs.source-repository }}-${{ inputs.source-ref-name }}-${{ inputs.source-sha }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: authorize immutable source update
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      ready-jobs: ${{ steps.plan.outputs.ready_jobs }}
+      source-ref-name: ${{ steps.plan.outputs.source_ref_name }}
+      source-repository: ${{ steps.plan.outputs.source_repository }}
+      source-sha: ${{ steps.plan.outputs.source_sha }}
+    steps:
+      - name: Check out the immutable controller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Derive build contract from fleet lock
+        id: plan
+        shell: bash
+        env:
+          RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
+          RZ_SOURCE_REPOSITORY: ${{ inputs.source-repository }}
+          RZ_SOURCE_SHA: ${{ inputs.source-sha }}
+        run: >-
+          python3 scripts/render-continuous-matrix.py
+          --source-repository "$RZ_SOURCE_REPOSITORY"
+          --source-ref-name "$RZ_SOURCE_REF_NAME"
+          --source-sha "$RZ_SOURCE_SHA"
+          --github-output "$GITHUB_OUTPUT"
+          --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Prove candidate against current public refs
+        shell: bash
+        env:
+          RZ_BASELINE_SHA: ${{ steps.plan.outputs.baseline_sha }}
+          RZ_SOURCE_REF_NAME: ${{ steps.plan.outputs.source_ref_name }}
+          RZ_SOURCE_REPOSITORY: ${{ steps.plan.outputs.source_repository }}
+          RZ_SOURCE_SHA: ${{ steps.plan.outputs.source_sha }}
+          RZ_UPSTREAM_REPOSITORY: ${{ steps.plan.outputs.upstream_repository }}
+        run: >-
+          bash scripts/verify-continuous-source.sh
+          "$RZ_UPSTREAM_REPOSITORY"
+          "$RZ_SOURCE_REPOSITORY"
+          "$RZ_SOURCE_REF_NAME"
+          "$RZ_BASELINE_SHA"
+          "$RZ_SOURCE_SHA"
+
+  build:
+    name: ${{ matrix.result_id }} / ${{ matrix.profile_id }}
+    needs: plan
+    if: needs.plan.outputs.ready-jobs != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/reusable-zig.yml
+    with:
+      profiles: ${{ matrix.profiles }}
+      build-script: ${{ matrix.build_script }}
+      ruby-version: ${{ matrix.ruby_version }}
+      toolchain-ref: ${{ github.sha }}
+      source-repository: ${{ matrix.repository }}
+      source-ref: ${{ matrix.source_ref }}
+      source-ref-name: ${{ matrix.source_ref_name }}
+      evidence-id: ${{ matrix.evidence_id }}
+      rust: ${{ matrix.rust }}
+      allow-no-native: ${{ matrix.allow_no_native }}

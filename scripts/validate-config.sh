@@ -22,7 +22,10 @@ jq -e '[.repositories[] | select(.native_scope == "none-detected")] | length == 
 jq -e '.summary.repositories_with_committed_native_source == 42' config/native-scope.json >/dev/null
 python3 scripts/validate-build-manifest.py --root "$root"
 python3 scripts/render-fleet-matrix.py --root "$root" --check
+python3 scripts/validate-workflows.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 bash tests/test_validate_ref_name.sh
+bash tests/test_verify_continuous_source.sh
+bash tests/test_build_provenance.sh
 
 printf 'configuration invariants passed\n'

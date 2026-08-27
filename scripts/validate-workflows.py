@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import re
 import sys
+from typing import Any
 
 import yaml
 
 
 SETUP_RUBY_SHA = "95ef2b042f9d7a56d8268cba8559e2842e2ad01b"
+PINNED_USE = re.compile(r"^(?:\./.+|[^@]+@[0-9a-f]{40}(?:[0-9a-f]{24})?)$")
+USE_LINE = re.compile(r"^\s*uses:\s*([^\s#]+)", re.MULTILINE)
 
 
 def require_text(path: Path, text: str, needle: str, errors: list[str]) -> None:
     if needle not in text:
         errors.append(f"{path}: missing required workflow contract: {needle!r}")
+
+
+def workflow_trigger(document: dict[str, Any]) -> Any:
+    # PyYAML 1.1 parses the unquoted Actions key `on` as boolean true.
+    return document.get("on", document.get(True))
 
 
 def main() -> int:
@@ -22,13 +31,19 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    documents: dict[str, dict[str, Any]] = {}
     for path in workflows:
-        with path.open(encoding="utf-8") as stream:
-            document = yaml.safe_load(stream)
+        text = path.read_text(encoding="utf-8")
+        document = yaml.safe_load(text)
         if not isinstance(document, dict):
             errors.append(f"{path}: expected a mapping")
-        elif "jobs" not in document or not isinstance(document["jobs"], dict):
+            continue
+        documents[path.name] = document
+        if "jobs" not in document or not isinstance(document["jobs"], dict):
             errors.append(f"{path}: missing jobs mapping")
+        for use in USE_LINE.findall(text):
+            if not PINNED_USE.fullmatch(use):
+                errors.append(f"{path}: action or reusable workflow is not pinned: {use}")
 
     reusable = root / ".github" / "workflows" / "reusable-zig.yml"
     reusable_text = reusable.read_text(encoding="utf-8")
@@ -43,33 +58,29 @@ def main() -> int:
         '"toolchain/$RZ_BUILD_SCRIPT"',
         'adapter="$GITHUB_WORKSPACE/toolchain/$RZ_BUILD_SCRIPT"',
         "must be controller-relative under adapters/",
+        "name: Record immutable build provenance",
+        "bash toolchain/scripts/write-build-provenance.sh",
+        "toolchain/provenance/",
+        "cancel-in-progress: false",
     ):
         require_text(reusable, reusable_text, needle, errors)
     if reusable_text.count(
         "RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}"
-    ) != 3:
+    ) != 4:
         errors.append(
-            f"{reusable}: validated source ref name must reach both adapter steps"
+            f"{reusable}: validated source ref name must reach provenance and both adapter steps"
         )
     if '"source/$RZ_BUILD_SCRIPT"' in reusable_text:
         errors.append(f"{reusable}: adapter must not be loaded from the source fork")
 
     shard = root / ".github" / "workflows" / "fleet-shard.yml"
     shard_text = shard.read_text(encoding="utf-8")
-    require_text(
-        shard,
-        shard_text,
+    for needle in (
         "ruby-version: ${{ matrix.ruby_version }}",
-        errors,
-    )
-    require_text(
-        shard,
-        shard_text,
         "source-ref-name: ${{ matrix.source_ref_name }}",
-        errors,
-    )
-    required_options = "        options:\n          - '1'\n          - '2'\n"
-    require_text(shard, shard_text, required_options, errors)
+        "        options:\n          - '1'\n          - '2'\n",
+    ):
+        require_text(shard, shard_text, needle, errors)
     for old_option in ("          - '3'\n", "          - '7'\n"):
         if old_option in shard_text:
             errors.append(f"{shard}: capacity shard options must stop at 2")
@@ -78,6 +89,73 @@ def main() -> int:
     fleet_text = fleet.read_text(encoding="utf-8")
     require_text(fleet, fleet_text, "      max-parallel: 2", errors)
     require_text(fleet, fleet_text, "        shard: [1, 2]", errors)
+
+    continuous = root / ".github" / "workflows" / "continuous.yml"
+    continuous_text = continuous.read_text(encoding="utf-8")
+    continuous_document = documents.get("continuous.yml")
+    if continuous_document is None:
+        errors.append(f"{continuous}: workflow did not parse")
+    else:
+        trigger = workflow_trigger(continuous_document)
+        dispatch = trigger.get("workflow_dispatch") if isinstance(trigger, dict) else None
+        inputs = dispatch.get("inputs") if isinstance(dispatch, dict) else None
+        expected_inputs = {
+            "source-repository",
+            "source-ref-name",
+            "source-sha",
+        }
+        if not isinstance(inputs, dict) or set(inputs) != expected_inputs:
+            errors.append(
+                f"{continuous}: dispatch inputs must be exactly {sorted(expected_inputs)}"
+            )
+        if continuous_document.get("permissions") != {"contents": "read"}:
+            errors.append(f"{continuous}: top-level permissions must be contents: read")
+    for needle in (
+        "group: zig-continuous-${{ inputs.source-repository }}-${{ inputs.source-ref-name }}-${{ inputs.source-sha }}",
+        "cancel-in-progress: false",
+        "ref: ${{ github.sha }}",
+        "persist-credentials: false",
+        "python3 scripts/render-continuous-matrix.py",
+        "bash scripts/verify-continuous-source.sh",
+        "needs: plan",
+        "matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}",
+        "uses: ./.github/workflows/reusable-zig.yml",
+        "build-script: ${{ matrix.build_script }}",
+        "ruby-version: ${{ matrix.ruby_version }}",
+        "rust: ${{ matrix.rust }}",
+        "source-ref: ${{ matrix.source_ref }}",
+        "toolchain-ref: ${{ github.sha }}",
+    ):
+        require_text(continuous, continuous_text, needle, errors)
+    for forbidden in (
+        "inputs.profiles",
+        "inputs.build-script",
+        "inputs.ruby-version",
+        "inputs.rust",
+        "inputs.allow-no-native",
+        "inputs.toolchain-ref",
+    ):
+        if forbidden in continuous_text:
+            errors.append(f"{continuous}: caller may not choose {forbidden}")
+    if continuous_text.find("Prove candidate against current public refs") > continuous_text.find("  build:"):
+        errors.append(f"{continuous}: public source proof must precede the build job")
+
+    provenance = root / "scripts" / "write-build-provenance.sh"
+    provenance_text = provenance.read_text(encoding="utf-8")
+    for needle in (
+        "source_repository",
+        "source_ref_name",
+        "source_sha",
+        "controller_sha",
+        "fleet_lock_sha256",
+        "adapter_manifest_sha256",
+        "profile_json",
+        "zig_actual",
+        "ruby_actual",
+        "rust_actual",
+        "GITHUB_RUN_ID",
+    ):
+        require_text(provenance, provenance_text, needle, errors)
 
     action = root / "action.yml"
     with action.open(encoding="utf-8") as stream:
@@ -95,8 +173,8 @@ def main() -> int:
         return 1
 
     print(
-        f"workflow YAML parsed: {len(workflows)}; composite action parsed; "
-        "two-shard Ruby runtime contract verified"
+        f"workflow YAML parsed: {len(workflows)}; all actions pinned; "
+        "continuous lock, ancestry, and provenance contracts verified"
     )
     return 0
 
