@@ -355,6 +355,20 @@
       "rust": false
     },
     {
+      "result_id": "digest-master",
+      "name": "digest",
+      "ref_name": "master",
+      "adapter_id": "repo/digest",
+      "repository": "ruby-zig/digest",
+      "source_ref": "cb79debac4f03ac7d907d37615ed91a85dd7da26",
+      "build_script": "adapters/repo/digest/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
       "result_id": "json-master",
       "name": "json",
       "ref_name": "master",

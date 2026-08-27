@@ -103,12 +103,12 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The first executable lock admits seven lanes: GNU builds for `bigdecimal`,
-`json`, `stringio`, `strscan`, and CRuby, plus GNU and musl builds for
-`prism`. Their source SHAs, controller adapters, selected profile subsets,
-and Ruby 3.2.3 driver runtime are explicit. Narrowing those six sources from
-the full nine-profile pending envelope gives the current plan 331 desired
-lanes, split into active shards of 252 and 79.
+The first executable lock admits eight lanes: GNU builds for `bigdecimal`,
+`digest`, `json`, `stringio`, `strscan`, and CRuby, plus GNU and musl builds
+for `prism`. Their source SHAs, controller adapters, selected profile subsets,
+and Ruby 3.2.3 driver runtime are explicit. Narrowing those seven sources from
+the full nine-profile pending envelope gives the current plan 332 desired
+lanes, split into active shards of 252 and 80.
 
 That is a ceiling, not the routine workload. Each immutable executable
 fleet-lock entry binds a repository and branch result identity, then selects

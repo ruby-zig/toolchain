@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/digest",
+  "repository": "ruby/digest",
+  "upstream_sha": "cb79debac4f03ac7d907d37615ed91a85dd7da26",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/digest/extconf.rb",
+    "ext/digest/{md5,rmd160,sha1,sha2,bubblebabble,crc32,blake3}/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/digest/**"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "certification-pending",
+      "ruby_version": "3.2.3",
+      "expected_native_artifacts": 8,
+      "test": "load all exact artifacts and verify every algorithm, boundary vectors, clone, reset, and streaming behavior"
+    }
+  ],
+  "cross_status": "blocked-missing-target-native-ruby-sdk-and-runtime",
+  "gaps": [
+    "cross-target profiles need target-native Ruby headers, libraries, and a matching runtime before certification",
+    "no musl or non-x86_64 artifact is claimed by this adapter"
+  ]
+}

@@ -62,9 +62,10 @@ allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
 The number is a ceiling, not a reason to run every possible lane. The initial
-executable lock contains seven lanes: GNU for `bigdecimal`, `json`, `stringio`,
-`strscan`, and CRuby, plus GNU and musl for `prism`. Those selected profiles
-make the current desired workload 331 lanes across active shards of 252 and 79.
+executable lock contains eight lanes: GNU for `bigdecimal`, `digest`, `json`,
+`stringio`, `strscan`, and CRuby, plus GNU and musl for `prism`. Those selected
+profiles make the current desired workload 332 lanes across active shards of
+252 and 80.
 Each immutable executable source entry in `config/fleet-lock.json` contains a
 nonempty, duplicate-free subset of declared profile IDs. The renderer emits
 only that subset. Unselected profiles remain target-catalog backlog coverage;

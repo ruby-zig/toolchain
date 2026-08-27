@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 331)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 7)
+        self.assertEqual(plan.desired_jobs, 332)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 8)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 79],
+            [252, 80],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -89,12 +89,21 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertNotIn("ruby_3_2", actual_refs)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
-            {"bigdecimal", "json", "prism", "ruby", "stringio", "strscan"},
+            {
+                "bigdecimal",
+                "digest",
+                "json",
+                "prism",
+                "ruby",
+                "stringio",
+                "strscan",
+            },
         )
         self.assertEqual(
             {source["name"]: source["profiles"] for source in lock["sources"]},
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
+                "digest": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
