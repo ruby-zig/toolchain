@@ -159,14 +159,6 @@ cd "$build_root"
 
 cp config.log "$source_root/config.log"
 
-configured_objcopy="$(awk -F '[[:space:]]*=[[:space:]]*' \
-  '$1 == "OBJCOPY" {print $2; exit}' Makefile)"
-if [[ "$configured_objcopy" != : ]]; then
-  printf 'configured OBJCOPY must be inert; got %s\n' \
-    "${configured_objcopy:-unset}" >&2
-  exit 65
-fi
-
 config_status_strip_records() {
   awk 'index($0, "S[\"STRIP\"]=") == 1 {print}' config.status
 }
@@ -185,6 +177,23 @@ configured_strip_record="$(config_status_strip_records)"
 if [[ "$configured_strip_record" != 'S["STRIP"]=":"' ]]; then
   printf 'could not normalize config.status STRIP record: %s\n' \
     "${configured_strip_record:-unset}" >&2
+  exit 65
+fi
+
+./config.status Makefile
+
+configured_strip_record="$(config_status_strip_records)"
+if [[ "$configured_strip_record" != 'S["STRIP"]=":"' ]]; then
+  printf 'config.status STRIP changed during Makefile regeneration: %s\n' \
+    "${configured_strip_record:-unset}" >&2
+  exit 65
+fi
+
+configured_objcopy="$(awk -F '[[:space:]]*=[[:space:]]*' \
+  '$1 == "OBJCOPY" {print $2; exit}' Makefile)"
+if [[ "$configured_objcopy" != : ]]; then
+  printf 'configured OBJCOPY must be inert; got %s\n' \
+    "${configured_objcopy:-unset}" >&2
   exit 65
 fi
 

@@ -30,7 +30,7 @@ class CrubyBuildContractTests(unittest.TestCase):
             script.count(
                 'configured_strip_record="$(config_status_strip_records)"'
             ),
-            2,
+            3,
         )
         failed_probe_check = (
             """if [[ "$configured_strip_record" != """
@@ -44,15 +44,29 @@ class CrubyBuildContractTests(unittest.TestCase):
             """if [[ "$configured_strip_record" != """
             """'S["STRIP"]=":"' ]]; then"""
         )
+        regeneration = "\n./config.status Makefile\n"
+        objcopy_check = 'if [[ "$configured_objcopy" != : ]]; then'
         first_make = "make -s --no-print-directory"
 
         failed_probe_index = script.index(failed_probe_check)
         normalization_index = script.index(normalization)
-        normalized_check_index = script.index(normalized_check)
+        first_normalized_index = script.index(
+            normalized_check,
+            normalization_index,
+        )
+        regeneration_index = script.index(regeneration, first_normalized_index)
+        second_normalized_index = script.index(
+            normalized_check,
+            regeneration_index,
+        )
+        objcopy_index = script.index(objcopy_check, regeneration_index)
         first_make_index = script.index(first_make)
         self.assertLess(failed_probe_index, normalization_index)
-        self.assertLess(normalization_index, normalized_check_index)
-        self.assertLess(normalized_check_index, first_make_index)
+        self.assertLess(normalization_index, first_normalized_index)
+        self.assertLess(first_normalized_index, regeneration_index)
+        self.assertLess(regeneration_index, second_normalized_index)
+        self.assertLess(second_normalized_index, objcopy_index)
+        self.assertLess(objcopy_index, first_make_index)
 
         overrides_start = script.index("base_overrides=(")
         overrides_end = script.index("\n)", overrides_start)
