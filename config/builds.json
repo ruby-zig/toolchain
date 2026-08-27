@@ -669,7 +669,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/io-console",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {

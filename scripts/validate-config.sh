@@ -30,5 +30,6 @@ bash tests/test_build_provenance.sh
 bash adapters/repo/ruby/test-source-contract.sh
 bash tests/test_stringio_source_contract.sh
 bash adapters/repo/strscan/test-source-contract.sh
+bash adapters/repo/io-console/test-source-contract.sh
 
 printf 'configuration invariants passed\n'

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/io-console",
+  "repository": "ruby/io-console",
+  "upstream_sha": "deb5c1ffc4e22bb7e9c28f5534e0d81e5cdc2015",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/io/console/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/io/console.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-ready-evidence-pending",
+      "test": "loads the exact artifact and verifies raw, noecho, winsize, and getpass behavior on a pseudoterminal"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "gaps": [
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

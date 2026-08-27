@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 331)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 7)
+        self.assertEqual(plan.desired_jobs, 323)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 8)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 79],
+            [252, 71],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -89,12 +89,21 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertNotIn("ruby_3_2", actual_refs)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
-            {"bigdecimal", "json", "prism", "ruby", "stringio", "strscan"},
+            {
+                "bigdecimal",
+                "io-console",
+                "json",
+                "prism",
+                "ruby",
+                "stringio",
+                "strscan",
+            },
         )
         self.assertEqual(
             {source["name"]: source["profiles"] for source in lock["sources"]},
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
+                "io-console": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
@@ -116,6 +125,25 @@ class FleetMatrixTests(unittest.TestCase):
             "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
         )
         self.assertTrue(ruby_source["rust"])
+        io_console_source = next(
+            source for source in lock["sources"] if source["name"] == "io-console"
+        )
+        self.assertEqual(
+            io_console_source["source_ref"],
+            "deb5c1ffc4e22bb7e9c28f5534e0d81e5cdc2015",
+        )
+        self.assertFalse(io_console_source["rust"])
+        io_console_adapter = json.loads(
+            (ROOT / "adapters" / "repo" / "io-console" / "adapter.json").read_text()
+        )
+        self.assertEqual(
+            [profile["id"] for profile in io_console_adapter["profiles"]],
+            ["x86_64-linux-gnu.2.17"],
+        )
+        self.assertEqual(
+            io_console_adapter["cross_status"],
+            "pending-target-native-ruby-sdks-and-runtimes",
+        )
         ruby_adapter = json.loads(
             (ROOT / "adapters" / "repo" / "ruby" / "adapter.json").read_text()
         )
