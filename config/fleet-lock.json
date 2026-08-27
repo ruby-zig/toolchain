@@ -355,6 +355,20 @@
       "rust": false
     },
     {
+      "result_id": "date-master",
+      "name": "date",
+      "ref_name": "master",
+      "adapter_id": "repo/date",
+      "repository": "ruby-zig/date",
+      "source_ref": "afb25b87590fd5b2f23f07fd851f06a31fa19288",
+      "build_script": "adapters/repo/date/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
       "result_id": "json-master",
       "name": "json",
       "ref_name": "master",

@@ -51,6 +51,27 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(plan.ready_jobs, 2)
         self.assertTrue(all(entry["rust"] for entry in plan.matrix["include"]))
 
+    def test_date_derives_its_locked_gnu_lane(self) -> None:
+        candidate = "f" * 40
+        plan = planner.plan_continuous(
+            ROOT, "ruby-zig/date", "master", candidate
+        )
+
+        self.assertEqual(plan.result_id, "date-master")
+        self.assertEqual(plan.upstream_repository, "ruby/date")
+        self.assertEqual(
+            plan.baseline_sha, "afb25b87590fd5b2f23f07fd851f06a31fa19288"
+        )
+        self.assertEqual(plan.adapter_id, "repo/date")
+        self.assertEqual(plan.build_script, "adapters/repo/date/build.sh")
+        self.assertEqual(plan.ruby_version, "3.2.3")
+        self.assertFalse(plan.rust)
+        self.assertEqual(plan.ready_jobs, 1)
+        entry = plan.matrix["include"][0]
+        self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+        self.assertEqual(entry["source_ref"], candidate)
+        self.assertEqual(entry["source_ref_name"], "master")
+
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(
