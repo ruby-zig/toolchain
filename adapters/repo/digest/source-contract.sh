@@ -8,8 +8,14 @@ if [[ $# -ne 1 ]]; then
 fi
 
 source_root="$(cd -- "$1" && pwd -P)"
-: "${RZ_SOURCE_REF:?RZ_SOURCE_REF must name the dispatched source commit}"
-: "${RZ_SOURCE_REF_NAME:?RZ_SOURCE_REF_NAME must name the tracked source branch}"
+[[ -n "${RZ_SOURCE_REF:-}" ]] || {
+  printf 'RZ_SOURCE_REF must name the dispatched source commit\n' >&2
+  exit 64
+}
+[[ -n "${RZ_SOURCE_REF_NAME:-}" ]] || {
+  printf 'RZ_SOURCE_REF_NAME must name the tracked source branch\n' >&2
+  exit 64
+}
 
 [[ "$RZ_SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || {
   printf 'RZ_SOURCE_REF must be a lowercase full 40-character commit SHA\n' >&2
