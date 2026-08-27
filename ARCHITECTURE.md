@@ -75,6 +75,13 @@ planned source identities still render their full pending envelope. A selected
 Rust profile whose link status is blocked remains pending so an unsupported
 target cannot silently look green.
 
+Each executable source keeps source-level `build_script` and `rust` defaults.
+When one selected target needs a different certified contract, an optional
+`profile_overrides` object may replace only those two values for that exact
+profile ID. Override IDs must already be selected by `profiles`, override
+objects are closed to unknown fields, and an absent override preserves the
+existing source contract byte-for-byte in rendered matrices.
+
 The baseline lock remains immutable. After a trusted fast-forward, infra must
 dispatch the allowlisted repository, tracked branch, and exact resulting SHA.
 The controller may reuse only that branch's already certified adapter/profile

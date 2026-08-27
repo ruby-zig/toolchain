@@ -16,8 +16,10 @@ runtime, Rust boundary, compiler version, or build command.
 and finds that exact repository/branch identity in `config/fleet-lock.json`.
 The executable entry supplies the controller-owned adapter, selected profile
 subset, exact external Ruby runtime, and Rust boundary. The candidate SHA
-replaces only the baseline source SHA in the derived matrix. There is no input
-through which a caller can broaden the build.
+replaces only the baseline source SHA in the derived matrix. Profile-specific
+`build_script` and `rust` overrides, when declared by the lock, are resolved
+before both fleet and continuous matrix entries reach the same reusable
+workflow. There is no input through which a caller can broaden the build.
 
 A tracked source without an executable entry is rejected. All four maintained
 CRuby refs have certified native GNU shared baselines and executable entries.

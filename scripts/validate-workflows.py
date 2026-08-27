@@ -87,6 +87,8 @@ def main() -> int:
     shard = root / ".github" / "workflows" / "fleet-shard.yml"
     shard_text = shard.read_text(encoding="utf-8")
     for needle in (
+        "build-script: ${{ matrix.build_script }}",
+        "rust: ${{ matrix.rust }}",
         "ruby-version: ${{ matrix.ruby_version }}",
         "source-ref-name: ${{ matrix.source_ref_name }}",
         "        options:\n          - '1'\n          - '2'\n",

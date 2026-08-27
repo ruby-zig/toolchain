@@ -372,6 +372,9 @@ class FleetMatrixTests(unittest.TestCase):
         (root / "adapters" / "repo" / "native" / "build.sh").write_text(
             "#!/usr/bin/env bash\n", encoding="utf-8"
         )
+        (root / "adapters" / "repo" / "native" / "build-musl.sh").write_text(
+            "#!/usr/bin/env bash\n", encoding="utf-8"
+        )
         (root / "adapters" / "test" / "spec" / "build.sh").write_text(
             "#!/usr/bin/env bash\n", encoding="utf-8"
         )
@@ -499,6 +502,60 @@ class FleetMatrixTests(unittest.TestCase):
                 json.dumps(document), encoding="utf-8"
             )
         return lock
+
+    def test_profile_overrides_are_lane_specific_and_preserve_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = self._write_fixture(root)
+            source = lock["sources"][0]
+            source["profiles"] = [
+                "x86_64-linux-gnu.2.17",
+                "x86_64-linux-musl",
+                "aarch64-linux-musl",
+            ]
+            source["profile_overrides"] = {
+                "x86_64-linux-musl": {
+                    "build_script": "adapters/repo/native/build-musl.sh",
+                    "rust": False,
+                }
+            }
+            (root / "config" / "fleet-lock.json").write_text(
+                json.dumps(lock), encoding="utf-8"
+            )
+
+            plan = renderer.plan_fleet(root)
+            native_lanes = [
+                lane for lane in plan.lanes if lane.result_id == "native-master"
+            ]
+            self.assertEqual(
+                [(lane.profile["id"], lane.ready) for lane in native_lanes],
+                [
+                    ("x86_64-linux-gnu.2.17", True),
+                    ("x86_64-linux-musl", True),
+                    ("aarch64-linux-musl", False),
+                ],
+            )
+
+            _, outputs = renderer.shard_summary(plan, 1)
+            entries = {
+                entry["profile_id"]: entry
+                for entry in json.loads(outputs["matrix"])["include"]
+                if entry["result_id"] == "native-master"
+            }
+            self.assertEqual(set(entries), {
+                "x86_64-linux-gnu.2.17",
+                "x86_64-linux-musl",
+            })
+            self.assertEqual(
+                entries["x86_64-linux-gnu.2.17"]["build_script"],
+                "adapters/repo/native/build.sh",
+            )
+            self.assertTrue(entries["x86_64-linux-gnu.2.17"]["rust"])
+            self.assertEqual(
+                entries["x86_64-linux-musl"]["build_script"],
+                "adapters/repo/native/build-musl.sh",
+            )
+            self.assertFalse(entries["x86_64-linux-musl"]["rust"])
 
     def test_lock_selects_profiles_and_blocked_rust_stays_pending(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -641,6 +698,54 @@ class FleetMatrixTests(unittest.TestCase):
             "unknown profile": (
                 lambda source: source.update(profiles=["not-a-target"]),
                 "unknown requested profiles",
+            ),
+            "profile overrides must be an object": (
+                lambda source: source.update(profile_overrides=[]),
+                "profile_overrides must be a nonempty object",
+            ),
+            "profile overrides must not be empty": (
+                lambda source: source.update(profile_overrides={}),
+                "profile_overrides must be a nonempty object",
+            ),
+            "override profile must be selected": (
+                lambda source: source.update(
+                    profile_overrides={"x86_64-linux-musl": {"rust": False}}
+                ),
+                "must also appear in profiles",
+            ),
+            "override profile must be known": (
+                lambda source: source.update(
+                    profile_overrides={"not-a-target": {"rust": False}}
+                ),
+                "names an unknown profile",
+            ),
+            "override contract must not be empty": (
+                lambda source: source.update(
+                    profile_overrides={"aarch64-linux-musl": {}}
+                ),
+                "must be a nonempty object",
+            ),
+            "override fields are closed": (
+                lambda source: source.update(
+                    profile_overrides={
+                        "aarch64-linux-musl": {"allow_no_native": True}
+                    }
+                ),
+                "has unexpected fields",
+            ),
+            "override rust must be boolean": (
+                lambda source: source.update(
+                    profile_overrides={"aarch64-linux-musl": {"rust": 0}}
+                ),
+                "rust must be boolean",
+            ),
+            "override script stays under adapters": (
+                lambda source: source.update(
+                    profile_overrides={
+                        "aarch64-linux-musl": {"build_script": "build-musl.sh"}
+                    }
+                ),
+                "controller-relative under adapters/",
             ),
             "short Ruby version": (
                 lambda source: source.update(ruby_version="3.3"),

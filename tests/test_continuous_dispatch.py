@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -179,6 +181,116 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
         self.assertEqual(entry["source_ref"], candidate)
         self.assertEqual(entry["source_ref_name"], "ruby_3_3")
+
+    def test_profile_overrides_reach_continuous_matrix_and_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            adapter = root / "adapters" / "repo" / "native"
+            adapter.mkdir(parents=True)
+            for script in ("build.sh", "build-musl.sh"):
+                (adapter / script).write_text("#!/usr/bin/env bash\n", encoding="utf-8")
+
+            builds = {
+                "count": 1,
+                "profile_count": 2,
+                "builds": [
+                    {
+                        "name": "native",
+                        "upstream": "ruby/native",
+                        "default_branch": "master",
+                        "classification": "direct-native",
+                        "adapter_id": "repo/native",
+                        "adapter_status": "ready",
+                        "profile_policy": "zig-build-only",
+                    }
+                ],
+            }
+            targets = {
+                "profiles": [
+                    {
+                        "id": "x86_64-linux-gnu.2.17",
+                        "runner": "ubuntu-24.04",
+                        "rust_link_status": "smoke-verified",
+                    },
+                    {
+                        "id": "x86_64-linux-musl",
+                        "runner": "ubuntu-24.04",
+                        "rust_link_status": "smoke-verified",
+                    },
+                ]
+            }
+            lock = {
+                "schema": 2,
+                "destination_owner": "ruby-zig",
+                "source_refs": [
+                    {
+                        "result_id": "native-master",
+                        "name": "native",
+                        "repository": "ruby/native",
+                        "ref_name": "master",
+                        "source_ref": "a" * 40,
+                        "rust": True,
+                    }
+                ],
+                "sources": [
+                    {
+                        "result_id": "native-master",
+                        "name": "native",
+                        "ref_name": "master",
+                        "adapter_id": "repo/native",
+                        "repository": "ruby-zig/native",
+                        "source_ref": "a" * 40,
+                        "build_script": "adapters/repo/native/build.sh",
+                        "profiles": [
+                            "x86_64-linux-gnu.2.17",
+                            "x86_64-linux-musl",
+                        ],
+                        "ruby_version": "3.3.6",
+                        "rust": True,
+                        "profile_overrides": {
+                            "x86_64-linux-musl": {
+                                "build_script": "adapters/repo/native/build-musl.sh",
+                                "rust": False,
+                            }
+                        },
+                    }
+                ],
+            }
+            for name, document in (
+                ("builds.json", builds),
+                ("targets.json", targets),
+                ("fleet-lock.json", lock),
+            ):
+                (root / "config" / name).write_text(
+                    json.dumps(document), encoding="utf-8"
+                )
+
+            plan = planner.plan_continuous(
+                root, "ruby-zig/native", "master", "b" * 40
+            )
+            self.assertEqual(plan.build_script, "adapters/repo/native/build.sh")
+            self.assertTrue(plan.rust)
+            entries = {
+                entry["profile_id"]: entry for entry in plan.matrix["include"]
+            }
+            self.assertEqual(
+                entries["x86_64-linux-gnu.2.17"]["build_script"],
+                "adapters/repo/native/build.sh",
+            )
+            self.assertTrue(entries["x86_64-linux-gnu.2.17"]["rust"])
+            self.assertEqual(
+                entries["x86_64-linux-musl"]["build_script"],
+                "adapters/repo/native/build-musl.sh",
+            )
+            self.assertFalse(entries["x86_64-linux-musl"]["rust"])
+            summary = plan.summary()
+            self.assertIn("Default Rust boundary | `enabled`", summary)
+            self.assertIn("`x86_64-linux-musl`", summary)
+            self.assertIn(
+                "`adapters/repo/native/build-musl.sh` | `disabled`",
+                summary,
+            )
 
     def test_repository_branch_and_sha_are_exactly_allowlisted(self) -> None:
         cases = (

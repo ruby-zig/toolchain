@@ -60,6 +60,12 @@ class ContinuousPlan:
 
     def summary(self) -> str:
         profile_list = ", ".join(f"`{profile}`" for profile in self.profiles)
+        contract_rows = tuple(
+            f"| `{entry['profile_id']}` | `{entry['build_script']}` | "
+            f"`{'enabled' if entry['rust'] else 'disabled'}` |"
+            for entry in self.matrix["include"]
+        )
+
         return "\n".join(
             (
                 "### Continuous build plan",
@@ -72,11 +78,17 @@ class ContinuousPlan:
                 f"| Branch | `{self.source_ref_name}` |",
                 f"| Certified baseline | `{self.baseline_sha}` |",
                 f"| Candidate | `{self.source_sha}` |",
-                f"| Adapter | `{self.adapter_id}` (`{self.build_script}`) |",
+                f"| Default adapter | `{self.adapter_id}` (`{self.build_script}`) |",
                 f"| Profiles | {profile_list} |",
                 f"| Ruby runtime | `{self.ruby_version}` |",
-                f"| Rust boundary | `{'enabled' if self.rust else 'disabled'}` |",
+                f"| Default Rust boundary | `{'enabled' if self.rust else 'disabled'}` |",
                 f"| Build jobs | {self.ready_jobs} |",
+                "",
+                "#### Effective profile contracts",
+                "",
+                "| Profile | Build adapter | Rust |",
+                "| --- | --- | --- |",
+                *contract_rows,
                 "",
                 "The immutable fleet lock supplied every build-affecting value. "
                 "The caller supplied only the fork, tracked branch, and candidate SHA.",
