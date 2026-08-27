@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 307)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 10)
+        self.assertEqual(plan.desired_jobs, 299)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 11)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 55],
+            [252, 47],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -91,12 +91,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(len(lock["sources"]), 9)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
-            {"bigdecimal", "json", "prism", "ruby", "stringio", "strscan"},
+            {"bigdecimal", "date", "json", "prism", "ruby", "stringio", "strscan"},
         )
         self.assertEqual(
             {source["name"]: source["profiles"] for source in lock["sources"]},
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
+                "date": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
@@ -110,6 +111,14 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertTrue(
             all(source["ruby_version"] == "3.2.3" for source in lock["sources"])
         )
+        date_source = next(
+            source for source in lock["sources"] if source["name"] == "date"
+        )
+        self.assertEqual(
+            date_source["source_ref"],
+            "afb25b87590fd5b2f23f07fd851f06a31fa19288",
+        )
+        self.assertFalse(date_source["rust"])
         ruby_source = next(
             source for source in lock["sources"] if source["name"] == "ruby"
         )
@@ -278,6 +287,17 @@ class FleetMatrixTests(unittest.TestCase):
                 "blocked-missing-target-native-musl-ruby-sdk",
             )
             self.assertTrue(any("GNU Ruby SDK" in gap for gap in adapter["gaps"]))
+        date_adapter = json.loads(
+            (ROOT / "adapters" / "repo" / "date" / "adapter.json").read_text()
+        )
+        self.assertEqual(
+            [profile["id"] for profile in date_adapter["profiles"]],
+            ["x86_64-linux-gnu.2.17"],
+        )
+        self.assertEqual(
+            date_adapter["cross_status"],
+            "blocked-missing-target-native-ruby-sdk-and-runtime",
+        )
 
     def _write_fixture(
         self,
