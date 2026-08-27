@@ -10,7 +10,6 @@ for path in \
   "$source_root/autogen.sh" \
   "$source_root/configure.ac" \
   "$source_root/ruby.c" \
-  "$source_root/ruby.rs" \
   "$source_contract"; do
   if [[ ! -f "$path" ]]; then
     printf 'CRuby source or adapter file is missing: %s\n' "$path" >&2
@@ -75,6 +74,20 @@ jit_options=()
 # shellcheck source=adapters/repo/ruby/source-contract.sh
 source "$source_contract"
 rz_ruby_source_contract "$source_sha"
+
+case "$source_branch" in
+  master|ruby_4_0)
+    rust_source="$source_root/ruby.rs"
+    ;;
+  ruby_3_4|ruby_3_3)
+    rust_source="$source_root/yjit/src/lib.rs"
+    ;;
+esac
+if [[ ! -f "$rust_source" ]]; then
+  printf 'CRuby Rust source is missing for %s: %s\n' \
+    "$source_branch" "$rust_source" >&2
+  exit 66
+fi
 
 if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
   printf 'CRuby adapter requires a clean source checkout\n' >&2
@@ -180,10 +193,10 @@ if [[ "$configured_strip_record" != 'S["STRIP"]=":"' ]]; then
   exit 65
 fi
 
-# Stable branches make extmk probes select LIBRUBYARG_STATIC through rbconfig.
+# Ruby 4.0 makes extmk probes select LIBRUBYARG_STATIC through rbconfig.
 # This profile is shared-only, so bind that generated value to the configured
 # shared libruby before config.status creates Makefile or rbconfig.rb.
-if [[ "$source_branch" != master ]]; then
+if [[ $source_branch == ruby_4_0 ]]; then
   shared_config_librubyarg="$(sed -n \
     's/^S\["LIBRUBYARG_SHARED"\]="\(.*\)"$/\1/p' config.status)"
   if [[ -z "$shared_config_librubyarg" ]]; then
@@ -229,7 +242,7 @@ if [[ "$configured_objcopy" != : ]]; then
   exit 65
 fi
 
-if [[ "$source_branch" != master ]]; then
+if [[ $source_branch == ruby_4_0 ]]; then
   shared_librubyarg="$(sed -n \
     's/^LIBRUBYARG_SHARED[[:space:]]*=[[:space:]]*//p' Makefile)"
   static_librubyarg="$(sed -n \
@@ -268,11 +281,36 @@ if [[ "$ldflags" == *export-dynamic* ]]; then
   exit 65
 fi
 
-rust_archive="$build_root/target/release/libruby.a"
 c_archive="$build_root/libruby-zig-c-only.a"
 export_map="$build_root/ruby-zig.exports"
+static_link_bridge=
+case "$source_branch" in
+  master|ruby_4_0)
+    rust_archive="$build_root/target/release/libruby.a"
+    rust_build_target=rust-lib
+    rust_object_override='RUST_LIBOBJ='
+    ;;
+  ruby_3_4|ruby_3_3)
+    yjit_libs="$(make_value YJIT_LIBS)"
+    if [[ "$yjit_libs" != yjit/target/release/libyjit.a ]]; then
+      printf 'unexpected release YJIT archive path: %s\n' \
+        "${yjit_libs:-unset}" >&2
+      exit 65
+    fi
+    rust_archive="$build_root/$yjit_libs"
+    rust_build_target=$yjit_libs
+    rust_object_override='YJIT_LIBOBJ='
+    configured_static_archive="$(make_value LIBRUBY_A)"
+    if [[ "$configured_static_archive" != libruby-static.a ]]; then
+      printf 'unexpected release static-library name: %s\n' \
+        "${configured_static_archive:-unset}" >&2
+      exit 65
+    fi
+    static_link_bridge="$build_root/$configured_static_archive"
+    ;;
+esac
 base_overrides=(
-  'RUST_LIBOBJ='
+  "$rust_object_override"
   'OBJCOPY=:'
   'STRIP=:'
   "LIBRUBY_A=$c_archive"
@@ -281,7 +319,7 @@ base_overrides=(
   "EXE_LDFLAGS=$ldflags"
 )
 
-make -j"$jobs" V=1 'OBJCOPY=:' 'STRIP=:' rust-lib
+make -j"$jobs" V=1 'OBJCOPY=:' 'STRIP=:' "$rust_build_target"
 if [[ ! -s "$rust_archive" ]]; then
   printf 'CRuby Rust archive was not built: %s\n' "$rust_archive" >&2
   exit 66
@@ -293,6 +331,17 @@ make -j"$jobs" V=1 "${base_overrides[@]}" "$c_archive"
 if [[ ! -s "$c_archive" ]]; then
   printf 'CRuby C sidecar archive was not built: %s\n' "$c_archive" >&2
   exit 66
+fi
+
+# Older extmk links build-time probes through LIBRUBYARG_STATIC. Give those
+# probes a disposable linker script that keeps the two archives separate.
+if [[ -n "$static_link_bridge" ]]; then
+  if [[ -e "$static_link_bridge" ]]; then
+    printf 'refusing to replace static-link bridge: %s\n' \
+      "$static_link_bridge" >&2
+    exit 73
+  fi
+  printf 'GROUP(%s %s)\n' "$c_archive" "$rust_archive" >"$static_link_bridge"
 fi
 
 {
@@ -314,11 +363,20 @@ make -j"$jobs" V=1 "${base_overrides[@]}" miniruby
 
 libruby_so="$(make_value LIBRUBY_SO)"
 dldflags="$(make_value DLDFLAGS)"
+post_map_make_options=()
+case "$source_branch" in
+  ruby_3_4|ruby_3_3)
+    post_map_make_options=(-o "$libruby_so")
+    ;;
+esac
 
 # Finish the ordinary build first so every generated DSO input and extension is
 # stable. Then remove only that disposable DSO target and relink it once with
 # the exact Ruby export map. The map is never propagated to extension links.
 make -j"$jobs" V=1 "${base_overrides[@]}"
+if [[ -n "$static_link_bridge" ]]; then
+  rm -f -- "$static_link_bridge"
+fi
 shared="$build_root/$libruby_so"
 if [[ ! -s "$shared" ]]; then
   printf 'ordinary CRuby build did not produce %s\n' "$shared" >&2
@@ -330,8 +388,10 @@ make -j"$jobs" V=1 "${base_overrides[@]}" \
   "$libruby_so"
 
 make V=1 "${base_overrides[@]}" showflags
-make V=1 "${base_overrides[@]}" yes-test-leaked-globals
-make -j"$jobs" V=1 "${base_overrides[@]}" test
+make "${post_map_make_options[@]}" V=1 "${base_overrides[@]}" \
+  yes-test-leaked-globals
+make "${post_map_make_options[@]}" -j"$jobs" V=1 "${base_overrides[@]}" \
+  test
 
 for artifact in "$build_root/miniruby" "$build_root/ruby" "$shared"; do
   if [[ ! -s "$artifact" ]]; then

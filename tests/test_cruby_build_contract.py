@@ -91,6 +91,64 @@ class CrubyBuildContractTests(unittest.TestCase):
             script,
         )
 
+    def test_release_branch_paths_are_exact_and_noninstalling(self) -> None:
+        script = BUILD_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn(
+            'master|ruby_4_0)\n    rust_source="$source_root/ruby.rs"',
+            script,
+        )
+        self.assertIn(
+            'ruby_3_4|ruby_3_3)\n'
+            '    rust_source="$source_root/yjit/src/lib.rs"',
+            script,
+        )
+        self.assertEqual(
+            script.count("if [[ $source_branch == ruby_4_0 ]]; then"),
+            2,
+        )
+        self.assertNotIn('if [[ "$source_branch" != master ]]; then', script)
+
+        self.assertIn(
+            'ruby_3_4|ruby_3_3)\n'
+            '    yjit_libs="$(make_value YJIT_LIBS)"',
+            script,
+        )
+        self.assertIn("rust_object_override='YJIT_LIBOBJ='", script)
+        self.assertIn(
+            "printf 'GROUP(%s %s)\\n' "
+            '"$c_archive" "$rust_archive" >"$static_link_bridge"',
+            script,
+        )
+        self.assertIn('post_map_make_options=(-o "$libruby_so")', script)
+
+        bridge_create = script.index("printf 'GROUP(%s %s)")
+        ordinary_build = script.index(
+            'make -j"$jobs" V=1 "${base_overrides[@]}"\n',
+            bridge_create,
+        )
+        bridge_remove = script.index(
+            'rm -f -- "$static_link_bridge"',
+            ordinary_build,
+        )
+        shared_check = script.index(
+            'shared="$build_root/$libruby_so"',
+            bridge_remove,
+        )
+        self.assertLess(bridge_create, ordinary_build)
+        self.assertLess(ordinary_build, bridge_remove)
+        self.assertLess(bridge_remove, shared_check)
+
+        artifacts_start = script.index("artifacts=(")
+        artifacts_end = script.index("\n)", artifacts_start)
+        artifacts = script[artifacts_start:artifacts_end]
+        self.assertNotIn("static_link_bridge", artifacts)
+        self.assertNotIn("libruby-static.a", artifacts)
+        self.assertIn(
+            'if [[ -e "$build_root/libruby-static.a" || '
+            '-e "${rust_archive%.a}.o" ]]; then',
+            script,
+        )
 
 if __name__ == "__main__":
     unittest.main()
