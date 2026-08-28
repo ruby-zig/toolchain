@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-readonly expected_source_ref='0b76192bc3b8cd5dfe814e1166265ab38d82e41b'
+readonly candidate_source_ref='1111111111111111111111111111111111111111'
+readonly mismatched_source_ref='2111111111111111111111111111111111111111'
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 work="$(mktemp -d)"
@@ -32,17 +33,17 @@ run_contract() {
   PATH="$fake_bin:$PATH" \
     FAKE_GIT_ROOT="$source_root" \
     FAKE_GIT_TOPLEVEL="${FAKE_GIT_TOPLEVEL:-$source_root}" \
-    FAKE_GIT_SHA="${FAKE_GIT_SHA:-$expected_source_ref}" \
+    FAKE_GIT_SHA="${FAKE_GIT_SHA:-$candidate_source_ref}" \
     FAKE_GIT_STATUS="${FAKE_GIT_STATUS:-}" \
-    RZ_SOURCE_REF="${RZ_SOURCE_REF:-$expected_source_ref}" \
+    RZ_SOURCE_REF="${RZ_SOURCE_REF:-$candidate_source_ref}" \
     RZ_SOURCE_REF_NAME="${RZ_SOURCE_REF_NAME:-master}" \
     bash "$root/source-contract.sh" "$source_root"
 }
 
 run_contract >/dev/null
 
-if RZ_SOURCE_REF="${expected_source_ref%?}0" run_contract >/dev/null 2>&1; then
-  printf 'source contract accepted a source ref outside the fleet lock\n' >&2
+if RZ_SOURCE_REF="$mismatched_source_ref" run_contract >/dev/null 2>&1; then
+  printf 'source contract accepted a mismatched SHA\n' >&2
   exit 1
 fi
 if RZ_SOURCE_REF=master run_contract >/dev/null 2>&1; then
@@ -53,7 +54,7 @@ if RZ_SOURCE_REF_NAME=main run_contract >/dev/null 2>&1; then
   printf 'source contract accepted an untracked branch\n' >&2
   exit 1
 fi
-if FAKE_GIT_SHA="${expected_source_ref%?}0" run_contract >/dev/null 2>&1; then
+if FAKE_GIT_SHA="$mismatched_source_ref" run_contract >/dev/null 2>&1; then
   printf 'source contract accepted a mismatched checkout\n' >&2
   exit 1
 fi

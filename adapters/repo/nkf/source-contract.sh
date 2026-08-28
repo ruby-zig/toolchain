@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-readonly expected_source_ref='0cbafd2db231e331ac8f10e77ef406c71e3b9fbe'
-
 if [[ $# -ne 1 ]]; then
   printf 'usage: source-contract.sh SOURCE_ROOT\n' >&2
   exit 64
@@ -17,11 +15,6 @@ source_root="$(cd -- "$1" && pwd -P)"
   printf 'RZ_SOURCE_REF must be a lowercase full commit SHA\n' >&2
   exit 64
 }
-[[ "$RZ_SOURCE_REF" == "$expected_source_ref" ]] || {
-  printf 'nkf adapter is pinned to %s, got %s\n' \
-    "$expected_source_ref" "$RZ_SOURCE_REF" >&2
-  exit 78
-}
 [[ "$RZ_SOURCE_REF_NAME" == master ]] || {
   printf 'nkf adapter only supports the tracked master branch\n' >&2
   exit 78
@@ -32,9 +25,9 @@ git -C "$source_root" rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 }
 
 actual_sha="$(git -C "$source_root" rev-parse HEAD)"
-[[ "$actual_sha" == "$expected_source_ref" ]] || {
-  printf 'nkf source is %s, expected pinned commit %s\n' \
-    "$actual_sha" "$expected_source_ref" >&2
+[[ "$actual_sha" == "$RZ_SOURCE_REF" ]] || {
+  printf 'nkf source is %s, expected %s\n' \
+    "$actual_sha" "$RZ_SOURCE_REF" >&2
   exit 78
 }
 

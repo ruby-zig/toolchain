@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-readonly expected_source_ref='0cbafd2db231e331ac8f10e77ef406c71e3b9fbe'
+readonly candidate_source_ref='1111111111111111111111111111111111111111'
+readonly mismatched_source_ref='2111111111111111111111111111111111111111'
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 work="$(mktemp -d)"
@@ -26,18 +27,18 @@ chmod +x "$work/bin/git"
 
 run_contract() {
   PATH="$work/bin:$PATH" \
-  FAKE_GIT_SHA="${FAKE_GIT_SHA:-$expected_source_ref}" \
+  FAKE_GIT_SHA="${FAKE_GIT_SHA:-$candidate_source_ref}" \
   FAKE_GIT_STATUS="${FAKE_GIT_STATUS:-}" \
-  RZ_SOURCE_REF="${RZ_SOURCE_REF:-$expected_source_ref}" \
+  RZ_SOURCE_REF="${RZ_SOURCE_REF:-$candidate_source_ref}" \
   RZ_SOURCE_REF_NAME="${RZ_SOURCE_REF_NAME:-master}" \
     bash "$root/source-contract.sh" "$work/source"
 }
 
 run_contract >/dev/null
 
-if RZ_SOURCE_REF=1cbafd2db231e331ac8f10e77ef406c71e3b9fbe \
+if RZ_SOURCE_REF="$mismatched_source_ref" \
   run_contract >/dev/null 2>&1; then
-  printf 'source contract accepted a different full SHA\n' >&2
+  printf 'source contract accepted a mismatched SHA\n' >&2
   exit 1
 fi
 if RZ_SOURCE_REF_NAME=main run_contract >/dev/null 2>&1; then
@@ -48,7 +49,7 @@ if RZ_SOURCE_REF=master run_contract >/dev/null 2>&1; then
   printf 'source contract accepted a symbolic ref\n' >&2
   exit 1
 fi
-if FAKE_GIT_SHA=fcbafd2db231e331ac8f10e77ef406c71e3b9fbe \
+if FAKE_GIT_SHA="$mismatched_source_ref" \
   run_contract >/dev/null 2>&1; then
   printf 'source contract accepted a checkout at a different SHA\n' >&2
   exit 1

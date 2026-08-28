@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-readonly expected_source_ref='0b76192bc3b8cd5dfe814e1166265ab38d82e41b'
 readonly expected_source_ref_name='master'
 
 if [[ $# -ne 1 ]]; then
@@ -23,12 +22,6 @@ source_root="$(cd -- "$1" && pwd -P)"
     "$expected_source_ref_name" >&2
   exit 78
 }
-[[ "$RZ_SOURCE_REF" == "$expected_source_ref" ]] || {
-  printf 'Syck adapter is pinned to %s, got %s\n' \
-    "$expected_source_ref" "$RZ_SOURCE_REF" >&2
-  exit 78
-}
-
 command -v git >/dev/null 2>&1 || {
   printf 'Syck source verification requires git\n' >&2
   exit 69
@@ -47,9 +40,9 @@ worktree_root="$(cd -- "$worktree_root" && pwd -P)"
 }
 
 actual_sha="$(git -C "$source_root" rev-parse --verify HEAD)"
-[[ "$actual_sha" == "$expected_source_ref" ]] || {
+[[ "$actual_sha" == "$RZ_SOURCE_REF" ]] || {
   printf 'Syck source is %s, expected %s\n' \
-    "$actual_sha" "$expected_source_ref" >&2
+    "$actual_sha" "$RZ_SOURCE_REF" >&2
   exit 78
 }
 
