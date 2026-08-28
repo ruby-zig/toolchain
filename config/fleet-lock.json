@@ -598,7 +598,7 @@
       "name": "ruby",
       "ref_name": "master",
       "adapter_id": "repo/ruby",
-      "repository": "ruby-zig/ruby",
+      "repository": "ruby-zig/ziguanite",
       "source_ref": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
@@ -619,7 +619,7 @@
       "name": "ruby",
       "ref_name": "ruby_4_0",
       "adapter_id": "repo/ruby",
-      "repository": "ruby-zig/ruby",
+      "repository": "ruby-zig/ziguanite",
       "source_ref": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
@@ -633,7 +633,7 @@
       "name": "ruby",
       "ref_name": "ruby_3_4",
       "adapter_id": "repo/ruby",
-      "repository": "ruby-zig/ruby",
+      "repository": "ruby-zig/ziguanite",
       "source_ref": "aac3e36dd4bee40fc89893209553903706fa5666",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
@@ -647,7 +647,7 @@
       "name": "ruby",
       "ref_name": "ruby_3_3",
       "adapter_id": "repo/ruby",
-      "repository": "ruby-zig/ruby",
+      "repository": "ruby-zig/ziguanite",
       "source_ref": "0581089df9f0af0fe6b64cb8167987c211100947",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
