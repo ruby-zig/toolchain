@@ -86,6 +86,9 @@ mkdir -p "$build_dir" "$artifact_dir"
       RbConfig::CONFIG[key] = value
       RbConfig::MAKEFILE_CONFIG[key] = value
     end
+    cpp = "#{ENV.fetch("CC")} -E"
+    RbConfig::CONFIG["CPP"] = cpp
+    RbConfig::MAKEFILE_CONFIG["CPP"] = cpp
     {
       "CFLAGS" => "-O2 -Wno-default-const-init-field-unsafe",
       "CXXFLAGS" => "-O2 -Wno-default-const-init-field-unsafe",
