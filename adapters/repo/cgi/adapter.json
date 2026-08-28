@@ -14,23 +14,41 @@
   "profiles": [
     {
       "id": "x86_64-linux-gnu.2.17",
-      "status": "implementation-ready-pending-certified-run",
+      "status": "run-verified",
+      "controller_sha": "7be741277cd2f8dacc91116e5d51219593dfe9e8",
+      "trace_sha256": "0ba20f37ee536e73ec4f2c1491d3b87ad00fb4d995181a2eaeb02acb5599a1c9",
+      "receipts_sha256": "90c46676ea60b915ea2dd6bd3f62138f03eb690c336f9bd5002cc51af77d5e9c",
+      "native_receipts": 2,
+      "receipt_tools": {
+        "cc": 1,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 1,
+        "link": 1
+      },
+      "artifact_sha256": "bc80469f655009b55545422bee32b680a6179f80ec270615d3e7df80e87fa7af",
       "artifact_format": "ELF64 x86-64 shared object",
       "glibc_ceiling": "2.17",
+      "glibc_max": "2.14",
+      "glibc_version_dependencies": 2,
+      "evidence_archive": "ruby-zig-six-adapter-cert-7be7412-evidence.tar.xz",
+      "evidence_sha256": "83b42a7d5fc24c86e52c028d4d8cedd95149df6c75b095c4a0205535e8f2cda8",
       "test": "loads the exact artifact and verifies CGI HTML, form, and URI-component escaping"
     }
   ],
   "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
   "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
     "ruby": "3.2.3",
-    "process_audit": "required-poison-path-strace-receipt-correlation",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
     "source_clean_before_build": true,
-    "tracked_source_unchanged_after_build": true,
-    "exported_entrypoint": "Init_escape",
-    "provenance": "controller-recorded-before-certified-run"
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_escape"
   },
   "gaps": [
-    "an immutable controller commit and certified run must supply trace, receipt, artifact, and evidence SHA-256 values",
     "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
   ]
 }

@@ -355,6 +355,20 @@
       "rust": false
     },
     {
+      "result_id": "cgi-master",
+      "name": "cgi",
+      "ref_name": "master",
+      "adapter_id": "repo/cgi",
+      "repository": "ruby-zig/cgi",
+      "source_ref": "7f08c896d3fb726584e50172ebe8ddb6f3379b75",
+      "build_script": "adapters/repo/cgi/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
       "result_id": "date-master",
       "name": "date",
       "ref_name": "master",
@@ -376,6 +390,20 @@
       "repository": "ruby-zig/digest",
       "source_ref": "cb79debac4f03ac7d907d37615ed91a85dd7da26",
       "build_script": "adapters/repo/digest/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
+      "result_id": "erb-master",
+      "name": "erb",
+      "ref_name": "master",
+      "adapter_id": "repo/erb",
+      "repository": "ruby-zig/erb",
+      "source_ref": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+      "build_script": "adapters/repo/erb/build.sh",
       "profiles": [
         "x86_64-linux-gnu.2.17"
       ],
@@ -453,6 +481,20 @@
       "rust": false
     },
     {
+      "result_id": "pathname-master",
+      "name": "pathname",
+      "ref_name": "master",
+      "adapter_id": "repo/pathname",
+      "repository": "ruby-zig/pathname",
+      "source_ref": "f0217bbd486b2f7d5c7de1ff3951c7422d42c761",
+      "build_script": "adapters/repo/pathname/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
       "result_id": "prism-main",
       "name": "prism",
       "ref_name": "main",
@@ -466,6 +508,20 @@
       ],
       "ruby_version": "3.2.3",
       "rust": true
+    },
+    {
+      "result_id": "racc-master",
+      "name": "racc",
+      "ref_name": "master",
+      "adapter_id": "repo/racc",
+      "repository": "ruby-zig/racc",
+      "source_ref": "4d858d91239b5c26b0308d362a9e96d43190674a",
+      "build_script": "adapters/repo/racc/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
     },
     {
       "result_id": "ruby-master",
@@ -531,6 +587,20 @@
       "rust": true
     },
     {
+      "result_id": "sdbm-master",
+      "name": "sdbm",
+      "ref_name": "master",
+      "adapter_id": "repo/sdbm",
+      "repository": "ruby-zig/sdbm",
+      "source_ref": "7b0c143d6dc970b3e5d897e36876be5ec9e15889",
+      "build_script": "adapters/repo/sdbm/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
       "result_id": "stringio-master",
       "name": "stringio",
       "ref_name": "master",
@@ -552,6 +622,20 @@
       "repository": "ruby-zig/strscan",
       "source_ref": "63ee0ac310d6b2a89543a3e2755cd72f203bd80f",
       "build_script": "adapters/repo/strscan/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": false
+    },
+    {
+      "result_id": "syslog-master",
+      "name": "syslog",
+      "ref_name": "master",
+      "adapter_id": "repo/syslog",
+      "repository": "ruby-zig/syslog",
+      "source_ref": "6d3616575bc81a09182144c17c303e46f4d2ef9f",
+      "build_script": "adapters/repo/syslog/build.sh",
       "profiles": [
         "x86_64-linux-gnu.2.17"
       ],

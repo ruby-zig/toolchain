@@ -225,7 +225,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/cgi",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -477,7 +477,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/erb",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1041,7 +1041,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/pathname",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1161,7 +1161,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/racc",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1797,7 +1797,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/sdbm",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -2001,7 +2001,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/syslog",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {

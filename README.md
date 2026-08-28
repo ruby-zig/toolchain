@@ -109,19 +109,26 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The executable lock admits 17 lanes: GNU builds for `bigdecimal`, `date`,
-`digest`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`, `json`, `stringio`,
-`strscan`, and all four maintained CRuby refs, plus GNU and musl builds for
-`prism`, with CRuby master also admitted for musl. Their source SHAs,
+The executable lock admits 23 lanes: GNU builds for `bigdecimal`, `cgi`,
+`date`, `digest`, `erb`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`,
+`json`, `pathname`, `racc`, `sdbm`, `stringio`, `strscan`, `syslog`, and all
+four maintained CRuby refs, plus GNU and musl builds for `prism`, with CRuby
+master also admitted for musl. Their source SHAs,
 controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
 are explicit. The full plan still contains all 378 desired lanes, split into
-active shards of 252 and 126; the other 361 lanes remain pending.
+active shards of 252 and 126; the other 355 lanes remain pending.
 
 The io-console lane loads the exact built extension and exercises raw, noecho,
 window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
 descriptor flag changes, while io-nonblock verifies nonblocking pipe transfer
 and flag restoration. The io-wait lane loads its exact compiled compatibility
 stub, then exercises the wait behavior built into Ruby.
+
+The six newest GNU lanes also load only their staged artifacts. Pathname and
+ERB cover their native string operations, CGI covers its HTML, form, and URI
+escaping paths, and Racc parses through its C transition engine. Syslog checks
+state and masks without emitting a message, while SDBM proves persistence and
+adjacent advisory-lock exclusion.
 
 That is the visible coverage workload, not the number of jobs routinely sent
 to runners. Each immutable executable fleet-lock entry binds a repository and

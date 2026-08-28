@@ -129,6 +129,43 @@ class ContinuousDispatchTests(unittest.TestCase):
                 self.assertEqual(entry["source_ref_name"], "master")
                 self.assertFalse(entry["rust"])
 
+    def test_six_lane_admission_derives_locked_gnu_lanes(self) -> None:
+        candidate = "6" * 40
+        baselines = {
+            "cgi": "7f08c896d3fb726584e50172ebe8ddb6f3379b75",
+            "erb": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+            "pathname": "f0217bbd486b2f7d5c7de1ff3951c7422d42c761",
+            "racc": "4d858d91239b5c26b0308d362a9e96d43190674a",
+            "sdbm": "7b0c143d6dc970b3e5d897e36876be5ec9e15889",
+            "syslog": "6d3616575bc81a09182144c17c303e46f4d2ef9f",
+        }
+
+        for name, baseline in baselines.items():
+            with self.subTest(name=name):
+                plan = planner.plan_continuous(
+                    ROOT, f"ruby-zig/{name}", "master", candidate
+                )
+
+                self.assertEqual(plan.result_id, f"{name}-master")
+                self.assertEqual(plan.upstream_repository, f"ruby/{name}")
+                self.assertEqual(plan.baseline_sha, baseline)
+                self.assertEqual(plan.adapter_id, f"repo/{name}")
+                self.assertEqual(
+                    plan.build_script, f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(plan.ruby_version, "3.2.3")
+                self.assertFalse(plan.rust)
+                self.assertEqual(plan.ready_jobs, 1)
+
+                self.assertEqual(len(plan.matrix["include"]), 1)
+                entry = plan.matrix["include"][0]
+                self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(entry["repository"], f"ruby-zig/{name}")
+                self.assertEqual(entry["source_ref"], candidate)
+                self.assertEqual(entry["source_ref_name"], "master")
+                self.assertEqual(entry["ruby_version"], "3.2.3")
+                self.assertFalse(entry["rust"])
+
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(

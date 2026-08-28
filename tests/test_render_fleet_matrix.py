@@ -36,7 +36,8 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
         self.assertEqual(plan.desired_jobs, 378)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 17)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 23)
+        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 355)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
@@ -93,42 +94,54 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 15)
+        self.assertEqual(len(lock["sources"]), 21)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
                 "bigdecimal",
+                "cgi",
                 "date",
                 "digest",
+                "erb",
                 "fcntl",
                 "io-console",
                 "io-nonblock",
                 "io-wait",
                 "json",
+                "pathname",
                 "prism",
+                "racc",
                 "ruby",
+                "sdbm",
                 "stringio",
                 "strscan",
+                "syslog",
             },
         )
         self.assertEqual(
             {source["name"]: source["profiles"] for source in lock["sources"]},
             {
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
+                "cgi": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
                 "digest": ["x86_64-linux-gnu.2.17"],
+                "erb": ["x86_64-linux-gnu.2.17"],
                 "fcntl": ["x86_64-linux-gnu.2.17"],
                 "io-console": ["x86_64-linux-gnu.2.17"],
                 "io-nonblock": ["x86_64-linux-gnu.2.17"],
                 "io-wait": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
+                "pathname": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
                     "x86_64-linux-musl",
                 ],
+                "racc": ["x86_64-linux-gnu.2.17"],
                 "ruby": ["x86_64-linux-gnu.2.17"],
+                "sdbm": ["x86_64-linux-gnu.2.17"],
                 "stringio": ["x86_64-linux-gnu.2.17"],
                 "strscan": ["x86_64-linux-gnu.2.17"],
+                "syslog": ["x86_64-linux-gnu.2.17"],
             },
         )
         self.assertTrue(
@@ -318,6 +331,148 @@ class FleetMatrixTests(unittest.TestCase):
                     0,
                 )
                 self.assertTrue(adapter["validation"]["source_clean_after_build"])
+
+        six_lane_evidence = {
+            "cgi": {
+                "source_ref": "7f08c896d3fb726584e50172ebe8ddb6f3379b75",
+                "trace_sha256": "0ba20f37ee536e73ec4f2c1491d3b87ad00fb4d995181a2eaeb02acb5599a1c9",
+                "receipts_sha256": "90c46676ea60b915ea2dd6bd3f62138f03eb690c336f9bd5002cc51af77d5e9c",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "bc80469f655009b55545422bee32b680a6179f80ec270615d3e7df80e87fa7af",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 2,
+                "exported_entrypoint": "Init_escape",
+            },
+            "erb": {
+                "source_ref": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+                "trace_sha256": "5abdcf0c2cab165c46e5c6ca19ca0a35ce488aacc8ad73b03aeea53f24938969",
+                "receipts_sha256": "fa316bfd4ab2017cbe43ab15f628cc9c4e27272adc664a7d6925160ace000d8c",
+                "native_receipts": 4,
+                "receipt_tools": {"cc": 3, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 3},
+                "artifact_sha256": "be53e511993dc32786fe0f8c4995433b4db7525318fad7be4567d583f638804b",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 1,
+                "exported_entrypoint": "Init_escape",
+            },
+            "pathname": {
+                "source_ref": "f0217bbd486b2f7d5c7de1ff3951c7422d42c761",
+                "trace_sha256": "a63d6d0e32c85f765cead5c5beb127b2ed399b70b213c853e79ec94e1112c307",
+                "receipts_sha256": "406298f07ded64e4e8f4de7ebed6b9b498fb97939e72c486ee48f93af977dec8",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "305e27e10491a20607e9da20f91b252d4b026748a3ea5cc93641d668b5467bd1",
+                "glibc_max": "none",
+                "glibc_version_dependencies": 0,
+                "exported_entrypoint": "Init_pathname",
+            },
+            "racc": {
+                "source_ref": "4d858d91239b5c26b0308d362a9e96d43190674a",
+                "trace_sha256": "cd16031e2120d1b22154104f972781ce561e5e8bb08df055ccb6c76e3984e694",
+                "receipts_sha256": "06dbf686bd18efac1808a180311a3e379c3d50ff4da32edb8ae8dc9f0990b03e",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "43f23a180de53af61fd9d0cbe4d4f44b5a7c0c506ab05fc464fa1658dff6387d",
+                "glibc_max": "none",
+                "glibc_version_dependencies": 0,
+                "exported_entrypoint": "Init_cparse",
+            },
+            "sdbm": {
+                "source_ref": "7b0c143d6dc970b3e5d897e36876be5ec9e15889",
+                "trace_sha256": "793da0cea24ec3662feb30af1ab9471b384486939e0bb0f4cfc87b2e311891b7",
+                "receipts_sha256": "f2afc2048422ac47e683e11ce8baaa2d9dce5ca52949ea422c9f06b17f240f68",
+                "native_receipts": 3,
+                "receipt_tools": {"cc": 2, "shared": 1},
+                "receipt_operations": {"compile": 2, "link": 1},
+                "artifact_sha256": "0b0e22ba5dfbd277e08a589fc305f8edbdd51551c2ffd7aba10a43d87b95ee46",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 2,
+                "exported_entrypoint": "Init_sdbm",
+            },
+            "syslog": {
+                "source_ref": "6d3616575bc81a09182144c17c303e46f4d2ef9f",
+                "trace_sha256": "0c2368da28a74ed3436fa95f46c8142fc457a0847e6f34f490f6e1cc8797267b",
+                "receipts_sha256": "3a48b66413af8969f194122701109208cbdcf96c3d20ba9ff68236c52e241c22",
+                "native_receipts": 9,
+                "receipt_tools": {"cc": 8, "shared": 1},
+                "receipt_operations": {"compile": 2, "link": 7},
+                "artifact_sha256": "e4f7185a8d8a8a012b6cbb77780d7876a49372747f14b20e3d98ce7b00f08cf1",
+                "glibc_max": "2.2.5",
+                "glibc_version_dependencies": 1,
+                "exported_entrypoint": "Init_syslog_ext",
+            },
+        }
+        for name, expected in six_lane_evidence.items():
+            with self.subTest(name=name):
+                source = next(
+                    item for item in lock["sources"] if item["name"] == name
+                )
+                self.assertEqual(source["result_id"], f"{name}-master")
+                self.assertEqual(source["ref_name"], "master")
+                self.assertEqual(source["repository"], f"ruby-zig/{name}")
+                self.assertEqual(source["source_ref"], expected["source_ref"])
+                self.assertEqual(source["adapter_id"], f"repo/{name}")
+                self.assertEqual(
+                    source["build_script"], f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(source["profiles"], ["x86_64-linux-gnu.2.17"])
+                self.assertEqual(source["ruby_version"], "3.2.3")
+                self.assertFalse(source["rust"])
+                self.assertNotIn("profile_overrides", source)
+
+                adapter = json.loads(
+                    (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+                )
+                self.assertEqual(adapter["repository"], f"ruby/{name}")
+                self.assertEqual(adapter["upstream_sha"], expected["source_ref"])
+                self.assertEqual(
+                    adapter["cross_status"],
+                    "pending-target-native-ruby-sdks-and-runtimes",
+                )
+                self.assertEqual(len(adapter["profiles"]), 1)
+                profile = adapter["profiles"][0]
+                self.assertEqual(profile["id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(profile["status"], "run-verified")
+                self.assertEqual(
+                    profile["controller_sha"],
+                    "7be741277cd2f8dacc91116e5d51219593dfe9e8",
+                )
+                for key in (
+                    "trace_sha256",
+                    "receipts_sha256",
+                    "native_receipts",
+                    "receipt_tools",
+                    "receipt_operations",
+                    "artifact_sha256",
+                    "glibc_max",
+                    "glibc_version_dependencies",
+                ):
+                    self.assertEqual(profile[key], expected[key])
+                self.assertEqual(
+                    profile["evidence_archive"],
+                    "ruby-zig-six-adapter-cert-7be7412-evidence.tar.xz",
+                )
+                self.assertEqual(
+                    profile["evidence_sha256"],
+                    "83b42a7d5fc24c86e52c028d4d8cedd95149df6c75b095c4a0205535e8f2cda8",
+                )
+
+                validation = adapter["validation"]
+                self.assertEqual(validation["ruby"], "3.2.3")
+                self.assertEqual(validation["process_audit"], "passed")
+                self.assertEqual(
+                    validation["foreign_compiler_linker_invocations"], 0
+                )
+                self.assertTrue(validation["source_clean_before_build"])
+                self.assertTrue(validation["source_clean_after_build"])
+                self.assertEqual(
+                    validation["exported_entrypoint"],
+                    expected["exported_entrypoint"],
+                )
 
         io_nonblock = json.loads(
             (ROOT / "adapters" / "repo" / "io-nonblock" / "adapter.json").read_text()
