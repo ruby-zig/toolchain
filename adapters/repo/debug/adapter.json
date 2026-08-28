@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/debug",
+  "repository": "ruby/debug",
+  "upstream_sha": "6510cfbc7496c55ebbefa437a25c17ca58f7c5eb",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/debug/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/debug/extconf.rb",
+    "ext/debug/debug.c",
+    "ext/debug/iseq_collector.c",
+    "lib/debug/version.rb"
+  ],
+  "generated_inputs": [
+    "ext/debug/debug_version.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/debug/debug.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-ready-pending-certified-run",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads only the exact staged artifact and verifies debugger frame capture, instruction-sequence helpers, and ObjectSpace instruction-sequence collection"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "pending immutable controller run",
+    "foreign_compiler_linker_invocations": null,
+    "source_clean_before_build": null,
+    "source_clean_after_build": null,
+    "exported_entrypoint": "Init_debug",
+    "exported_init_symbols": [
+      "Init_debug",
+      "Init_iseq_collector"
+    ]
+  },
+  "gaps": [
+    "immutable-controller poison-PATH, trace, receipt, artifact, and process-audit certification is required before fleet admission",
+    "the extension uses MRI-internal APIs and is tied to the target Ruby ABI, so cross profiles require target-native Ruby SDKs and meaningful target runtime tests"
+  ]
+}
