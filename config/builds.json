@@ -501,7 +501,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/etc",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -657,7 +657,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/iconv",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -957,7 +957,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/nkf",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -1965,7 +1965,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/syck",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {

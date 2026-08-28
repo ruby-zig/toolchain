@@ -109,14 +109,14 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The executable lock admits 23 lanes: GNU builds for `bigdecimal`, `cgi`,
-`date`, `digest`, `erb`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`,
-`json`, `pathname`, `racc`, `sdbm`, `stringio`, `strscan`, `syslog`, and all
-four maintained CRuby refs, plus GNU and musl builds for `prism`, with CRuby
-master also admitted for musl. Their source SHAs,
+The executable lock admits 27 lanes: GNU builds for `bigdecimal`, `cgi`,
+`date`, `digest`, `erb`, `etc`, `fcntl`, `iconv`, `io-console`, `io-nonblock`,
+`io-wait`, `json`, `nkf`, `pathname`, `racc`, `sdbm`, `stringio`, `strscan`,
+`syck`, `syslog`, and all four maintained CRuby refs, plus GNU and musl builds
+for `prism`, with CRuby master also admitted for musl. Their source SHAs,
 controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
 are explicit. The full plan still contains all 378 desired lanes, split into
-active shards of 252 and 126; the other 355 lanes remain pending.
+active shards of 252 and 126; the other 351 lanes remain pending.
 
 The io-console lane loads the exact built extension and exercises raw, noecho,
 window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
@@ -129,6 +129,13 @@ ERB cover their native string operations, CGI covers its HTML, form, and URI
 escaping paths, and Racc parses through its C transition engine. Syslog checks
 state and masks without emitting a message, while SDBM proves persistence and
 adjacent advisory-lock exclusion.
+
+The next four GNU lanes keep the same exact-artifact boundary. Etc checks
+account, group, platform, directory, and sysconf behavior; NKF converts and
+detects UTF-8, EUC-JP, and JIS. Syck parses and emits through its isolated Ruby
+layer. Iconv covers streaming, round trips, close semantics, and invalid
+encodings while declaring the GNU platform's glibc iconv implementation as an
+input.
 
 That is the visible coverage workload, not the number of jobs routinely sent
 to runners. Each immutable executable fleet-lock entry binds a repository and

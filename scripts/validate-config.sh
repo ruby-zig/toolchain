@@ -43,5 +43,9 @@ bash adapters/repo/cgi/test-source-contract.sh
 bash adapters/repo/racc/test-source-contract.sh
 bash adapters/repo/syslog/test-source-contract.sh
 bash adapters/repo/sdbm/test-source-contract.sh
+bash adapters/repo/etc/test-source-contract.sh
+bash adapters/repo/iconv/test-source-contract.sh
+bash adapters/repo/nkf/test-source-contract.sh
+bash adapters/repo/syck/test-source-contract.sh
 
 printf 'configuration invariants passed\n'

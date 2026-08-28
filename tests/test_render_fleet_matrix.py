@@ -36,8 +36,8 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
         self.assertEqual(plan.desired_jobs, 378)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 23)
-        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 355)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 27)
+        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 351)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
@@ -94,7 +94,7 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 21)
+        self.assertEqual(len(lock["sources"]), 25)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
@@ -102,12 +102,15 @@ class FleetMatrixTests(unittest.TestCase):
                 "cgi",
                 "date",
                 "digest",
+                "etc",
                 "erb",
                 "fcntl",
+                "iconv",
                 "io-console",
                 "io-nonblock",
                 "io-wait",
                 "json",
+                "nkf",
                 "pathname",
                 "prism",
                 "racc",
@@ -115,6 +118,7 @@ class FleetMatrixTests(unittest.TestCase):
                 "sdbm",
                 "stringio",
                 "strscan",
+                "syck",
                 "syslog",
             },
         )
@@ -125,12 +129,15 @@ class FleetMatrixTests(unittest.TestCase):
                 "cgi": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
                 "digest": ["x86_64-linux-gnu.2.17"],
+                "etc": ["x86_64-linux-gnu.2.17"],
                 "erb": ["x86_64-linux-gnu.2.17"],
                 "fcntl": ["x86_64-linux-gnu.2.17"],
+                "iconv": ["x86_64-linux-gnu.2.17"],
                 "io-console": ["x86_64-linux-gnu.2.17"],
                 "io-nonblock": ["x86_64-linux-gnu.2.17"],
                 "io-wait": ["x86_64-linux-gnu.2.17"],
                 "json": ["x86_64-linux-gnu.2.17"],
+                "nkf": ["x86_64-linux-gnu.2.17"],
                 "pathname": ["x86_64-linux-gnu.2.17"],
                 "prism": [
                     "x86_64-linux-gnu.2.17",
@@ -141,6 +148,7 @@ class FleetMatrixTests(unittest.TestCase):
                 "sdbm": ["x86_64-linux-gnu.2.17"],
                 "stringio": ["x86_64-linux-gnu.2.17"],
                 "strscan": ["x86_64-linux-gnu.2.17"],
+                "syck": ["x86_64-linux-gnu.2.17"],
                 "syslog": ["x86_64-linux-gnu.2.17"],
             },
         )
@@ -463,6 +471,139 @@ class FleetMatrixTests(unittest.TestCase):
 
                 validation = adapter["validation"]
                 self.assertEqual(validation["ruby"], "3.2.3")
+                self.assertEqual(validation["process_audit"], "passed")
+                self.assertEqual(
+                    validation["foreign_compiler_linker_invocations"], 0
+                )
+                self.assertTrue(validation["source_clean_before_build"])
+                self.assertTrue(validation["source_clean_after_build"])
+                self.assertEqual(
+                    validation["exported_entrypoint"],
+                    expected["exported_entrypoint"],
+                )
+
+        next_four_evidence = {
+            "etc": {
+                "source_ref": "9ad32f8c8e199f34ae01e38bd647ab7e30a72406",
+                "controller_sha": "5a6cec7c62723e8d96a7eb41a9fa991bde10fcae",
+                "trace_sha256": "a4b7bcd631aee712c14ae496dd75315c33e0a02986f4be7867544a1ea77373d9",
+                "receipts_sha256": "ef51a410b61777902bf735476473ad6bcd33bc2861d9793fe664f40a3bd13114",
+                "native_receipts": 26,
+                "receipt_tools": {"cc": 25, "shared": 1},
+                "receipt_operations": {"compile": 11, "link": 15},
+                "artifact_sha256": "5cb41577965bb8c129e8d7ee61a76a0d8de72020c1040409e0aaf1d2629fbc0b",
+                "glibc_max": "2.6",
+                "glibc_version_dependencies": 3,
+                "evidence_archive": "ruby-zig-etc-continuous-5a6cec7-9ad32f8-evidence.tar.xz",
+                "evidence_sha256": "7b5e368082027473a55d838ba9ef21376a8d471bf3435e2d06e475fb0c6bba5b",
+                "exported_entrypoint": "Init_etc",
+            },
+            "iconv": {
+                "source_ref": "07cceadf29439d5070b2be62ea644ca01fa7f940",
+                "controller_sha": "34d78376e4b1afc0c68162704ff718508138d1e7",
+                "trace_sha256": "84158019201c62b946425503f310c498c44fb2edb82596ed37eb11815de3208f",
+                "receipts_sha256": "700349189cfb5298fa08ce93d0fc61ad5dd6b83068765c3870f05f4513a6b3d2",
+                "native_receipts": 14,
+                "receipt_tools": {"cc": 13, "shared": 1},
+                "receipt_operations": {"compile": 3, "link": 10, "probe": 1},
+                "artifact_sha256": "e41f24e1e9fbbb3a54075d8fcf550dc5b9dadce79d9084ff552ba84fe84954ab",
+                "glibc_max": "2.2.5",
+                "glibc_version_dependencies": 1,
+                "evidence_archive": "ruby-zig-iconv-x86_64-linux-gnu.2.17-cert-34d7837-evidence.tar.xz",
+                "evidence_sha256": "f832801d5c73f3178396e9cb6d2756a1ae71fb28c1b63ad11a6ceb66450582d4",
+                "exported_entrypoint": "Init_iconv",
+            },
+            "nkf": {
+                "source_ref": "0cbafd2db231e331ac8f10e77ef406c71e3b9fbe",
+                "controller_sha": "5a6cec7c62723e8d96a7eb41a9fa991bde10fcae",
+                "trace_sha256": "bbefb56b90302dd7617bd0dc6e42b8364f3631b2150177f0b924696e2cf9e1fd",
+                "receipts_sha256": "e61afb056b7f5779fe492b49e88898c3afb75a7d80ed391f7e769e8fe69d0550",
+                "native_receipts": 2,
+                "receipt_tools": {"cc": 1, "shared": 1},
+                "receipt_operations": {"compile": 1, "link": 1},
+                "artifact_sha256": "a2bf382ba0dde5d2870fde9b20621255abf77ae3f23c91853c159089fa208ef1",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 2,
+                "evidence_archive": "repo-nkf-continuous-5a6cec7-20260828T023042Z-evidence.tar.xz",
+                "evidence_sha256": "47d929f7d3ed242b694a7dbabfe7e948224ae7ed1718149e118cb494007329a6",
+                "exported_entrypoint": "Init_nkf",
+            },
+            "syck": {
+                "source_ref": "0b76192bc3b8cd5dfe814e1166265ab38d82e41b",
+                "controller_sha": "5a6cec7c62723e8d96a7eb41a9fa991bde10fcae",
+                "trace_sha256": "630df97a902fd45711801155ca26e594ca56f3a6f5f4413701485ae9f50ceebc",
+                "receipts_sha256": "f374d370a412245935fa4875720848584160016985a23671223be75bff962389",
+                "native_receipts": 13,
+                "receipt_tools": {"cc": 12, "shared": 1},
+                "receipt_operations": {"compile": 11, "link": 2},
+                "artifact_sha256": "c4ee6136d11f53b1aa59215b136da204e33f0a7ab47d273a6c5bddf6ca65a1e8",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 3,
+                "evidence_archive": "syck-continuous-cert-5a6cec7-0b76192-evidence.tar.xz",
+                "evidence_sha256": "dd1dc969c75c47f31b29d12a5c14d9611bfab52a2c954b0d475d6dc0764ac388",
+                "exported_entrypoint": "Init_syck",
+            },
+        }
+        for name, expected in next_four_evidence.items():
+            with self.subTest(name=name):
+                source = next(
+                    item for item in lock["sources"] if item["name"] == name
+                )
+                self.assertEqual(source["result_id"], f"{name}-master")
+                self.assertEqual(source["ref_name"], "master")
+                self.assertEqual(source["repository"], f"ruby-zig/{name}")
+                self.assertEqual(source["source_ref"], expected["source_ref"])
+                self.assertEqual(source["adapter_id"], f"repo/{name}")
+                self.assertEqual(
+                    source["build_script"], f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(source["profiles"], ["x86_64-linux-gnu.2.17"])
+                self.assertEqual(source["ruby_version"], "3.2.3")
+                self.assertFalse(source["rust"])
+                self.assertNotIn("profile_overrides", source)
+
+                adapter = json.loads(
+                    (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+                )
+                self.assertEqual(adapter["repository"], f"ruby/{name}")
+                self.assertEqual(adapter["upstream_sha"], expected["source_ref"])
+                self.assertEqual(
+                    adapter["cross_status"],
+                    "pending-target-native-ruby-sdks-and-runtimes",
+                )
+                self.assertEqual(len(adapter["profiles"]), 1)
+                profile = adapter["profiles"][0]
+                self.assertEqual(profile["id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(profile["status"], "run-verified")
+                self.assertEqual(
+                    profile["controller_sha"], expected["controller_sha"]
+                )
+                self.assertEqual(profile["ruby"], "3.2.3")
+                self.assertEqual(profile["zig"], "0.16.0")
+                self.assertEqual(
+                    profile["artifact_format"], "ELF64 x86-64 shared object"
+                )
+                self.assertEqual(profile["glibc_ceiling"], "2.17")
+                for key in (
+                    "trace_sha256",
+                    "receipts_sha256",
+                    "native_receipts",
+                    "receipt_tools",
+                    "receipt_operations",
+                    "artifact_sha256",
+                    "glibc_max",
+                    "glibc_version_dependencies",
+                    "evidence_archive",
+                    "evidence_sha256",
+                ):
+                    self.assertEqual(profile[key], expected[key])
+
+                validation = adapter["validation"]
+                self.assertEqual(
+                    validation["runner"], "atlas-tree Ubuntu 24.04 x86_64"
+                )
+                self.assertEqual(validation["ruby"], "3.2.3")
+                self.assertEqual(validation["zig"], "0.16.0")
                 self.assertEqual(validation["process_audit"], "passed")
                 self.assertEqual(
                     validation["foreign_compiler_linker_invocations"], 0

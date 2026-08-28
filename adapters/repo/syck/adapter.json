@@ -30,23 +30,43 @@
   "profiles": [
     {
       "id": "x86_64-linux-gnu.2.17",
-      "status": "uncertified"
+      "status": "run-verified",
+      "controller_sha": "5a6cec7c62723e8d96a7eb41a9fa991bde10fcae",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "trace_sha256": "630df97a902fd45711801155ca26e594ca56f3a6f5f4413701485ae9f50ceebc",
+      "receipts_sha256": "f374d370a412245935fa4875720848584160016985a23671223be75bff962389",
+      "native_receipts": 13,
+      "receipt_tools": {
+        "cc": 12,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 11,
+        "link": 2
+      },
+      "artifact_sha256": "c4ee6136d11f53b1aa59215b136da204e33f0a7ab47d273a6c5bddf6ca65a1e8",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.14",
+      "glibc_version_dependencies": 3,
+      "evidence_archive": "syck-continuous-cert-5a6cec7-0b76192-evidence.tar.xz",
+      "evidence_sha256": "dd1dc969c75c47f31b29d12a5c14d9611bfab52a2c954b0d475d6dc0764ac388",
+      "test": "loads the exact staged artifact and verifies isolated parse and dump behavior"
     }
   ],
-  "cross_status": "blocked-missing-target-native-ruby-sdks-and-runtimes",
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
   "validation": {
-    "runner": "not-yet-recorded",
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
     "zig": "0.16.0",
     "ruby": "3.2.3",
-    "process_audit": "pending",
-    "poison_path": "pending",
-    "trace_receipt_correlation": "pending",
-    "runtime_test": "pending",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
     "exported_entrypoint": "Init_syck"
   },
   "gaps": [
-    "the GNU profile remains uncertified until a clean poison-PATH run records and correlates the full process trace and Zig wrapper receipts",
-    "the exact staged artifact parse and dump runtime proof has not yet been recorded as durable evidence",
-    "cross profiles remain blocked until target-native Ruby SDKs and meaningful target runtimes are available"
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtimes are available"
   ]
 }

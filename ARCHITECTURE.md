@@ -61,21 +61,26 @@ The maximum coverage envelope is therefore `42 * 9 = 378` lanes. GitHub
 allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
-The plan keeps all 378 lanes visible. It admits only the 23 repository,
+The plan keeps all 378 lanes visible. It admits only the 27 repository,
 branch, and profile combinations with executable certified contracts; every
 other lane remains explicitly pending. The ready set is GNU for `bigdecimal`,
-`cgi`, `date`, `digest`, `erb`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`,
-`json`, `pathname`, `racc`, `sdbm`, `stringio`, `strscan`, `syslog`, and all
-four maintained CRuby refs, plus GNU and musl for `prism`, with CRuby master
-also admitted for musl. The two active shards therefore contain 252 and 126
-desired lanes while only certified entries are sent to runners. io-console's
-executable contract loads the exact staged extension and exercises terminal
-behavior on a pseudoterminal.
+`cgi`, `date`, `digest`, `erb`, `etc`, `fcntl`, `iconv`, `io-console`,
+`io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`, `sdbm`,
+`stringio`, `strscan`, `syck`, `syslog`, and all four maintained CRuby refs,
+plus GNU and musl for `prism`, with CRuby master also admitted for musl. The
+two active shards therefore contain 252 and 126 desired lanes while only
+certified entries are sent to runners. io-console's executable contract loads
+the exact staged extension and exercises terminal behavior on a pseudoterminal.
 
 The pathname, ERB, CGI, Racc, syslog, and SDBM contracts likewise load only
 their staged shared objects. Their runtime proofs cover native string
 operations, escaping, C-backed parsing, daemon-free syslog state, database
 persistence, and adjacent advisory-lock exclusion respectively.
+
+Etc, Iconv, NKF, and Syck also load only their staged shared objects. Their
+runtime proofs cover system-account and platform queries, streaming character
+conversion through the declared GNU platform iconv input, Japanese encoding
+conversion and detection, and isolated parse-and-dump behavior respectively.
 
 Each immutable executable source entry in `config/fleet-lock.json` contains a
 nonempty, duplicate-free subset of certified profile IDs. Selected profiles

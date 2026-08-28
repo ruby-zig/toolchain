@@ -166,6 +166,41 @@ class ContinuousDispatchTests(unittest.TestCase):
                 self.assertEqual(entry["ruby_version"], "3.2.3")
                 self.assertFalse(entry["rust"])
 
+    def test_four_lane_admission_derives_locked_gnu_lanes(self) -> None:
+        candidate = "5" * 40
+        baselines = {
+            "etc": "9ad32f8c8e199f34ae01e38bd647ab7e30a72406",
+            "iconv": "07cceadf29439d5070b2be62ea644ca01fa7f940",
+            "nkf": "0cbafd2db231e331ac8f10e77ef406c71e3b9fbe",
+            "syck": "0b76192bc3b8cd5dfe814e1166265ab38d82e41b",
+        }
+
+        for name, baseline in baselines.items():
+            with self.subTest(name=name):
+                plan = planner.plan_continuous(
+                    ROOT, f"ruby-zig/{name}", "master", candidate
+                )
+
+                self.assertEqual(plan.result_id, f"{name}-master")
+                self.assertEqual(plan.upstream_repository, f"ruby/{name}")
+                self.assertEqual(plan.baseline_sha, baseline)
+                self.assertEqual(plan.adapter_id, f"repo/{name}")
+                self.assertEqual(
+                    plan.build_script, f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(plan.ruby_version, "3.2.3")
+                self.assertFalse(plan.rust)
+                self.assertEqual(plan.ready_jobs, 1)
+
+                self.assertEqual(len(plan.matrix["include"]), 1)
+                entry = plan.matrix["include"][0]
+                self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(entry["repository"], f"ruby-zig/{name}")
+                self.assertEqual(entry["source_ref"], candidate)
+                self.assertEqual(entry["source_ref_name"], "master")
+                self.assertEqual(entry["ruby_version"], "3.2.3")
+                self.assertFalse(entry["rust"])
+
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(
