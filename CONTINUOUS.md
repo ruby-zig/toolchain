@@ -35,8 +35,11 @@ profiles remain uncertified catalog backlog and are absent from these locks.
 ## ziguanite caller
 
 `.github/workflows/ziguanite.yml` is the no-input entry point for the CRuby
-fork. It fixes `source-repository` to `ruby-zig/ziguanite` and derives the
-branch and exact commit from the caller's `github.ref_name` and `github.sha`.
+fork. It fixes `source-repository` to `ruby-zig/ziguanite`, admits only the four
+maintained branch names, and resolves the newest commit shared by that public
+fork branch and its matching `ruby/ruby` branch. This prevents workflow-only
+commits in the fork from becoming Ruby source while retaining an exact,
+publicly verifiable source SHA.
 The source repository therefore cannot supply a compiler, adapter, target,
 runtime, build command, or alternate source identity. The controller commit is
 derived from the workflow file that defines the controller job rather than the
