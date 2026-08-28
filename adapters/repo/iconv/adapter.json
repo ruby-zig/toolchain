@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/iconv",
+  "repository": "ruby/iconv",
+  "upstream_sha": "07cceadf29439d5070b2be62ea644ca01fa7f940",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/iconv/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/iconv.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "certification-pending",
+      "test": "loads the exact artifact and exercises ISO-8859-1 to UTF-8 conversion, streaming conversion, round-trip bytes, close semantics, and invalid-encoding errors"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "pending",
+    "foreign_compiler_linker_invocations": null,
+    "source_clean_before_build": null,
+    "source_clean_after_build": null,
+    "exported_entrypoint": "Init_iconv"
+  },
+  "gaps": [
+    "the GNU adapter implementation still needs an exact poison-PATH trace, receipt correlation, artifact audit, and isolated runtime certification",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available",
+    "the GNU lane treats the glibc iconv implementation as a declared platform input; non-glibc targets need a separately pinned iconv implementation"
+  ]
+}
