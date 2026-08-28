@@ -109,13 +109,13 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The executable lock admits sixteen lanes: GNU builds for `bigdecimal`, `date`,
+The executable lock admits 17 lanes: GNU builds for `bigdecimal`, `date`,
 `digest`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`, `json`, `stringio`,
 `strscan`, and all four maintained CRuby refs, plus GNU and musl builds for
-`prism`. Their source SHAs, controller adapters, selected profile subsets, and
-Ruby 3.2.3 driver runtime are explicit. Narrowing those fifteen executable
-source identities from the full nine-profile pending envelope gives the current
-plan 259 desired lanes, split into active shards of 252 and 7.
+`prism`, with CRuby master also admitted for musl. Their source SHAs,
+controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
+are explicit. The full plan still contains all 378 desired lanes, split into
+active shards of 252 and 126; the other 361 lanes remain pending.
 
 The io-console lane loads the exact built extension and exercises raw, noecho,
 window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
@@ -123,14 +123,13 @@ descriptor flag changes, while io-nonblock verifies nonblocking pipe transfer
 and flag restoration. The io-wait lane loads its exact compiled compatibility
 stub, then exercises the wait behavior built into Ruby.
 
-That is a ceiling, not the routine workload. Each immutable executable
-fleet-lock entry binds a repository and branch result identity, then selects
-the profiles meaningful for its adapter; only those selected lanes are
-runnable. Unselected profiles remain target-catalog backlog coverage; they are
-not rendered as pending lanes. Planned source identities still render their
-full pending envelope, and a selected Rust lane whose target is blocked remains
-visible as pending instead of disappearing. Fixture-only and no-native
-repositories do not consume runner jobs.
+That is the visible coverage workload, not the number of jobs routinely sent
+to runners. Each immutable executable fleet-lock entry binds a repository and
+branch result identity, then selects the profiles certified for its adapter;
+only those selected lanes are runnable. Unselected profiles remain explicit
+pending lanes in the target backlog. A selected Rust lane whose link path is
+not `smoke-verified` also remains visible as pending instead of disappearing.
+Fixture-only and no-native repositories do not consume runner jobs.
 
 The baseline lock remains immutable. Continuous sync must dispatch the exact
 post-sync commit SHA together with an allowlisted repository and tracked branch;

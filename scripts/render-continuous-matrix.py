@@ -167,10 +167,12 @@ def plan_continuous(
         )
     source = executable[0]
 
+    selected_profiles = tuple(source["profiles"])
     lanes = [
         lane
         for lane in fleet.lanes
         if lane.name == tracked["name"] and lane.ref_name == tracked["ref_name"]
+        and lane.profile["id"] in selected_profiles
     ]
     if not lanes:
         raise renderer.PlanError(
@@ -184,7 +186,6 @@ def plan_continuous(
             f"{'; '.join(reasons)}"
         )
 
-    selected_profiles = tuple(source["profiles"])
     actual_profiles = {lane.profile["id"] for lane in lanes}
     if actual_profiles != set(selected_profiles) or len(lanes) != len(selected_profiles):
         raise renderer.PlanError(

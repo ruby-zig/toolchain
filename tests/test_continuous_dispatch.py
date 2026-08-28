@@ -335,6 +335,24 @@ class ContinuousDispatchTests(unittest.TestCase):
                 summary,
             )
 
+            targets["profiles"][1]["rust_link_status"] = "unverified"
+            lock["sources"][0]["profile_overrides"][
+                "x86_64-linux-musl"
+            ]["rust"] = True
+            (root / "config" / "targets.json").write_text(
+                json.dumps(targets), encoding="utf-8"
+            )
+            (root / "config" / "fleet-lock.json").write_text(
+                json.dumps(lock), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                planner.renderer.PlanError,
+                "only smoke-verified profiles may enable Rust",
+            ):
+                planner.plan_continuous(
+                    root, "ruby-zig/native", "master", "c" * 40
+                )
+
     def test_repository_branch_and_sha_are_exactly_allowlisted(self) -> None:
         cases = (
             (

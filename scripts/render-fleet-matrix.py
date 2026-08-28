@@ -484,13 +484,7 @@ def plan_fleet(root: Path) -> FleetPlan:
             result_id = tracked["result_id"] if tracked is not None else name
             ref_name = tracked["ref_name"] if tracked is not None else None
             source = sources.get((name, ref_name)) if ref_name is not None else None
-            if source is None:
-                desired_profiles = matrix_profiles
-            else:
-                selected = set(source["profiles"])
-                desired_profiles = [
-                    profile for profile in matrix_profiles if profile["id"] in selected
-                ]
+            selected_profiles = set(source["profiles"]) if source is not None else set()
 
             if adapter_status == "ready" and source is not None:
                 ready, reason = True, None
@@ -505,23 +499,31 @@ def plan_fleet(root: Path) -> FleetPlan:
             if source is not None and adapter_status != "ready":
                 reason = f"{reason}; source lock is present before adapter is ready"
 
-            for profile in desired_profiles:
+            for profile in matrix_profiles:
                 lane_ready = ready
                 lane_reason = reason
                 contract = (
                     profile_contract(source, profile["id"])
-                    if source is not None
+                    if source is not None and profile["id"] in selected_profiles
                     else None
                 )
+                if lane_ready and contract is None:
+                    lane_ready = False
+                    lane_reason = (
+                        f"target profile {profile['id']} is not yet certified "
+                        "for this adapter"
+                    )
                 if (
                     lane_ready
                     and contract is not None
                     and contract["rust"]
-                    and profile["rust_link_status"] == "blocked"
+                    and profile["rust_link_status"] != "smoke-verified"
                 ):
                     lane_ready = False
                     lane_reason = (
-                        f"Rust final linking is blocked for profile {profile['id']}"
+                        f"Rust final linking status for profile {profile['id']} is "
+                        f"{profile['rust_link_status']}; only smoke-verified "
+                        "profiles may enable Rust"
                     )
                 lanes.append(
                     Lane(
@@ -614,8 +616,9 @@ def shard_summary(plan: FleetPlan, shard: int) -> tuple[str, dict[str, str]]:
             f"Current plan: {plan.fleet_repositories} affected native repositories "
             f"and {plan.source_identities} source identities from a "
             f"{plan.discovery_repositories}-repository discovery inventory. "
-            f"Adapters currently request {plan.desired_jobs} of at most "
-            f"{plan.maximum_jobs} target lanes in {plan.active_shards} active shards. "
+            f"The plan tracks all {plan.desired_jobs} target lanes in the "
+            f"{plan.maximum_jobs}-lane coverage envelope across "
+            f"{plan.active_shards} active shards. "
             "Pure-host and fixture-only repositories do not create build lanes."
         ),
     ]

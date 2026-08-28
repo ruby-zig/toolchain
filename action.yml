@@ -91,9 +91,9 @@ runs:
           exit 65
         }
         rust_status="$(jq -r .rust_link_status <<<"$profile_json")"
-        if [[ "$RZ_RUST_INPUT" == true && "$rust_status" == blocked ]]; then
-          blocker="$(jq -r '.rust_link_blocker // "not recorded"' <<<"$profile_json")"
-          printf 'Rust final linking is blocked for profile %s: %s\n' "$RZ_PROFILE_INPUT" "$blocker" >&2
+        if [[ "$RZ_RUST_INPUT" == true && "$rust_status" != smoke-verified ]]; then
+          printf 'Rust final linking status for profile %s is %s; only smoke-verified profiles may enable Rust\n' \
+            "$RZ_PROFILE_INPUT" "$rust_status" >&2
           exit 78
         fi
 

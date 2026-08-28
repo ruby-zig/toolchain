@@ -35,13 +35,13 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.fleet_repositories, 39)
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 260)
+        self.assertEqual(plan.desired_jobs, 378)
         self.assertEqual(sum(lane.ready for lane in plan.lanes), 17)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 8],
+            [252, 126],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -49,7 +49,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 5)
+        self.assertEqual(len(ruby_lanes), 36)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -70,7 +70,7 @@ class FleetMatrixTests(unittest.TestCase):
                 )
                 for ref_name in CRUBY_REFS
             },
-            {"master": 2, "ruby_4_0": 1, "ruby_3_4": 1, "ruby_3_3": 1},
+            {"master": 9, "ruby_4_0": 9, "ruby_3_4": 9, "ruby_3_3": 9},
         )
         ready_ruby = [lane for lane in ruby_lanes if lane.ready]
         self.assertEqual(len(ready_ruby), 5)
@@ -702,20 +702,23 @@ class FleetMatrixTests(unittest.TestCase):
             self.assertEqual(plan.fleet_repositories, 2)
             self.assertEqual(plan.source_identities, 2)
             self.assertEqual(plan.maximum_jobs, 6)
-            self.assertEqual(plan.desired_jobs, 3)
+            self.assertEqual(plan.desired_jobs, 6)
             self.assertEqual(
                 [(lane.result_id, lane.profile["id"]) for lane in plan.lanes],
                 [
                     ("native-master", "x86_64-linux-gnu.2.17"),
+                    ("native-master", "x86_64-linux-musl"),
                     ("native-master", "aarch64-linux-musl"),
+                    ("spec-master", "x86_64-linux-gnu.2.17"),
                     ("spec-master", "x86_64-linux-musl"),
+                    ("spec-master", "aarch64-linux-musl"),
                 ],
             )
 
             _, outputs = renderer.shard_summary(plan, 1)
             matrix = json.loads(outputs["matrix"])["include"]
             self.assertEqual(outputs["ready_jobs"], "2")
-            self.assertEqual(outputs["pending_jobs"], "1")
+            self.assertEqual(outputs["pending_jobs"], "4")
             self.assertEqual(
                 {(entry["result_id"], entry["profile_id"]) for entry in matrix},
                 {
@@ -732,6 +735,33 @@ class FleetMatrixTests(unittest.TestCase):
             self.assertEqual(spec["ruby_version"], "3.2.3")
             self.assertFalse(spec["rust"])
             self.assertNotIn("ruby-zig/pure", {entry["repository"] for entry in matrix})
+
+    def test_unverified_rust_profile_stays_pending(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = self._write_fixture(root)
+            source = lock["sources"][0]
+            source["profiles"] = ["x86_64-linux-musl"]
+            (root / "config" / "fleet-lock.json").write_text(
+                json.dumps(lock), encoding="utf-8"
+            )
+
+            plan = renderer.plan_fleet(root)
+            lane = next(
+                lane
+                for lane in plan.lanes
+                if lane.result_id == "native-master"
+                and lane.profile["id"] == "x86_64-linux-musl"
+            )
+            self.assertFalse(lane.ready)
+            self.assertIn("only smoke-verified profiles may enable Rust", lane.reason)
+
+            _, outputs = renderer.shard_summary(plan, 1)
+            matrix = json.loads(outputs["matrix"])["include"]
+            self.assertNotIn(
+                ("native-master", "x86_64-linux-musl"),
+                {(entry["result_id"], entry["profile_id"]) for entry in matrix},
+            )
 
     def test_cruby_branches_can_have_distinct_executable_results(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -790,6 +820,9 @@ class FleetMatrixTests(unittest.TestCase):
                 ref_name="ruby_4_0",
                 source_ref="c" * 40,
                 profiles=["x86_64-linux-musl"],
+                profile_overrides={
+                    "x86_64-linux-musl": {"rust": False}
+                },
             )
             lock["sources"] = [master, release, lock["sources"][1]]
             (root / "config" / "fleet-lock.json").write_text(
@@ -799,7 +832,7 @@ class FleetMatrixTests(unittest.TestCase):
             plan = renderer.plan_fleet(root)
             self.assertEqual(plan.source_identities, 5)
             self.assertEqual(plan.maximum_jobs, 15)
-            self.assertEqual(plan.desired_jobs, 10)
+            self.assertEqual(plan.desired_jobs, 15)
             _, outputs = renderer.shard_summary(plan, 1)
             matrix = json.loads(outputs["matrix"])["include"]
             self.assertEqual(

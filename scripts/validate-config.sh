@@ -27,6 +27,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 bash tests/test_validate_ref_name.sh
 bash tests/test_verify_continuous_source.sh
 bash tests/test_build_provenance.sh
+bash tests/test_rust_profile_gate.sh
 bash adapters/repo/ruby/test-source-contract.sh
 bash adapters/repo/date/test-source-contract.sh
 bash tests/test_stringio_source_contract.sh
@@ -36,5 +37,11 @@ bash adapters/repo/digest/test-source-contract.sh
 bash adapters/repo/fcntl/test-source-contract.sh
 bash adapters/repo/io-nonblock/test-source-contract.sh
 bash adapters/repo/io-wait/test-source-contract.sh
+bash adapters/repo/pathname/test-source-contract.sh
+bash adapters/repo/erb/test-source-contract.sh
+bash adapters/repo/cgi/test-source-contract.sh
+bash adapters/repo/racc/test-source-contract.sh
+bash adapters/repo/syslog/test-source-contract.sh
+bash adapters/repo/sdbm/test-source-contract.sh
 
 printf 'configuration invariants passed\n'

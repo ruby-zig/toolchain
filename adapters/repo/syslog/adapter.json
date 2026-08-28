@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/syslog",
+  "repository": "ruby/syslog",
+  "upstream_sha": "6d3616575bc81a09182144c17c303e46f4d2ef9f",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/syslog/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/syslog_ext.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "adapter-implemented-pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact and exercises syslog state, masks, delayed open, and close without emitting a message or requiring a logging daemon"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "required_runner": "Linux x86_64 with strace",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "required-strace-receipt-correlated",
+    "source_clean_before_build": true,
+    "source_sha_must_match_dispatch": true,
+    "exported_entrypoint": "Init_syslog_ext"
+  },
+  "gaps": [
+    "a certified runner must replace the implementation-ready status with immutable trace, receipt, artifact, and evidence hashes",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/racc",
+  "repository": "ruby/racc",
+  "upstream_sha": "4d858d91239b5c26b0308d362a9e96d43190674a",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/racc/cparse/extconf.rb"
+  ],
+  "source_relative_dependencies": [
+    "lib/racc/info.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/racc/cparse.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-ready-pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "generates and executes the repository's calculator grammar with the exact native cparse artifact"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "ruby": "3.2.3",
+    "process_audit": "required-poison-path-strace-receipt-correlation",
+    "source_clean_before_build": true,
+    "tracked_source_unchanged_after_build": true,
+    "exported_entrypoint": "Init_cparse",
+    "provenance": "controller-recorded-before-certified-run",
+    "extconf_dependency": "source-relative lib/racc/info.rb"
+  },
+  "gaps": [
+    "an immutable controller commit and certified run must supply trace, receipt, artifact, and evidence SHA-256 values",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

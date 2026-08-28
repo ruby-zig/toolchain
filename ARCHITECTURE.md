@@ -61,19 +61,22 @@ The maximum coverage envelope is therefore `42 * 9 = 378` lanes. GitHub
 allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
-The number is a ceiling, not a reason to run every possible lane. The
-executable lock contains thirteen lanes: GNU for `bigdecimal`, `date`,
-`digest`, `io-console`, `json`, `stringio`, `strscan`, and all four maintained
-CRuby refs, plus GNU and musl for `prism`. Those twelve executable source
-identities make the current desired workload 283 lanes across active shards of
-252 and 31. io-console's executable contract loads the exact staged extension and
-exercises terminal behavior on a pseudoterminal. Each immutable executable
-source entry in `config/fleet-lock.json` contains a
-nonempty, duplicate-free subset of declared profile IDs. The renderer emits
-only that subset. Unselected profiles remain target-catalog backlog coverage;
-planned source identities still render their full pending envelope. A selected
-Rust profile whose link status is blocked remains pending so an unsupported
-target cannot silently look green.
+The plan keeps all 378 lanes visible. It admits only the 17 repository,
+branch, and profile combinations with executable certified contracts; every
+other lane remains explicitly pending. The ready set is GNU for `bigdecimal`,
+`date`, `digest`, `fcntl`, `io-console`, `io-nonblock`, `io-wait`, `json`,
+`stringio`, `strscan`, and all four maintained CRuby refs, plus GNU and musl
+for `prism`, with CRuby master also admitted for musl. The two active shards
+therefore contain 252 and 126 desired lanes while only certified entries are
+sent to runners. io-console's executable contract loads the exact staged
+extension and exercises terminal behavior on a pseudoterminal.
+
+Each immutable executable source entry in `config/fleet-lock.json` contains a
+nonempty, duplicate-free subset of certified profile IDs. Selected profiles
+may run; unselected profiles stay in the same fleet as pending target backlog
+instead of disappearing from the workload. A selected Rust profile whose link
+status is not `smoke-verified` also remains pending so an unsupported target
+cannot silently look green.
 
 Each executable source keeps source-level `build_script` and `rust` defaults.
 When one selected target needs a different certified contract, an optional

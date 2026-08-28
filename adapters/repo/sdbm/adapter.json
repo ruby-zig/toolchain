@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/sdbm",
+  "repository": "ruby/sdbm",
+  "upstream_sha": "7b0c143d6dc970b3e5d897e36876be5ec9e15889",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/sdbm/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/sdbm/_sdbm.c",
+    "ext/sdbm/init.c",
+    "ext/sdbm/sdbm.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/sdbm.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "adapter-implemented-pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact, persists a temporary database round trip, and verifies an adjacent advisory lock excludes a competing process"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "required_runner": "Linux x86_64 with strace",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "required-strace-receipt-correlated",
+    "source_clean_before_build": true,
+    "source_sha_must_match_dispatch": true,
+    "exported_entrypoint": "Init_sdbm"
+  },
+  "gaps": [
+    "SDBM has no built-in process lock, so the runtime proof uses an explicit adjacent advisory lock around database access",
+    "a certified runner must replace the implementation-ready status with immutable trace, receipt, artifact, and evidence hashes",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

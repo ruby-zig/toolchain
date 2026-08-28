@@ -71,9 +71,9 @@ export "CC_${cc_key}" "CXX_${cc_key}" "AR_${cc_key}"
 
 case "${RZ_ENABLE_RUST:-false}" in
   1|true)
-    if [[ "$RZ_RUST_LINK_STATUS" == blocked ]]; then
-      printf 'Rust final linking is blocked for profile %s: %s\n' \
-        "$profile" "$RZ_RUST_LINK_BLOCKER" >&2
+    if [[ "$RZ_RUST_LINK_STATUS" != smoke-verified ]]; then
+      printf 'Rust final linking status for profile %s is %s; only smoke-verified profiles may enable Rust\n' \
+        "$profile" "$RZ_RUST_LINK_STATUS" >&2
       return 78 2>/dev/null || exit 78
     fi
     expected_rust="$(jq -r .toolchain "$root/config/rust.json")"

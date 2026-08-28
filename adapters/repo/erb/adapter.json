@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/erb",
+  "repository": "ruby/erb",
+  "upstream_sha": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/erb/escape/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/erb/escape.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact and verifies native HTML escaping, conversion, identity, and encoding behavior"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "certification_runner": "scripts/run-certified.sh",
+    "provenance_writer": "scripts/write-build-provenance.sh",
+    "process_audit": "required-poison-path-strace",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_escape"
+  },
+  "gaps": [
+    "a certified run must record controller, trace, receipt, and artifact SHA256 values before admission",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

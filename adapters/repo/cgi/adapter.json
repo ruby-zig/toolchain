@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/cgi",
+  "repository": "ruby/cgi",
+  "upstream_sha": "7f08c896d3fb726584e50172ebe8ddb6f3379b75",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/cgi/escape/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/cgi/escape.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-ready-pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact and verifies CGI HTML, form, and URI-component escaping"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "ruby": "3.2.3",
+    "process_audit": "required-poison-path-strace-receipt-correlation",
+    "source_clean_before_build": true,
+    "tracked_source_unchanged_after_build": true,
+    "exported_entrypoint": "Init_escape",
+    "provenance": "controller-recorded-before-certified-run"
+  },
+  "gaps": [
+    "an immutable controller commit and certified run must supply trace, receipt, artifact, and evidence SHA-256 values",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}
