@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/fiddle",
+  "repository": "ruby/fiddle",
+  "upstream_sha": "195c8d133bb8e225f27ba54f1bc476b8d488e217",
+  "build_system": "ruby-mkmf-make-with-bundled-static-libffi",
+  "entrypoints": [
+    "ext/fiddle/extconf.rb"
+  ],
+  "native_scope": "project-extension-and-static-dependency",
+  "source_inputs": [
+    "ext/fiddle/extconf.rb",
+    "ext/fiddle/closure.c",
+    "ext/fiddle/closure.h",
+    "ext/fiddle/conversions.c",
+    "ext/fiddle/conversions.h",
+    "ext/fiddle/fiddle.c",
+    "ext/fiddle/fiddle.h",
+    "ext/fiddle/function.c",
+    "ext/fiddle/function.h",
+    "ext/fiddle/handle.c",
+    "ext/fiddle/memory_view.c",
+    "ext/fiddle/pinned.c",
+    "ext/fiddle/pointer.c",
+    "ext/fiddle/depend",
+    "lib/fiddle.rb",
+    "lib/fiddle/closure.rb",
+    "lib/fiddle/function.rb",
+    "lib/fiddle/version.rb"
+  ],
+  "dependencies": [
+    {
+      "name": "libffi",
+      "version": "3.4.6",
+      "source": "libffi.json",
+      "linkage": "static",
+      "build": "source-through-controller-zig-wrappers"
+    }
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/fiddle.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "adapter-implemented-pending-certification",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "glibc_ceiling": "2.17",
+      "test": "loads only the exact staged artifact, calls libc strlen through Fiddle, and executes and frees a libffi closure callback"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdk-and-runtime",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "required-from-an-immutable-controller-commit",
+    "source_clean_before_build": "required",
+    "source_clean_after_build": "required",
+    "exported_entrypoint": "Init_fiddle",
+    "dynamic_libffi_dependency": "forbidden"
+  },
+  "gaps": [
+    "immutable-controller certification evidence and hashes are pending",
+    "cross profiles require matching target-native Ruby SDKs and runtimes"
+  ]
+}
