@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/nkf",
+  "repository": "ruby/nkf",
+  "upstream_sha": "0cbafd2db231e331ac8f10e77ef406c71e3b9fbe",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/nkf/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/nkf/nkf.c",
+    "ext/nkf/nkf-utf8/config.h",
+    "ext/nkf/nkf-utf8/nkf.c",
+    "ext/nkf/nkf-utf8/nkf.h",
+    "ext/nkf/nkf-utf8/utf8tbl.c",
+    "ext/nkf/nkf-utf8/utf8tbl.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/nkf.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-ready-pending-certified-run",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads the exact artifact and verifies UTF-8, EUC-JP, and JIS conversion and detection"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "ruby": "3.2.3",
+    "process_audit": "required-poison-path-strace-receipt-correlation",
+    "source_clean_before_build": true,
+    "tracked_source_unchanged_after_build": true,
+    "exported_entrypoint": "Init_nkf",
+    "provenance": "controller-recorded-before-certified-run"
+  },
+  "gaps": [
+    "an immutable controller commit and certified run must supply trace, receipt, artifact, and evidence SHA-256 values",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

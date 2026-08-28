@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/etc",
+  "repository": "ruby/etc",
+  "upstream_sha": "9ad32f8c8e199f34ae01e38bd647ab7e30a72406",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/etc/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/etc/extconf.rb",
+    "ext/etc/etc.c",
+    "ext/etc/mkconstants.rb"
+  ],
+  "generated_inputs": [
+    "ext/etc/constdefs.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/etc.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "adapter-implemented-pending-certification",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "test": "loads only the exact staged artifact and verifies account, group, uname, processor, directory, and sysconf behavior"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "pending immutable traced run",
+    "process_audit": "required-strace-receipt-correlated",
+    "foreign_compiler_linker_invocations": null,
+    "source_clean_before_build": "required",
+    "source_clean_after_build": "required",
+    "exported_entrypoint": "Init_etc"
+  },
+  "gaps": [
+    "an immutable controller run must record the process trace, wrapper receipts, artifact hash, and runtime evidence before certification",
+    "fleet admission remains planned until config/builds.json is updated in a separately authorized change",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

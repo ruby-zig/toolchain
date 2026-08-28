@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/syck",
+  "repository": "ruby/syck",
+  "upstream_sha": "0b76192bc3b8cd5dfe814e1166265ab38d82e41b",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/syck/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/syck/bytecode.c",
+    "ext/syck/emitter.c",
+    "ext/syck/extconf.h",
+    "ext/syck/gram.c",
+    "ext/syck/gram.h",
+    "ext/syck/handler.c",
+    "ext/syck/implicit.c",
+    "ext/syck/node.c",
+    "ext/syck/rubyext.c",
+    "ext/syck/syck.c",
+    "ext/syck/syck.h",
+    "ext/syck/token.c",
+    "ext/syck/yaml2byte.c",
+    "ext/syck/yamlbyte.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/syck.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "uncertified"
+    }
+  ],
+  "cross_status": "blocked-missing-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "not-yet-recorded",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "pending",
+    "poison_path": "pending",
+    "trace_receipt_correlation": "pending",
+    "runtime_test": "pending",
+    "exported_entrypoint": "Init_syck"
+  },
+  "gaps": [
+    "the GNU profile remains uncertified until a clean poison-PATH run records and correlates the full process trace and Zig wrapper receipts",
+    "the exact staged artifact parse and dump runtime proof has not yet been recorded as durable evidence",
+    "cross profiles remain blocked until target-native Ruby SDKs and meaningful target runtimes are available"
+  ]
+}
