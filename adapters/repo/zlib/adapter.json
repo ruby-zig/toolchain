@@ -33,10 +33,29 @@
   "profiles": [
     {
       "id": "x86_64-linux-gnu.2.17",
-      "status": "implementation-verified-pending-immutable-controller-certification",
+      "status": "run-verified",
+      "controller_sha": "8f9d9ae4ee53b8511b11ab279cced47736ae3f17",
       "ruby": "3.2.3",
       "zig": "0.16.0",
+      "trace_sha256": "8bdf1925291b0af9c7e6726e79d78e14583bf3f7869a5515deb27cf80f07418c",
+      "receipts_sha256": "c18b43e1cea1a1d649c0e3bc763bf539c49aaf89422f6c77fac53f9e96535b79",
+      "native_receipts": 11,
+      "receipt_tools": {
+        "cc": 10,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 3,
+        "probe": 1,
+        "link": 7
+      },
+      "artifact_sha256": "9cad13ff186a98833baa0f02297b39111312cef3671a4dab730b3c512ab37c29",
+      "artifact_format": "ELF64 x86-64 shared object",
       "glibc_ceiling": "2.17",
+      "glibc_max": "2.14",
+      "glibc_version_dependencies": 2,
+      "evidence_archive": "ruby-zig-zlib-cert-8f9d9ae-c87e5ed-evidence.tar.xz",
+      "evidence_sha256": "ce94d26b5efca67efead0a44b4ec3fb431eef01f0eddc660e7b4422c2b30b84d",
       "test": "loads only the exact staged artifact and verifies deflate, inflate, CRC combination, gzip metadata and round trip, and corrupt-input rejection"
     }
   ],
@@ -45,13 +64,13 @@
     "runner": "atlas-tree Ubuntu 24.04 x86_64",
     "zig": "0.16.0",
     "ruby": "3.2.3",
-    "process_audit": "required-from-an-immutable-controller-commit",
-    "source_clean_before_build": "required",
-    "source_clean_after_build": "required",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
     "exported_entrypoint": "Init_zlib"
   },
   "gaps": [
-    "immutable-controller certification evidence and hashes are pending",
     "cross profiles require matching target-native Ruby SDKs, runtimes, and a pinned target zlib instead of the GNU runner platform library"
   ]
 }

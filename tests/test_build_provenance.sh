@@ -76,6 +76,10 @@ jq -e \
    and .adapter.id == "repo/bigdecimal"
    and (.adapter.manifest_sha256 | test("^[0-9a-f]{64}$"))
    and (.adapter.build_script_sha256 | test("^[0-9a-f]{64}$"))
+   and .adapter.dependencies.schema == 1
+   and .adapter.dependencies.build_script == "adapters/repo/bigdecimal/build.sh"
+   and .adapter.dependencies.dependencies == []
+   and .adapter.dependencies_record_sha256 == null
    and .profile.id == "x86_64-linux-gnu.2.17"
    and .tools.zig.actual_version == "0.16.0-test"
    and .tools.ruby.declared_version == "3.2.3"

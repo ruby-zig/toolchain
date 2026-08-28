@@ -309,7 +309,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/debug",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -525,7 +525,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/fiddle",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     },
     {
@@ -2325,7 +2325,7 @@
       "upstream_is_fork": false,
       "classification": "direct-native",
       "adapter_id": "repo/zlib",
-      "adapter_status": "planned",
+      "adapter_status": "ready",
       "profile_policy": "zig-build-only"
     }
   ]

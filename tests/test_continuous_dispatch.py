@@ -201,6 +201,39 @@ class ContinuousDispatchTests(unittest.TestCase):
                 self.assertEqual(entry["ruby_version"], "3.2.3")
                 self.assertFalse(entry["rust"])
 
+    def test_debug_fiddle_and_zlib_admission_derives_locked_gnu_lanes(self) -> None:
+        candidate = "6" * 40
+        baselines = {
+            "debug": "6510cfbc7496c55ebbefa437a25c17ca58f7c5eb",
+            "fiddle": "195c8d133bb8e225f27ba54f1bc476b8d488e217",
+            "zlib": "c87e5ed1403144010b00ff1787e860e5d084511b",
+        }
+
+        for name, baseline in baselines.items():
+            with self.subTest(name=name):
+                plan = planner.plan_continuous(
+                    ROOT, f"ruby-zig/{name}", "master", candidate
+                )
+                self.assertEqual(plan.result_id, f"{name}-master")
+                self.assertEqual(plan.upstream_repository, f"ruby/{name}")
+                self.assertEqual(plan.baseline_sha, baseline)
+                self.assertEqual(plan.adapter_id, f"repo/{name}")
+                self.assertEqual(
+                    plan.build_script, f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(plan.ruby_version, "3.2.3")
+                self.assertFalse(plan.rust)
+                self.assertEqual(plan.ready_jobs, 1)
+
+                self.assertEqual(len(plan.matrix["include"]), 1)
+                entry = plan.matrix["include"][0]
+                self.assertEqual(entry["profile_id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(entry["repository"], f"ruby-zig/{name}")
+                self.assertEqual(entry["source_ref"], candidate)
+                self.assertEqual(entry["source_ref_name"], "master")
+                self.assertEqual(entry["ruby_version"], "3.2.3")
+                self.assertFalse(entry["rust"])
+
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(

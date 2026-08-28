@@ -36,8 +36,8 @@ class FleetMatrixTests(unittest.TestCase):
         self.assertEqual(plan.source_identities, 42)
         self.assertEqual(plan.maximum_jobs, 378)
         self.assertEqual(plan.desired_jobs, 378)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 27)
-        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 351)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 30)
+        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 348)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
@@ -94,17 +94,19 @@ class FleetMatrixTests(unittest.TestCase):
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
         self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 25)
+        self.assertEqual(len(lock["sources"]), 28)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
                 "bigdecimal",
                 "cgi",
                 "date",
+                "debug",
                 "digest",
                 "etc",
                 "erb",
                 "fcntl",
+                "fiddle",
                 "iconv",
                 "io-console",
                 "io-nonblock",
@@ -120,6 +122,7 @@ class FleetMatrixTests(unittest.TestCase):
                 "strscan",
                 "syck",
                 "syslog",
+                "zlib",
             },
         )
         self.assertEqual(
@@ -128,10 +131,12 @@ class FleetMatrixTests(unittest.TestCase):
                 "bigdecimal": ["x86_64-linux-gnu.2.17"],
                 "cgi": ["x86_64-linux-gnu.2.17"],
                 "date": ["x86_64-linux-gnu.2.17"],
+                "debug": ["x86_64-linux-gnu.2.17"],
                 "digest": ["x86_64-linux-gnu.2.17"],
                 "etc": ["x86_64-linux-gnu.2.17"],
                 "erb": ["x86_64-linux-gnu.2.17"],
                 "fcntl": ["x86_64-linux-gnu.2.17"],
+                "fiddle": ["x86_64-linux-gnu.2.17"],
                 "iconv": ["x86_64-linux-gnu.2.17"],
                 "io-console": ["x86_64-linux-gnu.2.17"],
                 "io-nonblock": ["x86_64-linux-gnu.2.17"],
@@ -150,6 +155,7 @@ class FleetMatrixTests(unittest.TestCase):
                 "strscan": ["x86_64-linux-gnu.2.17"],
                 "syck": ["x86_64-linux-gnu.2.17"],
                 "syslog": ["x86_64-linux-gnu.2.17"],
+                "zlib": ["x86_64-linux-gnu.2.17"],
             },
         )
         self.assertTrue(
@@ -614,6 +620,157 @@ class FleetMatrixTests(unittest.TestCase):
                     validation["exported_entrypoint"],
                     expected["exported_entrypoint"],
                 )
+
+        latest_three_evidence = {
+            "debug": {
+                "source_ref": "6510cfbc7496c55ebbefa437a25c17ca58f7c5eb",
+                "controller_sha": "2b13a11b59dd0904af457df9d78929f85858a676",
+                "trace_sha256": "86b93d47b64ddc489c559693f156e7db64ef6330a39d9c2bed9cdd7882574a0e",
+                "receipts_sha256": "67fd9abb1cc19189fa2ff658eb6120e7234a4e6b3c7faf66c5fc2d31f1ece8d7",
+                "native_receipts": 3,
+                "receipt_tools": {"cc": 2, "shared": 1},
+                "receipt_operations": {"compile": 2, "link": 1},
+                "artifact_sha256": "c3e8791abc89c9b6dae6fb5e36f5aac15de1c30d3984dd7106550abd97dcbbab",
+                "glibc_max": "2.2.5",
+                "glibc_version_dependencies": 1,
+                "evidence_archive": "debug-cert-2b13a11-6510cfb-evidence.tar.xz",
+                "evidence_sha256": "8534e329c665c75d725bbb38bd04ef5f3203d59a9bd08b6d4e08159259eabcdd",
+                "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+                "exported_entrypoint": "Init_debug",
+                "exported_init_symbols": [
+                    "Init_debug",
+                    "Init_iseq_collector",
+                ],
+            },
+            "fiddle": {
+                "source_ref": "195c8d133bb8e225f27ba54f1bc476b8d488e217",
+                "controller_sha": "0bf93516c357c391725744a7d615f577c597e6be",
+                "trace_sha256": "598cfae49fc83f424a6d753cf398d8cab4dd353388c6221547ac39ad85b149da",
+                "receipts_sha256": "7dbcbc6230aa2d415171a352ece126f1fe989858eecc9a95fa91d9a34c09df98",
+                "native_receipts": 143,
+                "receipt_tools": {
+                    "cc": 115,
+                    "cxx": 21,
+                    "ar": 4,
+                    "ranlib": 2,
+                    "shared": 1,
+                },
+                "receipt_operations": {
+                    "probe": 26,
+                    "compile": 78,
+                    "link": 33,
+                    "archive": 6,
+                },
+                "artifact_sha256": "9a6e593d42fc6260052bacd0a4a6f608514a11c9ebb278490e3da22f233bdb1c",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 4,
+                "evidence_archive": "ruby-zig-fiddle-0bf9351-195c8d1-evidence.tar.xz",
+                "evidence_sha256": "c726140d77a42944ed3053051cf680483ee6bed51b710e2990558eff780c255c",
+                "cross_status": "pending-target-native-ruby-sdk-and-runtime",
+                "exported_entrypoint": "Init_fiddle",
+                "exported_init_symbols": [
+                    "Init_fiddle",
+                    "Init_fiddle_closure",
+                    "Init_fiddle_function",
+                    "Init_fiddle_handle",
+                    "Init_fiddle_memory_view",
+                    "Init_fiddle_pinned",
+                    "Init_fiddle_pointer",
+                ],
+                "libffi_static_sha256": "a5f1b229c76e91648175fafb482bed0da1a0de4412355efc7a264775ee6aa5cd",
+            },
+            "zlib": {
+                "source_ref": "c87e5ed1403144010b00ff1787e860e5d084511b",
+                "controller_sha": "8f9d9ae4ee53b8511b11ab279cced47736ae3f17",
+                "trace_sha256": "8bdf1925291b0af9c7e6726e79d78e14583bf3f7869a5515deb27cf80f07418c",
+                "receipts_sha256": "c18b43e1cea1a1d649c0e3bc763bf539c49aaf89422f6c77fac53f9e96535b79",
+                "native_receipts": 11,
+                "receipt_tools": {"cc": 10, "shared": 1},
+                "receipt_operations": {"compile": 3, "probe": 1, "link": 7},
+                "artifact_sha256": "9cad13ff186a98833baa0f02297b39111312cef3671a4dab730b3c512ab37c29",
+                "glibc_max": "2.14",
+                "glibc_version_dependencies": 2,
+                "evidence_archive": "ruby-zig-zlib-cert-8f9d9ae-c87e5ed-evidence.tar.xz",
+                "evidence_sha256": "ce94d26b5efca67efead0a44b4ec3fb431eef01f0eddc660e7b4422c2b30b84d",
+                "cross_status": "pending-target-native-ruby-sdk-runtime-and-zlib",
+                "exported_entrypoint": "Init_zlib",
+            },
+        }
+        for name, expected in latest_three_evidence.items():
+            with self.subTest(name=name):
+                source = next(
+                    item for item in lock["sources"] if item["name"] == name
+                )
+                self.assertEqual(source["result_id"], f"{name}-master")
+                self.assertEqual(source["ref_name"], "master")
+                self.assertEqual(source["repository"], f"ruby-zig/{name}")
+                self.assertEqual(source["source_ref"], expected["source_ref"])
+                self.assertEqual(source["adapter_id"], f"repo/{name}")
+                self.assertEqual(
+                    source["build_script"], f"adapters/repo/{name}/build.sh"
+                )
+                self.assertEqual(source["profiles"], ["x86_64-linux-gnu.2.17"])
+                self.assertEqual(source["ruby_version"], "3.2.3")
+                self.assertFalse(source["rust"])
+
+                adapter = json.loads(
+                    (ROOT / "adapters" / "repo" / name / "adapter.json").read_text()
+                )
+                self.assertEqual(adapter["repository"], f"ruby/{name}")
+                self.assertEqual(adapter["upstream_sha"], expected["source_ref"])
+                self.assertEqual(adapter["cross_status"], expected["cross_status"])
+                profile = adapter["profiles"][0]
+                self.assertEqual(profile["id"], "x86_64-linux-gnu.2.17")
+                self.assertEqual(profile["status"], "run-verified")
+                self.assertEqual(profile["controller_sha"], expected["controller_sha"])
+                self.assertEqual(profile["ruby"], "3.2.3")
+                self.assertEqual(profile["zig"], "0.16.0")
+                self.assertEqual(
+                    profile["artifact_format"], "ELF64 x86-64 shared object"
+                )
+                self.assertEqual(profile["glibc_ceiling"], "2.17")
+                for key in (
+                    "trace_sha256",
+                    "receipts_sha256",
+                    "native_receipts",
+                    "receipt_tools",
+                    "receipt_operations",
+                    "artifact_sha256",
+                    "glibc_max",
+                    "glibc_version_dependencies",
+                    "evidence_archive",
+                    "evidence_sha256",
+                ):
+                    self.assertEqual(profile[key], expected[key])
+                if name == "fiddle":
+                    self.assertEqual(
+                        profile["libffi_static_sha256"],
+                        expected["libffi_static_sha256"],
+                    )
+
+                validation = adapter["validation"]
+                self.assertEqual(
+                    validation["runner"], "atlas-tree Ubuntu 24.04 x86_64"
+                )
+                self.assertEqual(validation["ruby"], "3.2.3")
+                self.assertEqual(validation["zig"], "0.16.0")
+                self.assertEqual(validation["process_audit"], "passed")
+                self.assertEqual(
+                    validation["foreign_compiler_linker_invocations"], 0
+                )
+                self.assertTrue(validation["source_clean_before_build"])
+                self.assertTrue(validation["source_clean_after_build"])
+                self.assertEqual(
+                    validation["exported_entrypoint"],
+                    expected["exported_entrypoint"],
+                )
+                if name in ("debug", "fiddle"):
+                    self.assertEqual(
+                        validation["exported_init_symbols"],
+                        expected["exported_init_symbols"],
+                    )
+                if name == "fiddle":
+                    self.assertFalse(validation["dynamic_libffi_dependency"])
 
         io_nonblock = json.loads(
             (ROOT / "adapters" / "repo" / "io-nonblock" / "adapter.json").read_text()

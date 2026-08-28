@@ -26,14 +26,14 @@ ruby --disable-gems -rjson -e '
   end
 ' "$pin"
 
-if [[ -n "${RZ_LIBFFI_ARCHIVE:-}" ]]; then
-  [[ -f "$RZ_LIBFFI_ARCHIVE" ]] || {
-    printf 'RZ_LIBFFI_ARCHIVE is not a file: %s\n' "$RZ_LIBFFI_ARCHIVE" >&2
+if [[ -n "${RZ_DEP_LIBFFI_ARCHIVE:-}" ]]; then
+  [[ -f "$RZ_DEP_LIBFFI_ARCHIVE" ]] || {
+    printf 'RZ_DEP_LIBFFI_ARCHIVE is not a file: %s\n' "$RZ_DEP_LIBFFI_ARCHIVE" >&2
     exit 66
   }
   expected="$(ruby --disable-gems -rjson -e \
     'print JSON.parse(File.read(ARGV.fetch(0))).fetch("sha256")' "$pin")"
-  actual="$(sha256sum "$RZ_LIBFFI_ARCHIVE" | awk '{print $1}')"
+  actual="$(sha256sum "$RZ_DEP_LIBFFI_ARCHIVE" | awk '{print $1}')"
   [[ "$actual" == "$expected" ]] || {
     printf 'libffi archive SHA-256 mismatch: got %s expected %s\n' \
       "$actual" "$expected" >&2

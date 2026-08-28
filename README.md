@@ -109,14 +109,15 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The executable lock admits 27 lanes: GNU builds for `bigdecimal`, `cgi`,
-`date`, `digest`, `erb`, `etc`, `fcntl`, `iconv`, `io-console`, `io-nonblock`,
-`io-wait`, `json`, `nkf`, `pathname`, `racc`, `sdbm`, `stringio`, `strscan`,
-`syck`, `syslog`, and all four maintained CRuby refs, plus GNU and musl builds
-for `prism`, with CRuby master also admitted for musl. Their source SHAs,
+The executable lock admits 30 lanes: GNU builds for `bigdecimal`, `cgi`,
+`date`, `debug`, `digest`, `erb`, `etc`, `fcntl`, `fiddle`, `iconv`,
+`io-console`, `io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`,
+`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all four
+maintained CRuby refs, plus GNU and musl builds for `prism`, with CRuby master
+also admitted for musl. Their source SHAs,
 controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
 are explicit. The full plan still contains all 378 desired lanes, split into
-active shards of 252 and 126; the other 351 lanes remain pending.
+active shards of 252 and 126; the other 348 lanes remain pending.
 
 The io-console lane loads the exact built extension and exercises raw, noecho,
 window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
@@ -136,6 +137,16 @@ detects UTF-8, EUC-JP, and JIS. Syck parses and emits through its isolated Ruby
 layer. Iconv covers streaming, round trips, close semantics, and invalid
 encodings while declaring the GNU platform's glibc iconv implementation as an
 input.
+
+Debug exercises frame capture and instruction-sequence helpers from its exact
+staged extension. Zlib declares the GNU runner's versioned `libz.so.1` input
+and covers compression, CRC, gzip metadata, and corrupt-input rejection.
+Fiddle uses an official libffi 3.4.6 archive pinned by size and SHA-256, builds
+that dependency statically through the Zig wrappers, and proves both a foreign
+call and a freed closure callback without a dynamic libffi dependency. The
+reusable workflow fetches declared archives into an isolated runner cache and
+records their verified contracts in build provenance; it does not install a
+global package.
 
 That is the visible coverage workload, not the number of jobs routinely sent
 to runners. Each immutable executable fleet-lock entry binds a repository and
@@ -171,6 +182,8 @@ requested sweep exercises the complete selected scope.
   link status.
 - `toolchain/bin/` contains the compiler and linker drivers.
 - `adapters/` contains controller-owned repository build entry points.
+- `scripts/prepare-adapter-dependencies.py` verifies and stages any external
+  source archives declared by an adapter.
 - `scripts/` inventories, forks, synchronizes, installs, and audits the fleet.
 - `.github/workflows/` contains reusable runner workflows.
 

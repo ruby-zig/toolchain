@@ -19,9 +19,10 @@ platform library or produced extension exceeds the GLIBC 2.17 ceiling.
 
 Configuration probes, preprocessing, C compilation, probe linking, and shared
 linking are all routed through the controller wrappers. A certified controller
-run must additionally retain the poison-PATH process trace and wrapper receipts.
-The checked-in manifest deliberately remains pending certification until that
-run comes from an immutable controller commit.
+run additionally retains the poison-PATH process trace and wrapper receipts.
+The GNU lane is certified at immutable controller commit `8f9d9ae4` with the
+exact source, artifact, trace, receipt, and evidence hashes recorded in
+`adapter.json`.
 
 Other targets need target-native Ruby headers and runtime plus a pinned zlib
 build for that target. Reusing this runner's GNU zlib is not a cross-compilation

@@ -47,5 +47,9 @@ bash adapters/repo/etc/test-source-contract.sh
 bash adapters/repo/iconv/test-source-contract.sh
 bash adapters/repo/nkf/test-source-contract.sh
 bash adapters/repo/syck/test-source-contract.sh
+bash adapters/repo/debug/test-source-contract.sh
+bash adapters/repo/zlib/test-source-contract.sh
+bash adapters/repo/fiddle/test-source-contract.sh
+bash adapters/repo/fiddle/test-libffi-pin.sh
 
 printf 'configuration invariants passed\n'

@@ -45,7 +45,7 @@ bash "$adapter_root/source-contract.sh" "$source_root"
 : "${RZ_ZIG_TARGET:?source the ruby.zig toolchain environment first}"
 : "${RZ_AUTOCONF_HOST:?source the ruby.zig toolchain environment first}"
 : "${RZ_RECEIPT_DIR:?certified adapters require a wrapper receipt directory}"
-: "${RZ_LIBFFI_ARCHIVE:?set RZ_LIBFFI_ARCHIVE to the pinned libffi release archive}"
+: "${RZ_DEP_LIBFFI_ARCHIVE:?set RZ_DEP_LIBFFI_ARCHIVE to the pinned libffi release archive}"
 
 [[ "$RZ_ZIG_TARGET" == "$implemented_target" ]] || {
   printf 'fiddle adapter is implemented only for Zig target %s; got %s\n' \
@@ -66,8 +66,8 @@ bash "$adapter_root/source-contract.sh" "$source_root"
   printf 'wrapper receipt directory is missing: %s\n' "$RZ_RECEIPT_DIR" >&2
   exit 66
 }
-[[ -f "$RZ_LIBFFI_ARCHIVE" ]] || {
-  printf 'pinned libffi archive is missing: %s\n' "$RZ_LIBFFI_ARCHIVE" >&2
+[[ -f "$RZ_DEP_LIBFFI_ARCHIVE" ]] || {
+  printf 'pinned libffi archive is missing: %s\n' "$RZ_DEP_LIBFFI_ARCHIVE" >&2
   exit 66
 }
 
@@ -120,7 +120,7 @@ libffi_sha="$(ruby --disable-gems -rjson -e \
   exit 65
 }
 
-archive="$(realpath "$RZ_LIBFFI_ARCHIVE")"
+archive="$(realpath "$RZ_DEP_LIBFFI_ARCHIVE")"
 actual_size="$(stat -c %s "$archive")"
 [[ "$actual_size" == "$libffi_size" ]] || {
   printf 'libffi archive size mismatch: got %s expected %s\n' \
@@ -210,6 +210,8 @@ for dependency_file in \
 done
 
 cp -a "$source_root/ext/fiddle/." "$staged_source/"
+# The interpolation below is evaluated by Ruby, not by this shell.
+# shellcheck disable=SC2016
 ruby --disable-gems -e '
   path = ARGV.fetch(0)
   source = File.read(path)
@@ -224,6 +226,8 @@ export STRIP=:
 
 (
   cd "$compile_dir"
+  # Environment references in this program are evaluated by Ruby.
+  # shellcheck disable=SC2016
   RZ_LIBFFI_SOURCE="$libffi_source" ruby -rrbconfig -e '
     %w[CC CXX AR RANLIB LD LDSHARED].each do |key|
       value = ENV.fetch(key)
