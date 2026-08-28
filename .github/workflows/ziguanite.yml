@@ -7,9 +7,60 @@ permissions:
   contents: read
 
 jobs:
+  resolve:
+    name: resolve latest shared Ruby source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      source-sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Resolve the newest commit shared by upstream and ziguanite
+        id: source
+        shell: bash
+        env:
+          RZ_SOURCE_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          case "$RZ_SOURCE_REF_NAME" in
+            master|ruby_4_0|ruby_3_4|ruby_3_3) ;;
+            *)
+              printf 'unsupported ziguanite branch: %s\n' "$RZ_SOURCE_REF_NAME" >&2
+              exit 64
+              ;;
+          esac
+
+          export GIT_CONFIG_NOSYSTEM=1
+          export GIT_CONFIG_GLOBAL=/dev/null
+          export GIT_TERMINAL_PROMPT=0
+
+          resolve_root="$(mktemp -d "${RUNNER_TEMP:-/tmp}/ziguanite-source.XXXXXX")"
+          trap 'rm -rf -- "$resolve_root"' EXIT
+          git_dir="$resolve_root/objects.git"
+          git init --bare --quiet "$git_dir"
+          git -C "$git_dir" -c credential.helper= -c core.hooksPath=/dev/null \
+            fetch --quiet --force --no-tags --filter=blob:none \
+            https://github.com/ruby/ruby.git \
+            "+refs/heads/$RZ_SOURCE_REF_NAME:refs/remotes/upstream/tracked"
+          git -C "$git_dir" -c credential.helper= -c core.hooksPath=/dev/null \
+            fetch --quiet --force --no-tags --filter=blob:none \
+            https://github.com/ruby-zig/ziguanite.git \
+            "+refs/heads/$RZ_SOURCE_REF_NAME:refs/remotes/fork/tracked"
+
+          source_sha="$(git -C "$git_dir" merge-base \
+            refs/remotes/upstream/tracked refs/remotes/fork/tracked)"
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || {
+            printf 'shared source must resolve to one lowercase commit SHA\n' >&2
+            exit 78
+          }
+          printf 'sha=%s\n' "$source_sha" >> "$GITHUB_OUTPUT"
+          printf 'Resolved %s to shared source %s\n' \
+            "$RZ_SOURCE_REF_NAME" "$source_sha"
+
   build:
+    needs: resolve
     uses: ./.github/workflows/continuous.yml
     with:
       source-repository: ruby-zig/ziguanite
       source-ref-name: ${{ github.ref_name }}
-      source-sha: ${{ github.sha }}
+      source-sha: ${{ needs.resolve.outputs.source-sha }}
