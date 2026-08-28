@@ -8,7 +8,8 @@ runtime, Rust boundary, compiler version, or build command.
 
 `.github/workflows/continuous.yml` accepts exactly three values:
 
-- `source-repository`: an exact `ruby-zig/<name>` fork in the fleet lock;
+- `source-repository`: an exact `ruby-zig/<name>` fork in the fleet lock (the
+  fork name may differ from its upstream repository after a rename);
 - `source-ref-name`: an exact tracked branch for that fork;
 - `source-sha`: the lowercase 40-character commit produced by synchronization.
 
@@ -30,6 +31,17 @@ for `master`, `f3a72fe0a6d35583e215422e8887d3df0a1670b8` for
 `ruby_3_3`. Master and 4.0 certify YJIT and ZJIT; 3.4 and 3.3 are
 YJIT-only. Each synchronized descendant is dispatched by exact SHA. Cross
 profiles remain uncertified catalog backlog and are absent from these locks.
+
+## ziguanite caller
+
+`.github/workflows/ziguanite.yml` is the no-input entry point for the CRuby
+fork. It fixes `source-repository` to `ruby-zig/ziguanite` and derives the
+branch and exact commit from the caller's `github.ref_name` and `github.sha`.
+The source repository therefore cannot supply a compiler, adapter, target,
+runtime, build command, or alternate source identity. The controller commit is
+derived from the workflow file that defines the controller job rather than the
+caller commit, so a cross-repository reusable call still checks out the exact
+pinned controller revision.
 
 ## Public graph proof
 
