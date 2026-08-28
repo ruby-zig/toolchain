@@ -100,6 +100,19 @@ for specification in "${specifications[@]}"; do
   }
 done
 
+# This native lane uses the same GNU tuple for build and target. Keep
+# Autoconf's build-machine probes on the certified target wrappers as well.
+export BUILD_CC="$CC"
+export BUILD_CXX="$CXX"
+export CC_FOR_BUILD="$CC"
+export CXX_FOR_BUILD="$CXX"
+export AR_FOR_BUILD="$AR"
+export RANLIB_FOR_BUILD="$RANLIB"
+export HOST_CC="$CC"
+export HOST_CXX="$CXX"
+export HOST_AR="$AR"
+export HOST_RANLIB="$RANLIB"
+
 actual_ruby_version="$(ruby -e 'print RUBY_VERSION')"
 [[ "$actual_ruby_version" == "$expected_ruby_version" ]] || {
   printf 'fiddle adapter requires Ruby %s; got %s\n' \

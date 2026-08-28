@@ -4,6 +4,7 @@ set -euo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 pin="$root/libffi.json"
+build="$root/build.sh"
 
 command -v ruby >/dev/null 2>&1 || {
   printf 'libffi pin test requires ruby\n' >&2
@@ -25,6 +26,26 @@ ruby --disable-gems -rjson -e '
     abort "unexpected #{key}: #{pin[key].inspect}" unless pin[key] == value
   end
 ' "$pin"
+
+# These are literal shell assignments in the adapter, not values to expand here.
+# shellcheck disable=SC2016
+for assignment in \
+  'export BUILD_CC="$CC"' \
+  'export BUILD_CXX="$CXX"' \
+  'export CC_FOR_BUILD="$CC"' \
+  'export CXX_FOR_BUILD="$CXX"' \
+  'export AR_FOR_BUILD="$AR"' \
+  'export RANLIB_FOR_BUILD="$RANLIB"' \
+  'export HOST_CC="$CC"' \
+  'export HOST_CXX="$CXX"' \
+  'export HOST_AR="$AR"' \
+  'export HOST_RANLIB="$RANLIB"'; do
+  grep -Fxq "$assignment" "$build" || {
+    printf 'fiddle build does not pin native build probes: %s\n' \
+      "$assignment" >&2
+    exit 65
+  }
+done
 
 if [[ -n "${RZ_DEP_LIBFFI_ARCHIVE:-}" ]]; then
   [[ -f "$RZ_DEP_LIBFFI_ARCHIVE" ]] || {
