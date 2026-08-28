@@ -120,52 +120,53 @@ def plan_continuous(
 
     fleet = renderer.plan_fleet(root)
     lock = renderer.read_json(root / "config" / "fleet-lock.json")
-    owner = lock["destination_owner"]
-    repository_entries = [
-        entry
-        for entry in lock["source_refs"]
-        if f"{owner}/{entry['name']}" == source_repository
+    executable_for_repository = [
+        source
+        for source in lock["sources"]
+        if source["repository"] == source_repository
     ]
-    if not repository_entries:
+    if not executable_for_repository:
         raise renderer.PlanError(
             f"{source_repository}: repository is not allowlisted by the fleet lock"
         )
 
-    tracked_entries = [
-        entry
-        for entry in repository_entries
-        if entry["ref_name"] == source_ref_name
+    executable = [
+        source
+        for source in executable_for_repository
+        if source["ref_name"] == source_ref_name
     ]
-    if not tracked_entries:
+    if not executable:
         allowed = ", ".join(
-            sorted((entry["ref_name"] for entry in repository_entries), key=str.casefold)
+            sorted(
+                (source["ref_name"] for source in executable_for_repository),
+                key=str.casefold,
+            )
         )
         raise renderer.PlanError(
             f"{source_repository}@{source_ref_name}: branch is not allowlisted; "
             f"tracked branches: {allowed}"
         )
-    if len(tracked_entries) != 1:
-        raise renderer.PlanError(
-            f"{source_repository}@{source_ref_name}: ambiguous tracked source"
-        )
-    tracked = tracked_entries[0]
-
-    executable = [
-        source
-        for source in lock["sources"]
-        if source["name"] == tracked["name"]
-        and source["ref_name"] == tracked["ref_name"]
-    ]
-    if not executable:
-        raise renderer.PlanError(
-            f"{tracked['result_id']}: tracked source is pending and has no "
-            "certified executable baseline"
-        )
     if len(executable) != 1:
         raise renderer.PlanError(
-            f"{tracked['result_id']}: ambiguous executable baseline"
+            f"{source_repository}@{source_ref_name}: ambiguous executable baseline"
         )
     source = executable[0]
+
+    tracked_entries = [
+        entry
+        for entry in lock["source_refs"]
+        if entry["name"] == source["name"]
+        and entry["ref_name"] == source["ref_name"]
+    ]
+    if not tracked_entries:
+        raise renderer.PlanError(
+            f"{source['result_id']}: executable baseline has no tracked source"
+        )
+    if len(tracked_entries) != 1:
+        raise renderer.PlanError(
+            f"{source['result_id']}: ambiguous tracked source"
+        )
+    tracked = tracked_entries[0]
 
     selected_profiles = tuple(source["profiles"])
     lanes = [
