@@ -8,7 +8,7 @@ trap 'rm -rf -- "$fixture"' EXIT
 
 mkdir -p "$fixture/remotes/ruby" "$fixture/remotes/ruby-zig"
 git init --bare --quiet "$fixture/remotes/ruby/native.git"
-git init --bare --quiet "$fixture/remotes/ruby-zig/native.git"
+git init --bare --quiet "$fixture/remotes/ruby-zig/ziguanite.git"
 git init --quiet "$fixture/seed"
 git -C "$fixture/seed" config user.name "Ruby Zig Test"
 git -C "$fixture/seed" config user.email "ruby-zig-test@example.invalid"
@@ -18,7 +18,7 @@ git -C "$fixture/seed" commit --quiet -m baseline
 git -C "$fixture/seed" branch -M master
 baseline="$(git -C "$fixture/seed" rev-parse HEAD)"
 git -C "$fixture/seed" remote add upstream "$fixture/remotes/ruby/native.git"
-git -C "$fixture/seed" remote add fork "$fixture/remotes/ruby-zig/native.git"
+git -C "$fixture/seed" remote add fork "$fixture/remotes/ruby-zig/ziguanite.git"
 git -C "$fixture/seed" push --quiet upstream master
 git -C "$fixture/seed" push --quiet fork master
 
@@ -31,14 +31,14 @@ git -C "$fixture/seed" push --quiet fork master
 RZ_TEST_ALLOW_LOCAL_GIT_ROOT=1 \
 RZ_TEST_GIT_ROOT="$fixture/remotes" \
   bash "$root/scripts/verify-continuous-source.sh" \
-    ruby/native ruby-zig/native master "$baseline" "$candidate"
+    ruby/native ruby-zig/ziguanite master "$baseline" "$candidate"
 
-git --git-dir="$fixture/remotes/ruby-zig/native.git" \
+git --git-dir="$fixture/remotes/ruby-zig/ziguanite.git" \
   update-ref refs/heads/master "$baseline"
 if RZ_TEST_ALLOW_LOCAL_GIT_ROOT=1 \
   RZ_TEST_GIT_ROOT="$fixture/remotes" \
   bash "$root/scripts/verify-continuous-source.sh" \
-    ruby/native ruby-zig/native master "$baseline" "$candidate"; then
+    ruby/native ruby-zig/ziguanite master "$baseline" "$candidate"; then
   printf 'candidate absent from the fork unexpectedly passed\n' >&2
   exit 1
 fi
@@ -50,7 +50,7 @@ git -C "$fixture/seed" push --quiet --force \
 if RZ_TEST_ALLOW_LOCAL_GIT_ROOT=1 \
   RZ_TEST_GIT_ROOT="$fixture/remotes" \
   bash "$root/scripts/verify-continuous-source.sh" \
-    ruby/native ruby-zig/native master "$baseline" "$divergent"; then
+    ruby/native ruby-zig/ziguanite master "$baseline" "$divergent"; then
   printf 'candidate outside the certified baseline unexpectedly passed\n' >&2
   exit 1
 fi
