@@ -1,0 +1,15 @@
+name: ziguanite certified Zig CC build
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/continuous.yml
+    with:
+      source-repository: ruby-zig/ziguanite
+      source-ref-name: ${{ github.ref_name }}
+      source-sha: ${{ github.sha }}
