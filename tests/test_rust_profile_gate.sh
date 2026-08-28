@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# The probes intentionally isolate their exported toolchain variables.
+# shellcheck disable=SC2030,SC2031
+
 set -euo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -35,7 +38,7 @@ grep -F 'only smoke-verified profiles may enable Rust' "$tmp/unverified.out" >/d
   [[ "$CC" == "$root/toolchain/bin/rz-cc" ]]
 ) >/dev/null
 
-grep -F '[[ "$RZ_RUST_INPUT" == true && "$rust_status" != smoke-verified ]]' \
+grep -F "[[ \"\$RZ_RUST_INPUT\" == true && \"\$rust_status\" != smoke-verified ]]" \
   "$root/action.yml" >/dev/null
 
 printf 'Rust profile gate passed\n'
