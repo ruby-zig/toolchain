@@ -7,6 +7,11 @@ loaded = $LOADED_FEATURES.map { |path| File.realpath(path) rescue path }
 abort "exact CGI artifact was not loaded" unless loaded.include?(artifact)
 abort "CGI::EscapeExt is missing" unless defined?(CGI::EscapeExt)
 
+# lib/cgi/core.rb normally initializes this before calling the native unescape
+# methods. Define only that state here so the smoke cannot load an installed
+# CGI extension alongside the exact staged artifact.
+CGI.class_variable_set(:@@accept_charset, "UTF-8")
+
 html = %(<&>"')
 escaped_html = "&lt;&amp;&gt;&quot;&#39;"
 abort "CGI.escapeHTML failed" unless CGI.escapeHTML(html) == escaped_html
