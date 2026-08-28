@@ -1265,7 +1265,7 @@ class FleetMatrixTests(unittest.TestCase):
             master.update(
                 result_id="ruby-master",
                 name="ruby",
-                repository="ruby-zig/ruby",
+                repository="ruby-zig/ziguanite",
             )
             release = copy.deepcopy(master)
             release.update(
@@ -1301,8 +1301,33 @@ class FleetMatrixTests(unittest.TestCase):
                 "ruby_4_0",
             )
 
+    def test_locked_fork_name_may_differ_from_upstream_name(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = self._write_fixture(root)
+            lock["sources"][0]["repository"] = "ruby-zig/renamed-native"
+            (root / "config" / "fleet-lock.json").write_text(
+                json.dumps(lock), encoding="utf-8"
+            )
+
+            plan = renderer.plan_fleet(root)
+            _, outputs = renderer.shard_summary(plan, 1)
+            matrix = json.loads(outputs["matrix"])["include"]
+            entry = next(
+                item for item in matrix if item["result_id"] == "native-master"
+            )
+            self.assertEqual(entry["repository"], "ruby-zig/renamed-native")
+
     def test_invalid_executable_lock_contracts_are_rejected(self) -> None:
         cases = {
+            "foreign repository owner": (
+                lambda source: source.update(repository="someone-else/native"),
+                "repository must be an exact ruby-zig/NAME fork",
+            ),
+            "unsafe repository name": (
+                lambda source: source.update(repository="ruby-zig/../native"),
+                "repository must be an exact ruby-zig/NAME fork",
+            ),
             "empty profiles": (
                 lambda source: source.update(profiles=[]),
                 "profiles must be a nonempty array",
