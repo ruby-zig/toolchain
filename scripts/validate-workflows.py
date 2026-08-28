@@ -139,6 +139,7 @@ def main() -> int:
         "cancel-in-progress: false",
         "controller-sha: ${{ steps.controller.outputs.sha }}",
         "RZ_CONTROLLER_SHA: ${{ job.workflow_sha }}",
+        "repository: ruby-zig/toolchain",
         "ref: ${{ steps.controller.outputs.sha }}",
         "persist-credentials: false",
         "python3 scripts/render-continuous-matrix.py",
