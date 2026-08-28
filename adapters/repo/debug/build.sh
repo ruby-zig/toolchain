@@ -104,6 +104,8 @@ for path in "$build_dir" "$artifact_dir"; do
   }
 done
 mkdir -p "$build_dir" "$artifact_dir"
+export ZIG_LOCAL_CACHE_DIR="$build_dir/.zig-local-cache"
+export ZIG_GLOBAL_CACHE_DIR="$build_dir/.zig-global-cache"
 
 staged_repo="$build_dir/source"
 compile_dir="$build_dir/work"
