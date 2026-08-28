@@ -68,6 +68,7 @@ SAFE_PATH = re.compile(r"^[A-Za-z0-9._][A-Za-z0-9._/-]*$")
 SAFE_REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]*$")
 SAFE_RESULT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 FULL_SHA = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+SAFE_REPOSITORY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 RUBY_VERSION = re.compile(
     r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$"
 )
@@ -340,10 +341,16 @@ def load_sources(
         result_id = source["result_id"]
         if source["adapter_id"] != build.get("adapter_id"):
             raise PlanError(f"{result_id}: lock adapter_id differs from config/builds.json")
-        expected_repository = f"{owner}/{name}"
-        if source["repository"] != expected_repository:
+        repository = source["repository"]
+        owner_prefix = f"{owner}/"
+        repository_name = (
+            repository[len(owner_prefix) :]
+            if isinstance(repository, str) and repository.startswith(owner_prefix)
+            else ""
+        )
+        if not SAFE_REPOSITORY_NAME.fullmatch(repository_name):
             raise PlanError(
-                f"{result_id}: repository must be the exact fork {expected_repository}"
+                f"{result_id}: repository must be an exact {owner}/NAME fork"
             )
         validate_build_script(root, source["build_script"], result_id)
 
