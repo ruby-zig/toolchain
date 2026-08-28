@@ -8,14 +8,11 @@ source_root="$(pwd -P)"
 adapter_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 extconf="$source_root/ext/racc/cparse/extconf.rb"
 racc_info="$source_root/lib/racc/info.rb"
-racc_command="$source_root/bin/racc"
-runtime_grammar="$source_root/test/assets/chk.y"
 source_files=(
   "$extconf"
   "$source_root/ext/racc/cparse/cparse.c"
   "$racc_info"
-  "$racc_command"
-  "$runtime_grammar"
+  "$source_root/lib/racc/parser.rb"
 )
 for source_file in "${source_files[@]}"; do
   [[ -f "$source_file" ]] || {
@@ -186,13 +183,7 @@ grep -Eq $'\ttool=shared\t.*\toperation=link\t' "$receipt_file" || {
   exit 70
 }
 
-runtime_parser="$build_dir/racc-native-smoke.rb"
-ruby --disable-gems -I"$source_root/lib" "$racc_command" -o "$runtime_parser" "$runtime_grammar"
-[[ -s "$runtime_parser" ]] || {
-  printf 'racc did not generate the runtime smoke parser\n' >&2
-  exit 70
-}
-ruby --disable-gems "$adapter_root/runtime-test.rb" "$artifact" "$source_root/lib" "$runtime_parser"
+ruby --disable-gems "$adapter_root/runtime-test.rb" "$artifact" "$source_root/lib"
 
 actual_sha="$(git -C "$source_root" rev-parse HEAD)"
 [[ "$actual_sha" == "$RZ_SOURCE_REF" ]] || {
@@ -208,5 +199,5 @@ git -C "$source_root" diff --cached --quiet --ignore-submodules -- || {
   exit 70
 }
 
-printf 'racc GNU artifact loaded and parsed fixture; glibc_max=%s\n' "${glibc_max:-none}"
+printf 'racc GNU artifact loaded and passed native parser smoke; glibc_max=%s\n' "${glibc_max:-none}"
 sha256sum "$artifact"

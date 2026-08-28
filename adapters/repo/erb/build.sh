@@ -161,7 +161,7 @@ ruby --disable-gems -e '
   loaded = $LOADED_FEATURES.map { |path| File.realpath(path) rescue path }
   abort "exact ERB escape artifact was not loaded" unless loaded.include?(artifact)
 
-  input = %q{<tag attr='x'>&"}
+  input = "<tag attr=\u0027x\u0027>&\""
   expected = "&lt;tag attr=&#39;x&#39;&gt;&amp;&quot;"
   escaped = ERB::Escape.html_escape(input)
   abort "native ERB HTML escaping failed" unless escaped == expected

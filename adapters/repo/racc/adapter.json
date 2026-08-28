@@ -20,7 +20,7 @@
       "status": "implementation-ready-pending-certified-run",
       "artifact_format": "ELF64 x86-64 shared object",
       "glibc_ceiling": "2.17",
-      "test": "generates and executes the repository's calculator grammar with the exact native cparse artifact"
+      "test": "loads pinned source parser.rb with only the exact cparse artifact reachable and executes a Racc 1.8.1 transition table"
     }
   ],
   "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
