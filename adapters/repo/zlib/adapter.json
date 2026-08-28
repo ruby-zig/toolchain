@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/zlib",
+  "repository": "ruby/zlib",
+  "upstream_sha": "c87e5ed1403144010b00ff1787e860e5d084511b",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/zlib/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/zlib/extconf.rb",
+    "ext/zlib/zlib.c"
+  ],
+  "platform_inputs": [
+    {
+      "id": "ubuntu-24.04-amd64-zlib",
+      "scope": "x86_64-linux-gnu.2.17",
+      "headers": [
+        "/usr/include/zlib.h",
+        "/usr/include/zconf.h"
+      ],
+      "linker_input": "/usr/lib/x86_64-linux-gnu/libz.so",
+      "runtime_soname": "libz.so.1",
+      "observed_package": "zlib1g-dev 1:1.3.dfsg-3.1ubuntu2.1",
+      "observed_runtime_version": "1.3",
+      "glibc_ceiling": "2.17"
+    }
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/zlib.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "implementation-verified-pending-immutable-controller-certification",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "glibc_ceiling": "2.17",
+      "test": "loads only the exact staged artifact and verifies deflate, inflate, CRC combination, gzip metadata and round trip, and corrupt-input rejection"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdk-runtime-and-zlib",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "required-from-an-immutable-controller-commit",
+    "source_clean_before_build": "required",
+    "source_clean_after_build": "required",
+    "exported_entrypoint": "Init_zlib"
+  },
+  "gaps": [
+    "immutable-controller certification evidence and hashes are pending",
+    "cross profiles require matching target-native Ruby SDKs, runtimes, and a pinned target zlib instead of the GNU runner platform library"
+  ]
+}
