@@ -237,7 +237,7 @@ class ContinuousDispatchTests(unittest.TestCase):
     def test_cruby_master_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "e" * 40
         plan = planner.plan_continuous(
-            ROOT, "ruby-zig/ruby", "master", candidate
+            ROOT, "ruby-zig/ziguanite", "master", candidate
         )
 
         self.assertEqual(plan.result_id, "ruby-master")
@@ -250,6 +250,7 @@ class ContinuousDispatchTests(unittest.TestCase):
         self.assertEqual(plan.ruby_version, "3.2.3")
         self.assertTrue(plan.rust)
         self.assertEqual(plan.ready_jobs, 2)
+        self.assertEqual(plan.source_repository, "ruby-zig/ziguanite")
         entries = {
             entry["profile_id"]: entry for entry in plan.matrix["include"]
         }
@@ -271,7 +272,7 @@ class ContinuousDispatchTests(unittest.TestCase):
     def test_cruby_4_0_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "f" * 40
         plan = planner.plan_continuous(
-            ROOT, "ruby-zig/ruby", "ruby_4_0", candidate
+            ROOT, "ruby-zig/ziguanite", "ruby_4_0", candidate
         )
 
         self.assertEqual(plan.result_id, "ruby-ruby_4_0")
@@ -293,7 +294,7 @@ class ContinuousDispatchTests(unittest.TestCase):
     def test_cruby_3_4_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "1" * 40
         plan = planner.plan_continuous(
-            ROOT, "ruby-zig/ruby", "ruby_3_4", candidate
+            ROOT, "ruby-zig/ziguanite", "ruby_3_4", candidate
         )
 
         self.assertEqual(plan.result_id, "ruby-ruby_3_4")
@@ -313,7 +314,7 @@ class ContinuousDispatchTests(unittest.TestCase):
     def test_cruby_3_3_uses_dynamic_candidate_with_locked_gnu_contract(self) -> None:
         candidate = "2" * 40
         plan = planner.plan_continuous(
-            ROOT, "ruby-zig/ruby", "ruby_3_3", candidate
+            ROOT, "ruby-zig/ziguanite", "ruby_3_3", candidate
         )
 
         self.assertEqual(plan.result_id, "ruby-ruby_3_3")
@@ -460,6 +461,12 @@ class ContinuousDispatchTests(unittest.TestCase):
 
     def test_repository_branch_and_sha_are_exactly_allowlisted(self) -> None:
         cases = (
+            (
+                "ruby-zig/ruby",
+                "master",
+                "a" * 40,
+                "repository is not allowlisted",
+            ),
             (
                 "ruby-zig/not-in-lock",
                 "master",
