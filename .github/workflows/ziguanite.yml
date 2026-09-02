@@ -13,20 +13,39 @@ jobs:
     timeout-minutes: 15
     outputs:
       source-sha: ${{ steps.source.outputs.sha }}
+      supported: ${{ steps.source.outputs.supported }}
     steps:
       - name: Resolve the newest commit shared by upstream and ziguanite
         id: source
         shell: bash
         env:
           RZ_SOURCE_REF_NAME: ${{ github.ref_name }}
+          RZ_SOURCE_REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
 
+          [[ "$RZ_SOURCE_REF_TYPE" == branch ]] || {
+            printf 'unsupported ziguanite ref type: %s\n' "$RZ_SOURCE_REF_TYPE" >&2
+            exit 64
+          }
+
           case "$RZ_SOURCE_REF_NAME" in
-            master|ruby_4_0|ruby_3_4|ruby_3_3) ;;
+            master|ruby_4_0|ruby_3_4|ruby_3_3)
+              printf 'supported=true\n' >> "$GITHUB_OUTPUT"
+              ;;
             *)
               printf 'unsupported ziguanite branch: %s\n' "$RZ_SOURCE_REF_NAME" >&2
-              exit 64
+              printf 'supported=false\n' >> "$GITHUB_OUTPUT"
+              {
+                printf '## NOT CERTIFIED: unsupported ziguanite branch\n\n'
+                printf 'This branch is outside the certified branch allowlist.\n\n'
+                printf 'Shared-source resolution and the certified build were\n'
+                printf 'intentionally skipped. This run produced no certified\n'
+                printf 'evidence artifacts and must not be cited as certification\n'
+                printf 'for any commit.\n'
+              } >> "$GITHUB_STEP_SUMMARY"
+              printf '::warning title=ziguanite certification skipped::unsupported branch; the certified build was not attempted. See the resolve job summary.\n'
+              exit 0
               ;;
           esac
 
@@ -59,8 +78,22 @@ jobs:
 
   build:
     needs: resolve
+    if: needs.resolve.outputs.supported == 'true'
     uses: ./.github/workflows/continuous.yml
     with:
       source-repository: ruby-zig/ziguanite
       source-ref-name: ${{ github.ref_name }}
       source-sha: ${{ needs.resolve.outputs.source-sha }}
+
+  not-certified:
+    name: uncertified lane notice (runs only when the certified build is skipped)
+    needs: resolve
+    if: needs.resolve.outputs.supported != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: State that no certified build ran
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'this ref is not a certified ziguanite lane; the certified build was skipped and this run holds no evidence artifacts\n'
