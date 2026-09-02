@@ -189,12 +189,22 @@ def main() -> int:
         "https://github.com/ruby/ruby.git",
         "https://github.com/ruby-zig/ziguanite.git",
         "refs/remotes/upstream/tracked refs/remotes/fork/tracked",
+        "RZ_SOURCE_REF_TYPE: ${{ github.ref_type }}",
+        "if: needs.resolve.outputs.supported == 'true'",
+        "if: needs.resolve.outputs.supported != 'true'",
+        "printf 'supported=true\\n' >> \"$GITHUB_OUTPUT\"",
+        "printf 'supported=false\\n' >> \"$GITHUB_OUTPUT\"",
+        "name: uncertified lane notice (runs only when the certified build is skipped)",
     ):
         require_text(ziguanite, ziguanite_text, needle, errors)
     if "inputs." in ziguanite_text:
         errors.append(f"{ziguanite}: caller must not override the locked ziguanite identity")
     if "source-sha: ${{ github.sha }}" in ziguanite_text:
         errors.append(f"{ziguanite}: workflow-only fork commits must not become Ruby source")
+    if ziguanite_text.find("supported=false") > ziguanite_text.find("git init"):
+        errors.append(f"{ziguanite}: the unsupported-ref skip must precede any git fetch")
+    if ziguanite_text.count("exit 0") != 1:
+        errors.append(f"{ziguanite}: exactly one clean-skip exit is allowed")
 
     provenance = root / "scripts" / "write-build-provenance.sh"
     provenance_text = provenance.read_text(encoding="utf-8")
