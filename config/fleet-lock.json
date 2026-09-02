@@ -251,6 +251,14 @@
       "rust": true
     },
     {
+      "result_id": "ruby-ruby_3_2",
+      "name": "ruby",
+      "repository": "ruby/ruby",
+      "ref_name": "ruby_3_2",
+      "source_ref": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
+      "rust": true
+    },
+    {
       "result_id": "ruby.wasm-main",
       "name": "ruby.wasm",
       "repository": "ruby/ruby.wasm",
@@ -649,6 +657,20 @@
       "adapter_id": "repo/ruby",
       "repository": "ruby-zig/ziguanite",
       "source_ref": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "build_script": "adapters/repo/ruby/build.sh",
+      "profiles": [
+        "x86_64-linux-gnu.2.17"
+      ],
+      "ruby_version": "3.2.3",
+      "rust": true
+    },
+    {
+      "result_id": "ruby-ruby_3_2",
+      "name": "ruby",
+      "ref_name": "ruby_3_2",
+      "adapter_id": "repo/ruby",
+      "repository": "ruby-zig/ziguanite",
+      "source_ref": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
       "build_script": "adapters/repo/ruby/build.sh",
       "profiles": [
         "x86_64-linux-gnu.2.17"

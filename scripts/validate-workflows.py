@@ -185,7 +185,7 @@ def main() -> int:
         "source-repository: ruby-zig/ziguanite",
         "source-ref-name: ${{ github.ref_name }}",
         "source-sha: ${{ needs.resolve.outputs.source-sha }}",
-        "master|ruby_4_0|ruby_3_4|ruby_3_3",
+        "master|ruby_4_0|ruby_3_4|ruby_3_3|ruby_3_2",
         "https://github.com/ruby/ruby.git",
         "https://github.com/ruby-zig/ziguanite.git",
         "refs/remotes/upstream/tracked refs/remotes/fork/tracked",

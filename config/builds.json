@@ -12,19 +12,19 @@
       "native-test"
     ],
     "repository_count": 39,
-    "source_ref_count": 42,
+    "source_ref_count": 43,
     "maximum_profiles_per_source_ref": 9,
-    "maximum_desired_jobs": 378
+    "maximum_desired_jobs": 387
   },
   "sharding": {
     "strategy": "affected-lane-contiguous",
     "shard_count": 2,
     "jobs_per_full_shard": 252,
     "maximum_matrix_jobs": 256,
-    "maximum_desired_jobs": 378,
+    "maximum_desired_jobs": 387,
     "maximum_jobs_by_shard": [
       252,
-      126
+      135
     ]
   },
   "profile_policies": {
