@@ -36,8 +36,9 @@ current native-scope scan classifies them as:
 - 148 repositories with no committed native source.
 
 Only the first 39 repositories belong to the affected fork and build fleet.
-CRuby contributes five tracked release branches instead of one, so those
-repositories currently represent 43 source refs. The other 151 stay in
+CRuby contributes five tracked refs instead of one, including `master` and
+four release branches, so those repositories currently represent 43 source
+refs. The other 151 stay in
 discovery so a future scope scan can promote them without losing history, but
 they do not create forks or runner lanes today. This avoids
 claiming that an ordinary pure-Ruby test run is a Zig compilation.
