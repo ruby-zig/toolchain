@@ -79,7 +79,7 @@ case "$source_branch" in
   master|ruby_4_0)
     rust_source="$source_root/ruby.rs"
     ;;
-  ruby_3_4|ruby_3_3)
+  ruby_3_4|ruby_3_3|ruby_3_2)
     rust_source="$source_root/yjit/src/lib.rs"
     ;;
 esac
@@ -290,7 +290,7 @@ case "$source_branch" in
     rust_build_target=rust-lib
     rust_object_override='RUST_LIBOBJ='
     ;;
-  ruby_3_4|ruby_3_3)
+  ruby_3_4|ruby_3_3|ruby_3_2)
     yjit_libs="$(make_value YJIT_LIBS)"
     if [[ "$yjit_libs" != yjit/target/release/libyjit.a ]]; then
       printf 'unexpected release YJIT archive path: %s\n' \
@@ -365,7 +365,7 @@ libruby_so="$(make_value LIBRUBY_SO)"
 dldflags="$(make_value DLDFLAGS)"
 post_map_make_options=()
 case "$source_branch" in
-  ruby_3_4|ruby_3_3)
+  ruby_3_4|ruby_3_3|ruby_3_2)
     post_map_make_options=(-o "$libruby_so")
     ;;
 esac
@@ -418,7 +418,10 @@ for artifact in "$build_root/miniruby" "$build_root/ruby" "$shared"; do
   fi
 done
 
-expected_api=(ruby_init rb_yjit_enable)
+expected_api=(ruby_init)
+if [[ "$source_branch" != ruby_3_2 ]]; then
+  expected_api+=(rb_yjit_enable)
+fi
 if [[ "$source_branch" == master || "$source_branch" == ruby_4_0 ]]; then
   expected_api+=(rb_zjit_enable)
 fi

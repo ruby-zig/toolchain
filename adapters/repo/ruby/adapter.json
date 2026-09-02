@@ -566,6 +566,22 @@
           }
         }
       ]
+    },
+    {
+      "name": "ruby_3_2",
+      "sha": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
+      "jits": [
+        "yjit"
+      ],
+      "status": "candidate-shared-native",
+      "validated_baselines": [
+        {
+          "sha": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
+          "release": "3.2.11",
+          "status": "candidate-shared-native",
+          "note": "Admitted to the executable lock on 2026-09-02 with no certified run yet. The first green ziguanite ruby_3_2 continuous run must replace this record with real receipts (runner, controller hashes, tests, runtime, artifact digests) before the lane may be cited as certified."
+        }
+      ]
     }
   ],
   "build_system": "autoconf-gnu-make-rustc",
@@ -608,6 +624,13 @@
       "status": "run-verified-baseline",
       "source_ref": "ruby_3_3",
       "source_sha": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "artifact_mode": "shared-only"
+    },
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "candidate-baseline",
+      "source_ref": "ruby_3_2",
+      "source_sha": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
       "artifact_mode": "shared-only"
     },
     {
@@ -683,6 +706,7 @@
     "ruby_4_0 has immutable verified baseline f3a72fe0a6d35583e215422e8887d3df0a1670b8 and independently verified continuous candidate 2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
     "ruby_3_4 baseline aac3e36dd4bee40fc89893209553903706fa5666 and ruby_3_3 baseline 0581089df9f0af0fe6b64cb8167987c211100947 remain independently verified native GNU shared builds; current tips 8f3d12f70b2b775c1f228ca136361d18ec3f1e36 and e675ccc096757021d6641ab3f10209a3df8b57a2 are recorded separately as immutable public candidates",
     "The ruby_3_4 and ruby_3_3 certification covers 155 built DSOs and a 26-family native-extension smoke set; fiddle, openssl, psych, and zlib are explicitly outside that certified scope",
+    "ruby_3_2 baseline 5483bfc1ae5725e871cbbddf313626fbb0f2dbb8 is an uncertified candidate admitted 2026-09-02: the lock, allowlist, and adapter accept the ref, but no run has verified it; its candidate-status records must be replaced with real receipts by the first green continuous run before the lane may be cited as certified",
     "The x86_64-linux-musl cross profile is admitted only for master through an exact profile override; the adapter applies the recorded source patch after git apply --check and disables Rust and both JITs",
     "Rust source is compiled by pinned rustc; Zig supplies native dependency compilation and final linking",
     "Cross-compiling CRuby's Rust JITs is not supported; this cross adapter disables YJIT and ZJIT and rejects every Rust receipt"
