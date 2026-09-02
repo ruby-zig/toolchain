@@ -275,7 +275,7 @@ def load_source_refs(
         if build.get("classification") not in FLEET_CLASSIFICATIONS:
             continue
         if name == "ruby":
-            expected = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3"}
+            expected = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3", "ruby_3_2"}
         else:
             expected = {build.get("default_branch")}
         actual = {

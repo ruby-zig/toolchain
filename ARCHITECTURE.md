@@ -36,8 +36,9 @@ current native-scope scan classifies them as:
 - 148 repositories with no committed native source.
 
 Only the first 39 repositories belong to the affected fork and build fleet.
-CRuby contributes four maintained tracked branches instead of one, so those
-repositories currently represent 42 source refs. The other 151 stay in
+CRuby contributes five tracked refs instead of one, including `master` and
+four release branches, so those repositories currently represent 43 source
+refs. The other 151 stay in
 discovery so a future scope scan can promote them without losing history, but
 they do not create forks or runner lanes today. This avoids
 claiming that an ordinary pure-Ruby test run is a Zig compilation.
@@ -48,7 +49,7 @@ A missing fork, wrong parent, changed default branch, ahead branch, or
 divergence is a visible failure. Zig compatibility patches belong on
 `zigcc/<default-branch>` or smaller topic branches.
 
-## Why the plan reserves 378 jobs
+## Why the plan reserves 387 jobs
 
 The target catalog has nine profiles:
 
@@ -57,19 +58,19 @@ The target catalog has nine profiles:
 - x86_64 and AArch64 Windows GNU;
 - x86_64 and AArch64 macOS.
 
-The maximum coverage envelope is therefore `42 * 9 = 378` lanes. GitHub
+The maximum coverage envelope is therefore `43 * 9 = 387` lanes. GitHub
 allows at most 256 matrix jobs in one workflow run. The controller uses two
-contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
+contiguous capacity shards: 252 lanes in shard 1 and 135 in shard 2.
 
-The plan keeps all 378 lanes visible. It admits only the 30 repository,
+The plan keeps all 387 lanes visible. It admits only the 31 repository,
 branch, and profile combinations with executable certified contracts; every
 other lane remains explicitly pending. The ready set is GNU for `bigdecimal`,
 `cgi`, `date`, `debug`, `digest`, `erb`, `etc`, `fcntl`, `fiddle`, `iconv`,
 `io-console`, `io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`,
-`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all four
-maintained CRuby refs, plus GNU and musl for `prism`, with CRuby master also
+`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all five
+tracked CRuby refs, plus GNU and musl for `prism`, with CRuby master also
 admitted for musl. The
-two active shards therefore contain 252 and 126 desired lanes while only
+two active shards therefore contain 252 and 135 desired lanes while only
 certified entries are sent to runners. io-console's executable contract loads
 the exact staged extension and exercises terminal behavior on a pseudoterminal.
 
@@ -117,8 +118,10 @@ selected matrix runs on the slower sweep cadence and on demand.
 A tracked source-ref record binds an upstream repository, explicit branch
 name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby
 `master`, `ruby_4_0`, `ruby_3_4`, and `ruby_3_3` all have executable
-native GNU shared baselines. EOL `ruby_3_2` is absent. Master and 4.0 certify
-YJIT and ZJIT; 3.4 and 3.3 are YJIT-only. The older-release certification
+native GNU shared baselines. EOL `ruby_3_2` is admitted at baseline
+`5483bfc1ae5725e871cbbddf313626fbb0f2dbb8` as an uncertified candidate whose
+first continuous run must record real receipts. Master and 4.0 certify
+YJIT and ZJIT; 3.4, 3.3, and 3.2 are YJIT-only. The older-release certification
 covers 155 built DSOs and a 26-family native-extension smoke set, explicitly
 excluding `fiddle`, `openssl`, `psych`, and `zlib`. A newer tracked-branch
 tip is admitted only as an exact, ancestry-checked continuous candidate derived

@@ -358,7 +358,7 @@ def main() -> int:
     }
     for name in sorted(fleet_names):
         if name == "ruby":
-            expected_refs = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3"}
+            expected_refs = {"master", "ruby_4_0", "ruby_3_4", "ruby_3_3", "ruby_3_2"}
         else:
             expected_refs = {build_default_branches.get(name)}
         if actual_ref_names[name] != expected_refs:
@@ -408,14 +408,14 @@ def main() -> int:
         errors.append(
             f"affected native fleet has {fleet_repository_count} repositories, expected 39"
         )
-    if source_ref_count != 42:
+    if source_ref_count != 43:
         errors.append(
-            f"affected fleet has {source_ref_count} tracked source refs, expected 42"
+            f"affected fleet has {source_ref_count} tracked source refs, expected 43"
         )
-    if maximum_desired_jobs != 378 or maximum_jobs_by_shard != [252, 126]:
+    if maximum_desired_jobs != 387 or maximum_jobs_by_shard != [252, 135]:
         errors.append(
             f"affected fleet envelope is {maximum_desired_jobs} lanes in "
-            f"{maximum_jobs_by_shard!r}, expected 378 in [252, 126]"
+            f"{maximum_jobs_by_shard!r}, expected 387 in [252, 135]"
         )
 
     if errors:

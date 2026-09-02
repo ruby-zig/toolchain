@@ -30,9 +30,9 @@ The discovery inventory keeps all 190 public `ruby/*` repositories. The
 native-scope scan found 38 repositories that build a native product, one with
 committed native tests, three whose native files are only fixtures or examples,
 and 148 with no committed native source. The active fork and build fleet is the
-first 39 repositories. CRuby's maintained `master`, `ruby_4_0`, `ruby_3_4`,
-and `ruby_3_3` branches are distinct tracked sources, giving the fleet 42
-source refs in total. The EOL `ruby_3_2` branch is excluded. Fixture-only and
+first 39 repositories. CRuby's `master`, `ruby_4_0`, `ruby_3_4`, `ruby_3_3`,
+and `ruby_3_2` branches are distinct tracked sources, giving the fleet 43
+source refs in total. Fixture-only and
 no-native repositories create no fleet lanes; they re-enter automatically when
 a later scope scan changes their classification.
 
@@ -49,12 +49,15 @@ Ruby extensions driven by the prebuilt GNU Ruby SDK are executable only on the
 GNU profile. Their musl artifacts remain experimental and non-certifying until
 the fleet has a target-native musl Ruby SDK.
 
-All four maintained CRuby refs have executable native GNU shared baselines:
+All four run-verified CRuby refs have executable native GNU shared baselines:
 `master` at `89d3b11eace35b8e279b970b4ff5125f171d0d4b`, `ruby_4_0` at
 `f3a72fe0a6d35583e215422e8887d3df0a1670b8`, `ruby_3_4` at
 `aac3e36dd4bee40fc89893209553903706fa5666`, and `ruby_3_3` at
-`0581089df9f0af0fe6b64cb8167987c211100947`. Master and 4.0 certify YJIT
-and ZJIT; 3.4 and 3.3 are YJIT-only releases. Each older-release baseline built
+`0581089df9f0af0fe6b64cb8167987c211100947`. `ruby_3_2` at
+`5483bfc1ae5725e871cbbddf313626fbb0f2dbb8` is admitted as an uncertified
+candidate whose first continuous run must produce real receipts before the
+lane may be cited as certified. Master and 4.0 certify YJIT
+and ZJIT; 3.4, 3.3, and 3.2 are YJIT-only releases. Each older-release baseline built
 155 DSOs and passed a 26-family native-extension smoke set. `fiddle`,
 `openssl`, `psych`, and `zlib` are explicitly outside that certified scope.
 Exact descendants are admitted only through continuous graph proof; the 4.0
@@ -104,20 +107,20 @@ trusted fleet runs; divergence is reported and never force-pushed.
 
 ## Fleet size
 
-The affected fleet has a maximum of 378 jobs: nine target profiles for each of
-42 tracked source refs across 39 repositories. GitHub limits a matrix to 256
+The affected fleet has a maximum of 387 jobs: nine target profiles for each of
+43 tracked source refs across 39 repositories. GitHub limits a matrix to 256
 jobs per workflow run, so the controller reserves two contiguous capacity
-shards of 252 and 126 lanes.
+shards of 252 and 135 lanes.
 
-The executable lock admits 30 lanes: GNU builds for `bigdecimal`, `cgi`,
+The executable lock admits 31 lanes: GNU builds for `bigdecimal`, `cgi`,
 `date`, `debug`, `digest`, `erb`, `etc`, `fcntl`, `fiddle`, `iconv`,
 `io-console`, `io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`,
-`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all four
-maintained CRuby refs, plus GNU and musl builds for `prism`, with CRuby master
+`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all five
+tracked CRuby refs, plus GNU and musl builds for `prism`, with CRuby master
 also admitted for musl. Their source SHAs,
 controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
-are explicit. The full plan still contains all 378 desired lanes, split into
-active shards of 252 and 126; the other 348 lanes remain pending.
+are explicit. The full plan still contains all 387 desired lanes, split into
+active shards of 252 and 135; the other 356 lanes remain pending.
 
 The io-console lane loads the exact built extension and exercises raw, noecho,
 window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies

@@ -30,7 +30,7 @@ rz_ruby_source_contract() {
     master|ruby_4_0)
       jit_options=(--enable-yjit --enable-zjit)
       ;;
-    ruby_3_4|ruby_3_3)
+    ruby_3_4|ruby_3_3|ruby_3_2)
       jit_options=(--enable-yjit)
       ;;
     *)

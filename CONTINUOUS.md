@@ -22,21 +22,23 @@ replaces only the baseline source SHA in the derived matrix. Profile-specific
 before both fleet and continuous matrix entries reach the same reusable
 workflow. There is no input through which a caller can broaden the build.
 
-A tracked source without an executable entry is rejected. All four maintained
-CRuby refs have certified native GNU shared baselines and executable entries.
-The immutable baselines are `89d3b11eace35b8e279b970b4ff5125f171d0d4b`
+A tracked source without an executable entry is rejected. All five tracked
+CRuby refs have executable entries; four have certified native GNU shared
+baselines. The immutable baselines are `89d3b11eace35b8e279b970b4ff5125f171d0d4b`
 for `master`, `f3a72fe0a6d35583e215422e8887d3df0a1670b8` for
 `ruby_4_0`, `aac3e36dd4bee40fc89893209553903706fa5666` for
 `ruby_3_4`, and `0581089df9f0af0fe6b64cb8167987c211100947` for
-`ruby_3_3`. Master and 4.0 certify YJIT and ZJIT; 3.4 and 3.3 are
-YJIT-only. Each synchronized descendant is dispatched by exact SHA. Cross
+`ruby_3_3`; `ruby_3_2` is admitted at candidate baseline
+`5483bfc1ae5725e871cbbddf313626fbb0f2dbb8`, uncertified until its first green
+run records receipts. Master and 4.0 certify YJIT and ZJIT; 3.4, 3.3, and 3.2
+are YJIT-only. Each synchronized descendant is dispatched by exact SHA. Cross
 profiles remain uncertified catalog backlog and are absent from these locks.
 
 ## ziguanite caller
 
 `.github/workflows/ziguanite.yml` is the no-input entry point for the CRuby
-fork. It fixes `source-repository` to `ruby-zig/ziguanite`, admits only the four
-maintained branch names, and resolves the newest commit shared by that public
+fork. It fixes `source-repository` to `ruby-zig/ziguanite`, admits only the five
+tracked branch names, and resolves the newest commit shared by that public
 fork branch and its matching `ruby/ruby` branch. This prevents workflow-only
 commits in the fork from becoming Ruby source while retaining an exact,
 publicly verifiable source SHA.

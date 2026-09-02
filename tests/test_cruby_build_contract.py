@@ -99,7 +99,7 @@ class CrubyBuildContractTests(unittest.TestCase):
             script,
         )
         self.assertIn(
-            'ruby_3_4|ruby_3_3)\n'
+            'ruby_3_4|ruby_3_3|ruby_3_2)\n'
             '    rust_source="$source_root/yjit/src/lib.rs"',
             script,
         )
@@ -110,7 +110,7 @@ class CrubyBuildContractTests(unittest.TestCase):
         self.assertNotIn('if [[ "$source_branch" != master ]]; then', script)
 
         self.assertIn(
-            'ruby_3_4|ruby_3_3)\n'
+            'ruby_3_4|ruby_3_3|ruby_3_2)\n'
             '    yjit_libs="$(make_value YJIT_LIBS)"',
             script,
         )

@@ -24,7 +24,13 @@ CRUBY_REFS = {
     "ruby_4_0": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
     "ruby_3_4": "aac3e36dd4bee40fc89893209553903706fa5666",
     "ruby_3_3": "0581089df9f0af0fe6b64cb8167987c211100947",
+    "ruby_3_2": "5483bfc1ae5725e871cbbddf313626fbb0f2dbb8",
 }
+
+# Refs admitted to the executable lock whose first certified run has not
+# happened yet: their adapter evidence records carry candidate-* statuses
+# until real receipts replace them.
+CRUBY_PENDING_FIRST_RUN = {"ruby_3_2"}
 
 
 class FleetMatrixTests(unittest.TestCase):
@@ -33,16 +39,16 @@ class FleetMatrixTests(unittest.TestCase):
 
         self.assertEqual(plan.discovery_repositories, 190)
         self.assertEqual(plan.fleet_repositories, 39)
-        self.assertEqual(plan.source_identities, 42)
-        self.assertEqual(plan.maximum_jobs, 378)
-        self.assertEqual(plan.desired_jobs, 378)
-        self.assertEqual(sum(lane.ready for lane in plan.lanes), 30)
-        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 348)
+        self.assertEqual(plan.source_identities, 43)
+        self.assertEqual(plan.maximum_jobs, 387)
+        self.assertEqual(plan.desired_jobs, 387)
+        self.assertEqual(sum(lane.ready for lane in plan.lanes), 31)
+        self.assertEqual(sum(not lane.ready for lane in plan.lanes), 356)
         self.assertEqual(plan.active_shards, 2)
         self.assertEqual(plan.shard_count, 2)
         self.assertEqual(
             [len(renderer.shard_lanes(plan, shard)) for shard in range(1, 3)],
-            [252, 126],
+            [252, 135],
         )
         self.assertEqual(
             {lane.classification for lane in plan.lanes},
@@ -50,7 +56,7 @@ class FleetMatrixTests(unittest.TestCase):
         )
 
         ruby_lanes = [lane for lane in plan.lanes if lane.name == "ruby"]
-        self.assertEqual(len(ruby_lanes), 36)
+        self.assertEqual(len(ruby_lanes), 45)
         self.assertEqual(
             {lane.ref_name for lane in ruby_lanes},
             set(CRUBY_REFS),
@@ -62,6 +68,7 @@ class FleetMatrixTests(unittest.TestCase):
                 "ruby-ruby_4_0",
                 "ruby-ruby_3_4",
                 "ruby-ruby_3_3",
+                "ruby-ruby_3_2",
             },
         )
         self.assertEqual(
@@ -71,10 +78,16 @@ class FleetMatrixTests(unittest.TestCase):
                 )
                 for ref_name in CRUBY_REFS
             },
-            {"master": 9, "ruby_4_0": 9, "ruby_3_4": 9, "ruby_3_3": 9},
+            {
+                "master": 9,
+                "ruby_4_0": 9,
+                "ruby_3_4": 9,
+                "ruby_3_3": 9,
+                "ruby_3_2": 9,
+            },
         )
         ready_ruby = [lane for lane in ruby_lanes if lane.ready]
-        self.assertEqual(len(ready_ruby), 5)
+        self.assertEqual(len(ready_ruby), 6)
         self.assertEqual(
             {(lane.ref_name, lane.profile["id"]) for lane in ready_ruby},
             {
@@ -83,6 +96,7 @@ class FleetMatrixTests(unittest.TestCase):
                 ("ruby_4_0", "x86_64-linux-gnu.2.17"),
                 ("ruby_3_4", "x86_64-linux-gnu.2.17"),
                 ("ruby_3_3", "x86_64-linux-gnu.2.17"),
+                ("ruby_3_2", "x86_64-linux-gnu.2.17"),
             },
         )
 
@@ -93,8 +107,8 @@ class FleetMatrixTests(unittest.TestCase):
             if entry["name"] == "ruby"
         }
         self.assertEqual(actual_refs, CRUBY_REFS)
-        self.assertNotIn("ruby_3_2", actual_refs)
-        self.assertEqual(len(lock["sources"]), 28)
+        self.assertNotIn("ruby_3_1", actual_refs)
+        self.assertEqual(len(lock["sources"]), 29)
         self.assertEqual(
             {source["name"] for source in lock["sources"]},
             {
@@ -825,18 +839,27 @@ class FleetMatrixTests(unittest.TestCase):
             for name, source in source_records.items()
         }
         self.assertEqual(set(evidence_by_ref), set(CRUBY_REFS))
-        self.assertTrue(
-            all(
-                evidence["status"] == "run-verified-shared-native"
-                for evidence in evidence_by_ref.values()
-            )
-        )
+        for name, evidence in evidence_by_ref.items():
+            if name in CRUBY_PENDING_FIRST_RUN:
+                # Admitted but not yet run-verified: the candidate status is
+                # the honest record until real receipts replace it.
+                self.assertEqual(evidence["status"], "candidate-shared-native")
+                self.assertIn("note", evidence)
+            else:
+                self.assertEqual(evidence["status"], "run-verified-shared-native")
         profile_sources = {
             profile["source_ref"]: profile["source_sha"]
             for profile in ruby_adapter["profiles"]
-            if profile["status"] == "run-verified-baseline"
+            if profile["status"]
+            in {"run-verified-baseline", "candidate-baseline"}
         }
         self.assertEqual(profile_sources, CRUBY_REFS)
+        candidate_profiles = {
+            profile["source_ref"]
+            for profile in ruby_adapter["profiles"]
+            if profile["status"] == "candidate-baseline"
+        }
+        self.assertEqual(candidate_profiles, CRUBY_PENDING_FIRST_RUN)
         self.assertEqual(
             ruby_adapter["cross_status"],
             "x86_64-linux-musl-run-verified-admitted",
@@ -1259,6 +1282,14 @@ class FleetMatrixTests(unittest.TestCase):
                     "source_ref": "e" * 40,
                     "rust": True,
                 },
+                {
+                    "result_id": "ruby-ruby_3_2",
+                    "name": "ruby",
+                    "repository": "ruby/ruby",
+                    "ref_name": "ruby_3_2",
+                    "source_ref": "f" * 40,
+                    "rust": True,
+                },
             ]
             lock["source_refs"] = ruby_refs + [lock["source_refs"][1]]
             master = lock["sources"][0]
@@ -1283,9 +1314,9 @@ class FleetMatrixTests(unittest.TestCase):
             )
 
             plan = renderer.plan_fleet(root)
-            self.assertEqual(plan.source_identities, 5)
-            self.assertEqual(plan.maximum_jobs, 15)
-            self.assertEqual(plan.desired_jobs, 15)
+            self.assertEqual(plan.source_identities, 6)
+            self.assertEqual(plan.maximum_jobs, 18)
+            self.assertEqual(plan.desired_jobs, 18)
             _, outputs = renderer.shard_summary(plan, 1)
             matrix = json.loads(outputs["matrix"])["include"]
             self.assertEqual(
