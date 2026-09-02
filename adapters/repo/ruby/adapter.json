@@ -1,0 +1,745 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/ruby",
+  "repository": "ruby/ruby",
+  "upstream_sha": "12e5584ddc3d05988390016e14556ab543765939",
+  "source_refs": [
+    {
+      "name": "master",
+      "sha": "7dec7a2aa38cf5458fe43cd036eda373b12b423d",
+      "jits": [
+        "yjit",
+        "zjit"
+      ],
+      "status": "run-verified-current",
+      "validated_baselines": [
+        {
+          "sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+          "release": "4.1.0dev",
+          "status": "run-verified-shared-native"
+        },
+        {
+          "sha": "12e5584ddc3d05988390016e14556ab543765939",
+          "release": "4.1.0dev",
+          "profile": "x86_64-linux-gnu.2.17",
+          "artifact_mode": "shared-only",
+          "status": "run-verified-public-native",
+          "workflow_run_id": 33095974872,
+          "controller_sha": "1af1a846cab6fb0cfc31fc6b85a3d3a91d3e235d",
+          "artifact_id": 9656791523,
+          "artifact_digest": "sha256:bbd7f2e600ace3483a099ce6a3e773d596142f4c849c4ebaa0b09adb12fe32b3"
+        },
+        {
+          "sha": "12e5584ddc3d05988390016e14556ab543765939",
+          "release": "4.1.0dev",
+          "profile": "x86_64-linux-musl",
+          "artifact_mode": "static-only",
+          "rust": false,
+          "status": "run-verified-cross-admitted",
+          "source_patch_sha256": "a513fc938d0f838c143fd894f53c0206bb935de69538fc25f445d54be502cc3b"
+        }
+      ],
+      "validated_candidates": [
+        {
+          "sha": "7dec7a2aa38cf5458fe43cd036eda373b12b423d",
+          "release": "4.1.0dev",
+          "profile": "x86_64-linux-gnu.2.17",
+          "artifact_mode": "shared-only",
+          "status": "run-verified-continuous-candidate",
+          "verification": "native-executed-shared",
+          "runner": "ubuntu-24.04",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "controller": {
+            "commit": "d84bd12b565aa1c4c9b139e12e01774b4aaf8142",
+            "fleet_lock_sha256": "08dad9a9d0a514577c1f5d983a32408009d190cea863e11fb4acf9f3b58008b3",
+            "adapter_manifest_sha256": "ea8268f6924009ef8b8226a26dd279401cde087e905ec2278ebd81700e19dd76",
+            "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22"
+          },
+          "workflow_run_id": 33138563961,
+          "workflow_job_id": 98744080547,
+          "artifact_id": 9673232343,
+          "artifact_name": "zig-evidence-ruby-master-x86_64-linux-gnu.2.17-7dec7a2aa38c-x86_64-linux-gnu.2.17-1",
+          "artifact_size_bytes": 36097164,
+          "artifact_digest": "sha256:4177d19f19731c993dcdbbc704cb55c1c42ea455a767b32e276d38c966029edc",
+          "provenance_sha256": "65386e35fb7211e4bdc236c4eb62e88bfad95d85fb70fb6887377e4d0d230304",
+          "job_log_sha256": "4f0ba57e3713347017335610fd64cf9bef0474460faa40754e5f5a1fd8ed624e",
+          "process_audit": "passed",
+          "forbidden_processes": 0,
+          "trace_sha256": "462199382c4132d10c781f5abab34b1bd5f2394bda56195813a9b74135e9b812",
+          "trace_lines": 155094,
+          "receipts_sha256": "cd19e1dfef6babf331c2c9f491e93df455182f4578cedf3b0aa1570b718d017a",
+          "receipt_count": 1585,
+          "invalid_receipts": 0,
+          "curated_manifest_sha256": "5e82f1b7f993be2b837bb181384ed0a596edbed95b1138ebb769e57b0b1d3582",
+          "tests": {
+            "bootstrap": 2066,
+            "leaked_globals": "none"
+          },
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "passed",
+            "native_extension_smoke": "passed"
+          },
+          "export_map_symbols": 3726,
+          "rust_mangled_dynamic_exports": 0,
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable",
+            "rb_zjit_enable"
+          ],
+          "dso_links": {
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.4.1.0": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "172035a33d08d46855d4c937b5788cfa9b45332f63cbd910096a20f6ee6b1614",
+            "ruby": "9e8e8b426ff981f78635d5d7556d709f3ec268d798532657d104aaed3e8ffb5d",
+            "libruby.so.4.1.0": "1e3f8c6bf40a42a1ff84525a7f22e49d20d7d0c82cd08169f418115517ca7997",
+            "ruby-zig.exports": "d1a317305e1a1738a995307e2cbc88ea6509bfb474f7cea5633055d98a7cbe15",
+            "rbconfig.rb": "ae5e0ca26df1e6a6c2957f11cc6f98a49f649c2f1181dc3c2717177dcbac7ae9"
+          }
+        },
+        {
+          "sha": "7dec7a2aa38cf5458fe43cd036eda373b12b423d",
+          "release": "4.1.0dev",
+          "profile": "x86_64-linux-musl",
+          "artifact_mode": "static-only",
+          "status": "run-verified-continuous-candidate",
+          "verification": "native-executed-static-musl",
+          "runner": "ubuntu-24.04",
+          "zig": "0.16.0",
+          "rust": false,
+          "controller": {
+            "commit": "d84bd12b565aa1c4c9b139e12e01774b4aaf8142",
+            "fleet_lock_sha256": "08dad9a9d0a514577c1f5d983a32408009d190cea863e11fb4acf9f3b58008b3",
+            "adapter_manifest_sha256": "ea8268f6924009ef8b8226a26dd279401cde087e905ec2278ebd81700e19dd76",
+            "build_script_sha256": "a325c4f2f31c0669632f1d0d03a48d01c969d44f2dc748709db4a4e03d67defa"
+          },
+          "workflow_run_id": 33138563961,
+          "workflow_job_id": 98744081193,
+          "artifact_id": 9673217819,
+          "artifact_name": "zig-evidence-ruby-master-x86_64-linux-musl-7dec7a2aa38c-x86_64-linux-musl-1",
+          "artifact_size_bytes": 33087031,
+          "artifact_digest": "sha256:584d1afad004a00b16c72574f4f4177e993e807fa27a288beae0ff10ddd50ddf",
+          "provenance_sha256": "5c55c0bd6ecd13dcedd12a45ec4e04f1e981e4effe9b93f584ea1a0c17a6ea07",
+          "job_log_sha256": "217252da33952bc94eb5ecf0c015ccf07094653934c75d34dc08bcc5ed249e5c",
+          "source_patch_sha256": "a513fc938d0f838c143fd894f53c0206bb935de69538fc25f445d54be502cc3b",
+          "process_audit": "passed",
+          "forbidden_processes": 0,
+          "trace_sha256": "ddb5c5e5de37737ed9c6775ea23fd5602f683ff6353354a2aab64c8ea15dbf5a",
+          "trace_lines": 149093,
+          "receipts_sha256": "0c6e5aeee99d87ed7b16394b90caa7d8e49790370340bb794d8dc7da17657a01",
+          "receipt_count": 1508,
+          "invalid_receipts": 0,
+          "curated_manifest_sha256": "d70d8ea09364b4470243855a41fbc2c41ccb401be22732e08a11d081e7126935",
+          "tests": {
+            "bootstrap": 2066,
+            "basic_assertions": 894
+          },
+          "runtime": {
+            "static_configuration": "passed",
+            "native_extension_smoke": "passed"
+          },
+          "elf": {
+            "miniruby": "ELF 64-bit LSB x86-64 statically linked",
+            "ruby": "ELF 64-bit LSB x86-64 statically linked",
+            "program_interpreter": "none",
+            "dynamic_dependencies": "none",
+            "glibc_symbol_versions": "none",
+            "musl_startup_symbols": "present"
+          },
+          "artifact_sha256": {
+            "miniruby": "868d4b0374151c481b18ef6801ddfe64bc883d6d4ee2272550a52f7fca3d4f28",
+            "ruby": "407836079f9add4aa50091a57f559d64f0df198221da422dff586731247e063d",
+            "libruby-static.a": "08cc436ca149ea5b5d862838a911567cd0a9845113a4baa5893851e1ab6f6a2f",
+            "rbconfig.rb": "84e60faac8d0cf1b70546a509d26ee4c71e9832298b88f9a7ebe20c0619257be",
+            "bootstraptest.log": "226f3a7090565b01e175c0a25741d251282965e29278c1057ce455f4769ed696",
+            "basictest.log": "65ba76ec50860ce4dc1c45ed071a51466a748b2e0b0fcfc738b204df017af8c0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ruby_4_0",
+      "sha": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+      "jits": [
+        "yjit",
+        "zjit"
+      ],
+      "status": "run-verified-shared-native",
+      "validated_baselines": [
+        {
+          "sha": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+          "release": "4.0.6",
+          "status": "run-verified-shared-native",
+          "runner": "atlas-tree Ubuntu 24.04 x86_64",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "baseruby": "ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]",
+          "adapter_base_sha": "a9a91bde810fd015b61ec411c5ad31116bce8481",
+          "adapter_overlay_sha256": "bed6be5a663a6bfe16f8a4e85db402eb4ca468470cc0ca272876f184786bd6ef",
+          "process_audit": "passed",
+          "trace_sha256": "678991f2491c09a51ebb0b98cbabf60b5abae18d7e90be665efba4311ff65cdd",
+          "receipts_sha256": "270b640960dd6c1a4eaf112694e84e9773343e9dc81bfa86bfb4096f37fa03d2",
+          "transcript_sha256": "fedbc47b3b6e8b1c30e4e2885c96ecab9590c66af8d3ccb43800f19b906eea82",
+          "receipt_count": 1461,
+          "tests": "2042 passed",
+          "leaked_globals": "none",
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "passed",
+            "native_extensions": [
+              "date",
+              "digest",
+              "io/console",
+              "json",
+              "socket",
+              "stringio",
+              "strscan"
+            ]
+          },
+          "export_map_symbols": 3386,
+          "rust_mangled_dynamic_exports": {
+            "miniruby": 0,
+            "ruby": 0,
+            "libruby.so.4.0.6": 0
+          },
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable",
+            "rb_zjit_enable"
+          ],
+          "dso_links": {
+            "total": 2,
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.4.0.6": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "a5803925e81885f19b63dee32e8278bd5adfdf1790ea80a376d6e083d4dee428",
+            "ruby": "481df89aa99c33f8649413e5f0e7007b60de48014e80eac844b54abf6993b3b1",
+            "libruby.so.4.0.6": "73ed130dca7a511ad2e419ab1af9c5c0e8ce98506d0e313e548e7eb348511651",
+            "libruby-zig-c-only.a": "bd9050078e746333f5efda6179d7729415a6e7825d27ca5c8f7f86648d6db9dc",
+            "target/release/libruby.a": "254d77e0c152c35c58dae2730cd1fff8d223a0ce54777e92bbc999a907ace7e4",
+            "ruby-zig.exports": "5f48baf89c762acb3e5c378d2b422f6e166c1037eed879a7fcdbe9a0b388cb3f",
+            "rbconfig.rb": "f95b86ad456206ec4a8c4b839c5aa486054e992f79b2602b8c56fc8111534847"
+          }
+        }
+      ],
+      "validated_candidates": [
+        {
+          "sha": "2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
+          "release": "4.0.6",
+          "status": "run-verified-continuous-candidate",
+          "adapter_overlay_sha256": "bed6be5a663a6bfe16f8a4e85db402eb4ca468470cc0ca272876f184786bd6ef",
+          "process_audit": "passed",
+          "trace_sha256": "930591f3275d93512602b1b6676456d52c009786f07660cab8cd51c5c5f9d861",
+          "receipts_sha256": "8a8134bc0b8e309e9f28f6375d1ed9738b07cd9d42d7839183617d5e3f24babb",
+          "transcript_sha256": "9fd5649a5206f341e3948442314da7d20e5d8e578a2b86667495ed837ccf2077",
+          "receipt_count": 1461,
+          "tests": "2042 passed",
+          "leaked_globals": "none",
+          "artifact_sha256": {
+            "miniruby": "ea67598dc363fd4e37b4012fdafe9ead3d6245a619bb91f457c2045cc4e77e6f",
+            "ruby": "67df8f7d40c407f4a1feeb070d13dacf452056a60966ff8800fbaf4908696b80",
+            "libruby.so.4.0.6": "5c1eac99809be31fe979e353271b7ec27d9113b008b3c2c20ad054198cea8b3a",
+            "libruby-zig-c-only.a": "2b24d77d3500729c3275549ba6928f7d12a90f3ae0efce4a286664e4e42be4b0",
+            "target/release/libruby.a": "b5c542ca0cadbe7adcb8b97f132e0676a535a26261efe195634aa46bcb6e89bd",
+            "ruby-zig.exports": "5f48baf89c762acb3e5c378d2b422f6e166c1037eed879a7fcdbe9a0b388cb3f",
+            "rbconfig.rb": "32704cdc5a668bff0dcfaa0dba56c744cc0f6c09edf269a72377af931bc7e9d2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ruby_3_4",
+      "sha": "8f3d12f70b2b775c1f228ca136361d18ec3f1e36",
+      "jits": [
+        "yjit"
+      ],
+      "status": "run-verified-shared-native",
+      "validated_baselines": [
+        {
+          "sha": "aac3e36dd4bee40fc89893209553903706fa5666",
+          "release": "3.4.10",
+          "status": "run-verified-shared-native",
+          "runner": "atlas-tree Ubuntu 24.04 x86_64",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "baseruby": "ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]",
+          "controller": {
+            "commit": "6f54fe9902c60b7a5862b91868e875a7eb694f1f",
+            "tree": "9d7acb8350766f14ca4fcbff08a07a9ca3cd1b34",
+            "bundle_sha256": "e9d625a78b234078fde3f91e18692780003e52311b408e3590a41cc0d066f9ae",
+            "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22",
+            "source_contract_sha256": "39a5d2e6832855b885bca44e4cb6b28255e67f0aac015961dbf9874828b5c5e4"
+          },
+          "process_audit": "passed",
+          "leaked_globals": "none",
+          "trace_sha256": "ddae8a775037a43541d9dd2a702ad9d8d2151b72b74250e5e2b861d45d81e3c3",
+          "receipts_sha256": "fd81a503f54e9126448f1cbe8168120be9acb8e836c497302e1368ecf0fed973",
+          "transcript_sha256": "81c89343f7817c0f0d82d59904f2333ba87931137718f2b3e0bedb2484bfa2d4",
+          "strict_audit": {
+            "artifact": "transcript",
+            "sha256": "6fda001cd8198e192442a157d7e8d03490b2d6d4127b5b36e09df958a40e068a"
+          },
+          "curated_manifest_sha256": "1659e3db96e003a968f844d649637719e142b8838aadd446868d57f54f1406a9",
+          "dso_list_sha256": "ec22e1646f14e3a5781830d616427d2632f161241fc1677e1ccf8469f2ffad44",
+          "receipt_count": 1518,
+          "tests": {
+            "bootstrap": 2022,
+            "basic_groups": 30,
+            "assertions": 894
+          },
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "not-present-in-release",
+            "native_extension_smoke": "26 families passed"
+          },
+          "native_extension_scope": {
+            "built_dsos": 155,
+            "smoke_families": 26,
+            "excluded_from_certification": [
+              "fiddle",
+              "openssl",
+              "psych",
+              "zlib"
+            ]
+          },
+          "export_map_symbols": 3212,
+          "export_audit": {
+            "rust_mangled_dynamic_exports": 0,
+            "partial_link_products": 0,
+            "forbidden_processes": 0
+          },
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable"
+          ],
+          "dso_links": {
+            "total": 2,
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.3.4.10": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "02292311465d95852dd45a0d6413d8e5722aaf67f1ef9e41442bb294d22f43a3",
+            "ruby": "58e5534af06e3dcb79fe0b43201d74e881579587281911fe5d36c55d893ee717",
+            "libruby.so.3.4.10": "8cd7672fd7de712a4b15192259a7b954d87c2b09e60f3d17850feb0668fc675d",
+            "libruby-zig-c-only.a": "26d4df51028e48d27dcba3023fbb2dd83844db678904f8650381b196741306b5",
+            "yjit/target/release/libyjit.a": "ea42dc941107a2782f72dbff9a0e6519f933807303256e592b353a37350dcc16",
+            "ruby-zig.exports": "2df9608eff2d81830c79e517deac1f734404d049ea1167ba3b9ffc23bf4e0483",
+            "rbconfig.rb": "28d8375c4954d5cb1b11b1a00afd55a9607c345c992d693dbdcf531d55ca869c"
+          }
+        }
+      ],
+      "validated_candidates": [
+        {
+          "sha": "8f3d12f70b2b775c1f228ca136361d18ec3f1e36",
+          "release": "3.4.10",
+          "profile": "x86_64-linux-gnu.2.17",
+          "artifact_mode": "shared-only",
+          "status": "run-verified-continuous-candidate",
+          "verification": "native-executed-shared",
+          "runner": "ubuntu-24.04",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "controller": {
+            "commit": "d84bd12b565aa1c4c9b139e12e01774b4aaf8142",
+            "fleet_lock_sha256": "08dad9a9d0a514577c1f5d983a32408009d190cea863e11fb4acf9f3b58008b3",
+            "adapter_manifest_sha256": "ea8268f6924009ef8b8226a26dd279401cde087e905ec2278ebd81700e19dd76",
+            "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22"
+          },
+          "workflow_run_id": 33138564818,
+          "workflow_job_id": 98744078586,
+          "artifact_id": 9673274182,
+          "artifact_name": "zig-evidence-ruby-ruby_3_4-x86_64-linux-gnu.2.17-8f3d12f70b2b-x86_64-linux-gnu.2.17-1",
+          "artifact_size_bytes": 23860909,
+          "artifact_digest": "sha256:83c1e00d9558fb2ca0305d1235bfdb8108c6a521646db64c5454b9ebcfd299d0",
+          "provenance_sha256": "76a95302e0028507b5c75f49cc9cdbfa596be55f759b936671a2351e531ef1df",
+          "job_log_sha256": "df9a36a847c29e0b1e60ce24865933f292e5f8de7402562efdaa6ce2d1852851",
+          "process_audit": "passed",
+          "forbidden_processes": 0,
+          "trace_sha256": "ddaf46c30a2adaf96b2664cfe94fed7bd4047f7d3de2f5d79d50ded546665b42",
+          "trace_lines": 149162,
+          "receipts_sha256": "384291a1d07455448df077caeca5ee452d71ca3417d987f799af7e7ec608bdc0",
+          "receipt_count": 1519,
+          "invalid_receipts": 0,
+          "curated_manifest_sha256": "282dc53600e8aced0fe54b2af1021424d480cfa6e321114813ea2976ebe3cfbf",
+          "tests": {
+            "bootstrap": 2022,
+            "leaked_globals": "none"
+          },
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "not-present-in-release",
+            "native_extension_smoke": "passed"
+          },
+          "export_map_symbols": 3212,
+          "rust_mangled_dynamic_exports": 0,
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable"
+          ],
+          "dso_links": {
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.3.4.10": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "31e1c5e3302a3703f58e73b4a2d4b0f26e087238a152fdd4d884c2e36538287a",
+            "ruby": "702e6f7f17f62ac88292653383aa1890c9aa512224b2607c2ccab5cd2f02dfbc",
+            "libruby.so.3.4.10": "800a7a2c0a8be6b6f65f2c8ef00895c648b264a1659d9e5a78ad595fafd03f6e",
+            "ruby-zig.exports": "2df9608eff2d81830c79e517deac1f734404d049ea1167ba3b9ffc23bf4e0483",
+            "rbconfig.rb": "920c629f36abe42bce68eb612a29721f3da2757ec31cd07367b1ce3214e170d9"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ruby_3_3",
+      "sha": "e675ccc096757021d6641ab3f10209a3df8b57a2",
+      "jits": [
+        "yjit"
+      ],
+      "status": "run-verified-shared-native",
+      "validated_baselines": [
+        {
+          "sha": "0581089df9f0af0fe6b64cb8167987c211100947",
+          "release": "3.3.12",
+          "status": "run-verified-shared-native",
+          "runner": "atlas-tree Ubuntu 24.04 x86_64",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "baseruby": "ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]",
+          "controller": {
+            "commit": "6f54fe9902c60b7a5862b91868e875a7eb694f1f",
+            "tree": "9d7acb8350766f14ca4fcbff08a07a9ca3cd1b34",
+            "bundle_sha256": "e9d625a78b234078fde3f91e18692780003e52311b408e3590a41cc0d066f9ae",
+            "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22",
+            "source_contract_sha256": "39a5d2e6832855b885bca44e4cb6b28255e67f0aac015961dbf9874828b5c5e4"
+          },
+          "process_audit": "passed",
+          "leaked_globals": "none",
+          "trace_sha256": "2dbf06dca21fa7bdf4ce2734339d1d88f1d8b628a8df1ee70c5511b49812c566",
+          "receipts_sha256": "4b2a6cc08485d480bc18e4854ac134b4fdf314bf9ff6237939867f838a9b9759",
+          "transcript_sha256": "29498e70840b58cd6547c13bc3cab4f18eb38334d24136595954ae4eed69e3d4",
+          "strict_audit": {
+            "artifact": "summary",
+            "sha256": "acf031562958c5a3805b7bdce809b7816a7168c892fd1a195ba6dc87159f2cd2"
+          },
+          "curated_manifest_sha256": "564467a1ed8faaf240246e4783b8039b6446ac3b54610217e1ddcf2106dea732",
+          "dso_list_sha256": "19d0b261835a0ec23c788128a5ba61215053398620fa207c53e110e3bdc1b5ef",
+          "receipt_count": 1538,
+          "tests": {
+            "bootstrap": 1890,
+            "basic_groups": 30,
+            "assertions": 894
+          },
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "not-present-in-release",
+            "native_extension_smoke": "26 families passed"
+          },
+          "native_extension_scope": {
+            "built_dsos": 155,
+            "smoke_families": 26,
+            "excluded_from_certification": [
+              "fiddle",
+              "openssl",
+              "psych",
+              "zlib"
+            ]
+          },
+          "export_map_symbols": 3047,
+          "export_audit": {
+            "rust_mangled_dynamic_exports": 0,
+            "partial_link_products": 0,
+            "forbidden_processes": 0
+          },
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable"
+          ],
+          "dso_links": {
+            "total": 2,
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.3.3.12": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "de74d05faab2bbe8184d311877868141a87dda0f1ac9815f8f8dc57ad97985e2",
+            "ruby": "1b126811897394c763838b2d3184318c65e122430aee9a2486e3aa64fd477e53",
+            "libruby.so.3.3.12": "9e77b17ae36efa1271159e2a6fd85baab359726b18ee1bff6f441474eb7f3dc0",
+            "libruby-zig-c-only.a": "6e2ad50ee9265008691ba5bd4ce090245748213e5557cf9ea5ff1d195599e4d0",
+            "yjit/target/release/libyjit.a": "ea903f12826e4283d4476625dee36773e8e7033321440ae3850f5747772c0af5",
+            "ruby-zig.exports": "a56f410c150da99ac7f73c89fc2886934aaecc700111b0138027c8371250f474",
+            "rbconfig.rb": "af468897d19da5d5389775868e4a917afdf01ba5cd99596c58ba7873d632ebcc"
+          }
+        }
+      ],
+      "validated_candidates": [
+        {
+          "sha": "e675ccc096757021d6641ab3f10209a3df8b57a2",
+          "release": "3.3.12",
+          "profile": "x86_64-linux-gnu.2.17",
+          "artifact_mode": "shared-only",
+          "status": "run-verified-continuous-candidate",
+          "verification": "native-executed-shared",
+          "runner": "ubuntu-24.04",
+          "zig": "0.16.0",
+          "rust": "1.98.0",
+          "controller": {
+            "commit": "d84bd12b565aa1c4c9b139e12e01774b4aaf8142",
+            "fleet_lock_sha256": "08dad9a9d0a514577c1f5d983a32408009d190cea863e11fb4acf9f3b58008b3",
+            "adapter_manifest_sha256": "ea8268f6924009ef8b8226a26dd279401cde087e905ec2278ebd81700e19dd76",
+            "build_script_sha256": "21193cce4ad4efd92f17d0b1f26c5f77f41f7a1f6fdcfd9ba34fce77b2712b22"
+          },
+          "workflow_run_id": 33138564979,
+          "workflow_job_id": 98744076643,
+          "artifact_id": 9673246062,
+          "artifact_name": "zig-evidence-ruby-ruby_3_3-x86_64-linux-gnu.2.17-e675ccc09675-x86_64-linux-gnu.2.17-1",
+          "artifact_size_bytes": 21236479,
+          "artifact_digest": "sha256:f53ec131b3be0c1336798b5fa92a62480553cbe5dd6b76ed72925966389d9729",
+          "provenance_sha256": "3118fe91a5e975a0f475754821523e0c8527d0ead395c13dc45de473112c3209",
+          "job_log_sha256": "f44aff0c43d276aa146aa9a04c8dd8cfd25448b2cac955cb02a3d83f7f876279",
+          "process_audit": "passed",
+          "forbidden_processes": 0,
+          "trace_sha256": "7ee066c5c99e779dc5742ba28368690c2a59acba2dfb618064d15a464613031d",
+          "trace_lines": 147846,
+          "receipts_sha256": "d08d798aad7d03d1cd4c5aaaf95c913578c43809e9787c4de51961d436a6fe30",
+          "receipt_count": 1539,
+          "invalid_receipts": 0,
+          "curated_manifest_sha256": "386776825657d50becfcbd09da019bf40d677eeed1eba50a5a2eff0eb114a4ed",
+          "tests": {
+            "bootstrap": 1889,
+            "leaked_globals": "none"
+          },
+          "runtime": {
+            "yjit": "passed",
+            "zjit": "not-present-in-release",
+            "native_extension_smoke": "passed"
+          },
+          "export_map_symbols": 3047,
+          "rust_mangled_dynamic_exports": 0,
+          "required_dynamic_exports": [
+            "ruby_init",
+            "rb_yjit_enable"
+          ],
+          "dso_links": {
+            "mapped": 1,
+            "mapped_is_final": true
+          },
+          "gnu_abi_ceiling": {
+            "miniruby": "GLIBC_2.17",
+            "ruby": "GLIBC_2.4",
+            "libruby.so.3.3.12": "GLIBC_2.17"
+          },
+          "artifact_sha256": {
+            "miniruby": "2016ffbc0f34aa6907982fd4149a629ae92c995ad590b444f13f98aa46f43a9c",
+            "ruby": "e7d1f1b12a81bde314a7a027edf9ba21b063ef1e5e4f6c3961b2048dfcec6f3a",
+            "libruby.so.3.3.12": "ee70d5824fda8c437b975d7c4e59f25084d4510b52c4b07c2441eb52a2dfa8f7",
+            "ruby-zig.exports": "a56f410c150da99ac7f73c89fc2886934aaecc700111b0138027c8371250f474",
+            "rbconfig.rb": "407116fe341558e09985835049945a065f845d454b7c24fcbceceba9acae480e"
+          }
+        }
+      ]
+    }
+  ],
+  "build_system": "autoconf-gnu-make-rustc",
+  "entrypoints": [
+    "bash autogen.sh",
+    "configure a shared build with exact Zig wrappers and a canonical native build/host tuple",
+    "build the Rust archive and an internal C sidecar archive",
+    "complete the ordinary build and extensions, then relink only libruby with a DSO-scoped exact export map and the normal Rust archive input",
+    "make yes-test-leaked-globals and make test",
+    "audit exports, YJIT/ZJIT runtime, native extensions, artifacts, ABI ceiling, receipts, and the process trace"
+  ],
+  "native_scope": "cruby-c-cxx-assembly-and-rust-jits",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/cruby/**"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified-baseline",
+      "source_ref": "master",
+      "source_sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+      "artifact_mode": "shared-only"
+    },
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified-baseline",
+      "source_ref": "ruby_4_0",
+      "source_sha": "f3a72fe0a6d35583e215422e8887d3df0a1670b8",
+      "artifact_mode": "shared-only"
+    },
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified-baseline",
+      "source_ref": "ruby_3_4",
+      "source_sha": "aac3e36dd4bee40fc89893209553903706fa5666",
+      "artifact_mode": "shared-only"
+    },
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified-baseline",
+      "source_ref": "ruby_3_3",
+      "source_sha": "0581089df9f0af0fe6b64cb8167987c211100947",
+      "artifact_mode": "shared-only"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "run-verified-admitted",
+      "source_ref": "master",
+      "source_sha": "12e5584ddc3d05988390016e14556ab543765939",
+      "artifact_mode": "static-only",
+      "rust": false,
+      "jits": []
+    }
+  ],
+  "cross_status": "x86_64-linux-musl-run-verified-admitted",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "rust": "1.98.0",
+    "baseruby": "ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]",
+    "source_ref": "master",
+    "source_sha": "89d3b11eace35b8e279b970b4ff5125f171d0d4b",
+    "process_audit": "passed",
+    "trace_sha256": "d8c095b023b5f370456adee882aa5cdf7caf4e165d6d89fd46abb52a524949b8",
+    "receipts_sha256": "d3bada25a85ff089863b89a952b1b90f085edb0928239fda1eda675dabf9b8bd",
+    "receipt_count": 1584,
+    "tests": "2066 passed",
+    "leaked_globals": "none",
+    "runtime": {
+      "yjit": "passed",
+      "zjit": "passed",
+      "native_extensions": [
+        "date",
+        "digest",
+        "io/console",
+        "json",
+        "socket",
+        "stringio",
+        "strscan"
+      ]
+    },
+    "export_map_symbols": 3728,
+    "rust_mangled_dynamic_exports": {
+      "miniruby": 0,
+      "ruby": 0,
+      "libruby.so.4.1.0": 0
+    },
+    "required_dynamic_exports": [
+      "ruby_init",
+      "rb_yjit_enable",
+      "rb_zjit_enable"
+    ],
+    "dso_links": {
+      "total": 3,
+      "mapped": 1,
+      "mapped_is_final": true
+    },
+    "gnu_abi_ceiling": {
+      "miniruby": "GLIBC_2.17",
+      "ruby": "GLIBC_2.4",
+      "libruby.so.4.1.0": "GLIBC_2.17"
+    },
+    "artifact_sha256": {
+      "miniruby": "36325c7fe5545a11cbe4f796091eaa860a86e0503e53cebe87ca22a5bdc3410c",
+      "ruby": "2a215cc3d7c749a40fc8d8301050597fff83f68690ec46102b4f8194a4e9ba4b",
+      "libruby.so.4.1.0": "3539fd6d35b010ec97d163d9edb4ad1bf5f55f8b0bc772b0d63b329987431901",
+      "libruby-zig-c-only.a": "601296ca0b7f41fcdadfa4017fbc7fa423e4e48862a37803e48074068dce2b30",
+      "target/release/libruby.a": "23ea1649a4f30245f234a895f4d60836137d45ff408a5b80dbc42e576b8dd394",
+      "ruby-zig.exports": "dcdc5be2094a5f6f685be295eb433f4cfc7ddeb80df936d78cba9734307edb76",
+      "rbconfig.rb": "201b620594c6989ed07d33fccbdaeae984064d6c1ca90ede7ef01deaee6ff49c"
+    }
+  },
+  "limitations": [
+    "The native shared-library/JIT evidence remains recorded at 89d3b11eace35b8e279b970b4ff5125f171d0d4b; admitted GNU and static-musl baselines remain pinned while current master 7dec7a2aa38cf5458fe43cd036eda373b12b423d is recorded separately as immutable public candidates for both profiles",
+    "ruby_4_0 has immutable verified baseline f3a72fe0a6d35583e215422e8887d3df0a1670b8 and independently verified continuous candidate 2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef",
+    "ruby_3_4 baseline aac3e36dd4bee40fc89893209553903706fa5666 and ruby_3_3 baseline 0581089df9f0af0fe6b64cb8167987c211100947 remain independently verified native GNU shared builds; current tips 8f3d12f70b2b775c1f228ca136361d18ec3f1e36 and e675ccc096757021d6641ab3f10209a3df8b57a2 are recorded separately as immutable public candidates",
+    "The ruby_3_4 and ruby_3_3 certification covers 155 built DSOs and a 26-family native-extension smoke set; fiddle, openssl, psych, and zlib are explicitly outside that certified scope",
+    "The x86_64-linux-musl cross profile is admitted only for master through an exact profile override; the adapter applies the recorded source patch after git apply --check and disables Rust and both JITs",
+    "Rust source is compiled by pinned rustc; Zig supplies native dependency compilation and final linking",
+    "Cross-compiling CRuby's Rust JITs is not supported; this cross adapter disables YJIT and ZJIT and rejects every Rust receipt"
+  ],
+  "cross_validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "controller_sha": "1af1a846cab6fb0cfc31fc6b85a3d3a91d3e235d",
+    "source_ref": "master",
+    "source_sha": "12e5584ddc3d05988390016e14556ab543765939",
+    "profile": "x86_64-linux-musl",
+    "build_tuple": "x86_64-pc-linux-gnu",
+    "host_tuple": "x86_64-pc-linux-musl",
+    "zig": "0.16.0",
+    "zig_archive_sha256": "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00",
+    "zig_executable_sha256": "2317bbb91798556d9d0f38aabdac23db83f0979b25f767259ae474546724087c",
+    "host_zig_target": "x86_64-linux-gnu.2.17",
+    "target_zig_target": "x86_64-linux-musl",
+    "rust": "disabled",
+    "jits": {
+      "yjit": "disabled",
+      "zjit": "disabled"
+    },
+    "source_patch_sha256": "a513fc938d0f838c143fd894f53c0206bb935de69538fc25f445d54be502cc3b",
+    "process_audit": "passed",
+    "trace_sha256": "422393b1792bbf25440d3d6374c3297f946feaaf5ca907a8b6d6c9e936561fa8",
+    "trace_lines": 149141,
+    "receipts_sha256": "b9acc6ce758bab15ef6e4c24a2b5a050110503fb81a75b45fe3e111eae89621f",
+    "receipt_count": 1507,
+    "verification": "native-executed-static-musl",
+    "tests": {
+      "bootstrap": "2066 passed",
+      "basictest": "894 tests",
+      "native_extensions": [
+        "date",
+        "digest",
+        "io/console",
+        "json",
+        "socket",
+        "stringio",
+        "strscan"
+      ]
+    },
+    "elf": {
+      "miniruby": "ELF 64-bit LSB x86-64 statically linked",
+      "ruby": "ELF 64-bit LSB x86-64 statically linked",
+      "program_interpreter": "none",
+      "dynamic_dependencies": "none",
+      "glibc_symbol_versions": "none",
+      "musl_startup_symbols": "present"
+    },
+    "artifact_sha256": {
+      "miniruby": "4c46d441a289f24e063a689c328a85bdbe5d6831b9b912d75bf123d879eaeecc",
+      "ruby": "4027b62c8dc5ae3bfa6e080e13bdac620d09f7623705327c3ebc3eeff65a1d5d",
+      "libruby-static.a": "93852d0d0579eea13e1f626572f0c242fa77cfc75aa78b02d8ba6c2d3247d70d",
+      "rbconfig.rb": "8e5e44df2822393008bd624fee3bccfe7104fd54f6d92f95f7bb515535da1f15",
+      "bootstraptest.log": "0fd89e95a157101f17bf065dc30e56f583d803a9ecafd9b13e220f78e3523718",
+      "basictest.log": "7ad36fdf66d5b45fa6c6597702be2a79afdff6d0e82a56465d8fc0e966317918"
+    }
+  }
+}

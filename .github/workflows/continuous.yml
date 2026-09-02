@@ -1,6 +1,20 @@
 name: continuous Zig build
 
 on:
+  workflow_call:
+    inputs:
+      source-repository:
+        description: Exact allowlisted ruby-zig fork
+        required: true
+        type: string
+      source-ref-name:
+        description: Exact allowlisted tracked branch
+        required: true
+        type: string
+      source-sha:
+        description: Exact lowercase 40-character post-sync commit SHA
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       source-repository:
@@ -29,16 +43,30 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
+      controller-sha: ${{ steps.controller.outputs.sha }}
       matrix: ${{ steps.plan.outputs.matrix }}
       ready-jobs: ${{ steps.plan.outputs.ready_jobs }}
       source-ref-name: ${{ steps.plan.outputs.source_ref_name }}
       source-repository: ${{ steps.plan.outputs.source_repository }}
       source-sha: ${{ steps.plan.outputs.source_sha }}
     steps:
+      - name: Bind the immutable controller workflow commit
+        id: controller
+        shell: bash
+        env:
+          RZ_CONTROLLER_SHA: ${{ job.workflow_sha }}
+        run: |
+          [[ "$RZ_CONTROLLER_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            printf 'controller workflow commit must be a lowercase 40-character SHA\n' >&2
+            exit 64
+          }
+          printf 'sha=%s\n' "$RZ_CONTROLLER_SHA" >> "$GITHUB_OUTPUT"
+
       - name: Check out the immutable controller
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.sha }}
+          repository: ruby-zig/toolchain
+          ref: ${{ steps.controller.outputs.sha }}
           persist-credentials: false
 
       - name: Derive build contract from fleet lock
@@ -85,7 +113,7 @@ jobs:
       profiles: ${{ matrix.profiles }}
       build-script: ${{ matrix.build_script }}
       ruby-version: ${{ matrix.ruby_version }}
-      toolchain-ref: ${{ github.sha }}
+      toolchain-ref: ${{ needs.plan.outputs.controller-sha }}
       source-repository: ${{ matrix.repository }}
       source-ref: ${{ matrix.source_ref }}
       source-ref-name: ${{ matrix.source_ref_name }}

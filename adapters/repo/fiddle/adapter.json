@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/fiddle",
+  "repository": "ruby/fiddle",
+  "upstream_sha": "195c8d133bb8e225f27ba54f1bc476b8d488e217",
+  "build_system": "ruby-mkmf-make-with-bundled-static-libffi",
+  "entrypoints": [
+    "ext/fiddle/extconf.rb"
+  ],
+  "native_scope": "project-extension-and-static-dependency",
+  "source_inputs": [
+    "ext/fiddle/extconf.rb",
+    "ext/fiddle/closure.c",
+    "ext/fiddle/closure.h",
+    "ext/fiddle/conversions.c",
+    "ext/fiddle/conversions.h",
+    "ext/fiddle/fiddle.c",
+    "ext/fiddle/fiddle.h",
+    "ext/fiddle/function.c",
+    "ext/fiddle/function.h",
+    "ext/fiddle/handle.c",
+    "ext/fiddle/memory_view.c",
+    "ext/fiddle/pinned.c",
+    "ext/fiddle/pointer.c",
+    "ext/fiddle/depend",
+    "lib/fiddle.rb",
+    "lib/fiddle/closure.rb",
+    "lib/fiddle/function.rb",
+    "lib/fiddle/version.rb"
+  ],
+  "dependencies": [
+    {
+      "name": "libffi",
+      "version": "3.4.6",
+      "source": "libffi.json",
+      "archive_environment": "RZ_DEP_LIBFFI_ARCHIVE",
+      "linkage": "static",
+      "build": "source-through-controller-zig-wrappers"
+    }
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/fiddle.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "0bf93516c357c391725744a7d615f577c597e6be",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "trace_sha256": "598cfae49fc83f424a6d753cf398d8cab4dd353388c6221547ac39ad85b149da",
+      "receipts_sha256": "7dbcbc6230aa2d415171a352ece126f1fe989858eecc9a95fa91d9a34c09df98",
+      "native_receipts": 143,
+      "receipt_tools": {
+        "cc": 115,
+        "cxx": 21,
+        "ar": 4,
+        "ranlib": 2,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "probe": 26,
+        "compile": 78,
+        "link": 33,
+        "archive": 6
+      },
+      "artifact_sha256": "9a6e593d42fc6260052bacd0a4a6f608514a11c9ebb278490e3da22f233bdb1c",
+      "libffi_static_sha256": "a5f1b229c76e91648175fafb482bed0da1a0de4412355efc7a264775ee6aa5cd",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.14",
+      "glibc_version_dependencies": 4,
+      "evidence_archive": "ruby-zig-fiddle-0bf9351-195c8d1-evidence.tar.xz",
+      "evidence_sha256": "c726140d77a42944ed3053051cf680483ee6bed51b710e2990558eff780c255c",
+      "test": "loads only the exact staged artifact, calls libc strlen through Fiddle, and executes and frees a libffi closure callback"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdk-and-runtime",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_fiddle",
+    "exported_init_symbols": [
+      "Init_fiddle",
+      "Init_fiddle_closure",
+      "Init_fiddle_function",
+      "Init_fiddle_handle",
+      "Init_fiddle_memory_view",
+      "Init_fiddle_pinned",
+      "Init_fiddle_pointer"
+    ],
+    "dynamic_libffi_dependency": false
+  },
+  "gaps": [
+    "cross profiles require matching target-native Ruby SDKs and runtimes"
+  ]
+}

@@ -60,6 +60,12 @@ class ContinuousPlan:
 
     def summary(self) -> str:
         profile_list = ", ".join(f"`{profile}`" for profile in self.profiles)
+        contract_rows = tuple(
+            f"| `{entry['profile_id']}` | `{entry['build_script']}` | "
+            f"`{'enabled' if entry['rust'] else 'disabled'}` |"
+            for entry in self.matrix["include"]
+        )
+
         return "\n".join(
             (
                 "### Continuous build plan",
@@ -72,11 +78,17 @@ class ContinuousPlan:
                 f"| Branch | `{self.source_ref_name}` |",
                 f"| Certified baseline | `{self.baseline_sha}` |",
                 f"| Candidate | `{self.source_sha}` |",
-                f"| Adapter | `{self.adapter_id}` (`{self.build_script}`) |",
+                f"| Default adapter | `{self.adapter_id}` (`{self.build_script}`) |",
                 f"| Profiles | {profile_list} |",
                 f"| Ruby runtime | `{self.ruby_version}` |",
-                f"| Rust boundary | `{'enabled' if self.rust else 'disabled'}` |",
+                f"| Default Rust boundary | `{'enabled' if self.rust else 'disabled'}` |",
                 f"| Build jobs | {self.ready_jobs} |",
+                "",
+                "#### Effective profile contracts",
+                "",
+                "| Profile | Build adapter | Rust |",
+                "| --- | --- | --- |",
+                *contract_rows,
                 "",
                 "The immutable fleet lock supplied every build-affecting value. "
                 "The caller supplied only the fork, tracked branch, and candidate SHA.",
@@ -108,57 +120,60 @@ def plan_continuous(
 
     fleet = renderer.plan_fleet(root)
     lock = renderer.read_json(root / "config" / "fleet-lock.json")
-    owner = lock["destination_owner"]
-    repository_entries = [
-        entry
-        for entry in lock["source_refs"]
-        if f"{owner}/{entry['name']}" == source_repository
+    executable_for_repository = [
+        source
+        for source in lock["sources"]
+        if source["repository"] == source_repository
     ]
-    if not repository_entries:
+    if not executable_for_repository:
         raise renderer.PlanError(
             f"{source_repository}: repository is not allowlisted by the fleet lock"
         )
 
-    tracked_entries = [
-        entry
-        for entry in repository_entries
-        if entry["ref_name"] == source_ref_name
+    executable = [
+        source
+        for source in executable_for_repository
+        if source["ref_name"] == source_ref_name
     ]
-    if not tracked_entries:
+    if not executable:
         allowed = ", ".join(
-            sorted((entry["ref_name"] for entry in repository_entries), key=str.casefold)
+            sorted(
+                (source["ref_name"] for source in executable_for_repository),
+                key=str.casefold,
+            )
         )
         raise renderer.PlanError(
             f"{source_repository}@{source_ref_name}: branch is not allowlisted; "
             f"tracked branches: {allowed}"
         )
-    if len(tracked_entries) != 1:
-        raise renderer.PlanError(
-            f"{source_repository}@{source_ref_name}: ambiguous tracked source"
-        )
-    tracked = tracked_entries[0]
-
-    executable = [
-        source
-        for source in lock["sources"]
-        if source["name"] == tracked["name"]
-        and source["ref_name"] == tracked["ref_name"]
-    ]
-    if not executable:
-        raise renderer.PlanError(
-            f"{tracked['result_id']}: tracked source is pending and has no "
-            "certified executable baseline"
-        )
     if len(executable) != 1:
         raise renderer.PlanError(
-            f"{tracked['result_id']}: ambiguous executable baseline"
+            f"{source_repository}@{source_ref_name}: ambiguous executable baseline"
         )
     source = executable[0]
 
+    tracked_entries = [
+        entry
+        for entry in lock["source_refs"]
+        if entry["name"] == source["name"]
+        and entry["ref_name"] == source["ref_name"]
+    ]
+    if not tracked_entries:
+        raise renderer.PlanError(
+            f"{source['result_id']}: executable baseline has no tracked source"
+        )
+    if len(tracked_entries) != 1:
+        raise renderer.PlanError(
+            f"{source['result_id']}: ambiguous tracked source"
+        )
+    tracked = tracked_entries[0]
+
+    selected_profiles = tuple(source["profiles"])
     lanes = [
         lane
         for lane in fleet.lanes
         if lane.name == tracked["name"] and lane.ref_name == tracked["ref_name"]
+        and lane.profile["id"] in selected_profiles
     ]
     if not lanes:
         raise renderer.PlanError(
@@ -172,7 +187,6 @@ def plan_continuous(
             f"{'; '.join(reasons)}"
         )
 
-    selected_profiles = tuple(source["profiles"])
     actual_profiles = {lane.profile["id"] for lane in lanes}
     if actual_profiles != set(selected_profiles) or len(lanes) != len(selected_profiles):
         raise renderer.PlanError(

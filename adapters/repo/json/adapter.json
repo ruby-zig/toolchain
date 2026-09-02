@@ -38,7 +38,7 @@
     },
     {
       "id": "x86_64-linux-musl",
-      "status": "build-only",
+      "status": "experimental-non-certifying",
       "controller_sha": "c3d37ec477db9a214e0c5c86f6cc6cfccbe3e520",
       "trace_sha256": "38db35ca6993574dee436490aed5e82ba5c224a5afe922aaaa524f08669dbfcd",
       "receipts_sha256": "5083be2e6cd00b67ddb29534f831f886c7f873725fec7509bac741b2c3ed47aa",
@@ -53,9 +53,10 @@
       }
     }
   ],
-  "cross_status": "x86_64-linux-musl-certified-build-only",
+  "cross_status": "blocked-missing-target-native-musl-ruby-sdk",
   "gaps": [
     "SIMD is disabled because Zig 0.16 cannot PIC-link JSON's __builtin_cpu_supports reference to __cpu_model",
+    "the experimental musl artifacts used the GNU Ruby SDK and are not certifying cross-builds",
     "other declared profiles still need target-compatible Ruby headers and libraries"
   ]
 }

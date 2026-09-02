@@ -1,1 +1,2 @@
 * text=auto eol=lf
+adapters/repo/ruby/patches/*.patch -whitespace

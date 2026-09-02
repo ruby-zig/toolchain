@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/debug",
+  "repository": "ruby/debug",
+  "upstream_sha": "6510cfbc7496c55ebbefa437a25c17ca58f7c5eb",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/debug/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/debug/extconf.rb",
+    "ext/debug/debug.c",
+    "ext/debug/iseq_collector.c",
+    "lib/debug/version.rb"
+  ],
+  "generated_inputs": [
+    "ext/debug/debug_version.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/debug/debug.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "2b13a11b59dd0904af457df9d78929f85858a676",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "trace_sha256": "86b93d47b64ddc489c559693f156e7db64ef6330a39d9c2bed9cdd7882574a0e",
+      "receipts_sha256": "67fd9abb1cc19189fa2ff658eb6120e7234a4e6b3c7faf66c5fc2d31f1ece8d7",
+      "native_receipts": 3,
+      "receipt_tools": {
+        "cc": 2,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 2,
+        "link": 1
+      },
+      "artifact_sha256": "c3e8791abc89c9b6dae6fb5e36f5aac15de1c30d3984dd7106550abd97dcbbab",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.2.5",
+      "glibc_version_dependencies": 1,
+      "evidence_archive": "debug-cert-2b13a11-6510cfb-evidence.tar.xz",
+      "evidence_sha256": "8534e329c665c75d725bbb38bd04ef5f3203d59a9bd08b6d4e08159259eabcdd",
+      "test": "loads only the exact staged artifact and verifies debugger frame capture, instruction-sequence helpers, and ObjectSpace instruction-sequence collection"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_debug",
+    "exported_init_symbols": [
+      "Init_debug",
+      "Init_iseq_collector"
+    ]
+  },
+  "gaps": [
+    "the extension uses MRI-internal APIs and is tied to the target Ruby ABI, so cross profiles require target-native Ruby SDKs and meaningful target runtime tests"
+  ]
+}

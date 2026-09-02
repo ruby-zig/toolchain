@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/etc",
+  "repository": "ruby/etc",
+  "upstream_sha": "9ad32f8c8e199f34ae01e38bd647ab7e30a72406",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/etc/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "source_inputs": [
+    "ext/etc/extconf.rb",
+    "ext/etc/etc.c",
+    "ext/etc/mkconstants.rb"
+  ],
+  "generated_inputs": [
+    "ext/etc/constdefs.h"
+  ],
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/etc.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "5a6cec7c62723e8d96a7eb41a9fa991bde10fcae",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "trace_sha256": "a4b7bcd631aee712c14ae496dd75315c33e0a02986f4be7867544a1ea77373d9",
+      "receipts_sha256": "ef51a410b61777902bf735476473ad6bcd33bc2861d9793fe664f40a3bd13114",
+      "native_receipts": 26,
+      "receipt_tools": {
+        "cc": 25,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 11,
+        "link": 15
+      },
+      "artifact_sha256": "5cb41577965bb8c129e8d7ee61a76a0d8de72020c1040409e0aaf1d2629fbc0b",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.6",
+      "glibc_version_dependencies": 3,
+      "evidence_archive": "ruby-zig-etc-continuous-5a6cec7-9ad32f8-evidence.tar.xz",
+      "evidence_sha256": "7b5e368082027473a55d838ba9ef21376a8d471bf3435e2d06e475fb0c6bba5b",
+      "test": "loads only the exact staged artifact and verifies account, group, uname, processor, directory, and sysconf behavior"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_etc"
+  },
+  "gaps": [
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

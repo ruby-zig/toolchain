@@ -57,10 +57,18 @@ SOURCE_KEYS = {
     "ruby_version",
     "rust",
 }
+SOURCE_OPTIONAL_KEYS = {
+    "profile_overrides",
+}
+PROFILE_OVERRIDE_KEYS = {
+    "build_script",
+    "rust",
+}
 SAFE_PATH = re.compile(r"^[A-Za-z0-9._][A-Za-z0-9._/-]*$")
 SAFE_REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]*$")
 SAFE_RESULT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 FULL_SHA = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+SAFE_REPOSITORY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 RUBY_VERSION = re.compile(
     r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$"
 )
@@ -132,6 +140,63 @@ def validate_build_script(root: Path, path: Any, label: str) -> str:
     if adapters_root not in candidate.parents or not candidate.is_file():
         raise PlanError(f"{label}: build_script must name an existing file under adapters/")
     return path
+
+
+def validate_profile_overrides(
+    root: Path,
+    source: dict[str, Any],
+    requested_profiles: list[str],
+    profile_by_id: dict[str, dict[str, Any]],
+    result_id: str,
+) -> dict[str, dict[str, Any]]:
+    if "profile_overrides" not in source:
+        return {}
+
+    raw_overrides = source["profile_overrides"]
+    if not isinstance(raw_overrides, dict) or not raw_overrides:
+        raise PlanError(
+            f"{result_id}: profile_overrides must be a nonempty object keyed by "
+            "selected profile ids"
+        )
+
+    selected = set(requested_profiles)
+    overrides: dict[str, dict[str, Any]] = {}
+    for profile_id, raw_contract in raw_overrides.items():
+        label = f"{result_id}: profile override {profile_id!r}"
+        if profile_id not in profile_by_id:
+            raise PlanError(f"{label} names an unknown profile")
+        if profile_id not in selected:
+            raise PlanError(f"{label} must also appear in profiles")
+        if not isinstance(raw_contract, dict) or not raw_contract:
+            raise PlanError(f"{label} must be a nonempty object")
+
+        extra = sorted(raw_contract.keys() - PROFILE_OVERRIDE_KEYS)
+        if extra:
+            raise PlanError(f"{label} has unexpected fields: {', '.join(extra)}")
+
+        contract: dict[str, Any] = {}
+        if "build_script" in raw_contract:
+            contract["build_script"] = validate_build_script(
+                root,
+                raw_contract["build_script"],
+                f"{label} build_script",
+            )
+        if "rust" in raw_contract:
+            if not isinstance(raw_contract["rust"], bool):
+                raise PlanError(f"{label} rust must be boolean")
+            contract["rust"] = raw_contract["rust"]
+        overrides[profile_id] = contract
+    return overrides
+
+
+def profile_contract(source: dict[str, Any], profile_id: str) -> dict[str, Any]:
+    """Return the effective build contract for one selected source profile."""
+
+    override = source.get("profile_overrides", {}).get(profile_id, {})
+    return {
+        "build_script": override.get("build_script", source["build_script"]),
+        "rust": override.get("rust", source["rust"]),
+    }
 
 
 def load_source_refs(
@@ -244,7 +309,7 @@ def load_sources(
         if not isinstance(source, dict):
             raise PlanError(f"{label}: entry must be an object")
         missing = sorted(SOURCE_KEYS - source.keys())
-        extra = sorted(source.keys() - SOURCE_KEYS)
+        extra = sorted(source.keys() - SOURCE_KEYS - SOURCE_OPTIONAL_KEYS)
         if missing or extra:
             details = []
             if missing:
@@ -276,10 +341,16 @@ def load_sources(
         result_id = source["result_id"]
         if source["adapter_id"] != build.get("adapter_id"):
             raise PlanError(f"{result_id}: lock adapter_id differs from config/builds.json")
-        expected_repository = f"{owner}/{name}"
-        if source["repository"] != expected_repository:
+        repository = source["repository"]
+        owner_prefix = f"{owner}/"
+        repository_name = (
+            repository[len(owner_prefix) :]
+            if isinstance(repository, str) and repository.startswith(owner_prefix)
+            else ""
+        )
+        if not SAFE_REPOSITORY_NAME.fullmatch(repository_name):
             raise PlanError(
-                f"{result_id}: repository must be the exact fork {expected_repository}"
+                f"{result_id}: repository must be an exact {owner}/NAME fork"
             )
         validate_build_script(root, source["build_script"], result_id)
 
@@ -298,10 +369,21 @@ def load_sources(
                 f"{result_id}: unknown requested profiles: {', '.join(unknown_profiles)}"
             )
 
+        profile_overrides = validate_profile_overrides(
+            root,
+            source,
+            requested_profiles,
+            profile_by_id,
+            result_id,
+        )
+
         ruby_version = source["ruby_version"]
         if not isinstance(ruby_version, str) or not RUBY_VERSION.fullmatch(ruby_version):
             raise PlanError(f"{result_id}: ruby_version must be an exact numeric x.y.z")
-        result[key] = source
+        normalized = dict(source)
+        if profile_overrides:
+            normalized["profile_overrides"] = profile_overrides
+        result[key] = normalized
     return result
 
 @dataclass(frozen=True)
@@ -409,13 +491,7 @@ def plan_fleet(root: Path) -> FleetPlan:
             result_id = tracked["result_id"] if tracked is not None else name
             ref_name = tracked["ref_name"] if tracked is not None else None
             source = sources.get((name, ref_name)) if ref_name is not None else None
-            if source is None:
-                desired_profiles = matrix_profiles
-            else:
-                selected = set(source["profiles"])
-                desired_profiles = [
-                    profile for profile in matrix_profiles if profile["id"] in selected
-                ]
+            selected_profiles = set(source["profiles"]) if source is not None else set()
 
             if adapter_status == "ready" and source is not None:
                 ready, reason = True, None
@@ -430,18 +506,31 @@ def plan_fleet(root: Path) -> FleetPlan:
             if source is not None and adapter_status != "ready":
                 reason = f"{reason}; source lock is present before adapter is ready"
 
-            for profile in desired_profiles:
+            for profile in matrix_profiles:
                 lane_ready = ready
                 lane_reason = reason
+                contract = (
+                    profile_contract(source, profile["id"])
+                    if source is not None and profile["id"] in selected_profiles
+                    else None
+                )
+                if lane_ready and contract is None:
+                    lane_ready = False
+                    lane_reason = (
+                        f"target profile {profile['id']} is not yet certified "
+                        "for this adapter"
+                    )
                 if (
                     lane_ready
-                    and source is not None
-                    and source["rust"]
-                    and profile["rust_link_status"] == "blocked"
+                    and contract is not None
+                    and contract["rust"]
+                    and profile["rust_link_status"] != "smoke-verified"
                 ):
                     lane_ready = False
                     lane_reason = (
-                        f"Rust final linking is blocked for profile {profile['id']}"
+                        f"Rust final linking status for profile {profile['id']} is "
+                        f"{profile['rust_link_status']}; only smoke-verified "
+                        "profiles may enable Rust"
                     )
                 lanes.append(
                     Lane(
@@ -489,9 +578,10 @@ def matrix_entry(lane: Lane) -> dict[str, Any]:
         raise PlanError(f"{lane.name}: cannot render an unlocked lane")
     profile_id = lane.profile["id"]
     source_ref = lane.source["source_ref"]
+    contract = profile_contract(lane.source, profile_id)
     return {
         "allow_no_native": False,
-        "build_script": lane.source["build_script"],
+        "build_script": contract["build_script"],
         "evidence_id": safe_evidence_id(lane.result_id, profile_id, source_ref),
         "profile_id": profile_id,
         "result_id": lane.result_id,
@@ -501,7 +591,7 @@ def matrix_entry(lane: Lane) -> dict[str, Any]:
         "repository": lane.source["repository"],
         "ruby_version": lane.source["ruby_version"],
         "runner": lane.profile["runner"],
-        "rust": lane.source["rust"],
+        "rust": contract["rust"],
         "source_ref": source_ref,
         "source_ref_name": lane.ref_name,
     }
@@ -533,8 +623,9 @@ def shard_summary(plan: FleetPlan, shard: int) -> tuple[str, dict[str, str]]:
             f"Current plan: {plan.fleet_repositories} affected native repositories "
             f"and {plan.source_identities} source identities from a "
             f"{plan.discovery_repositories}-repository discovery inventory. "
-            f"Adapters currently request {plan.desired_jobs} of at most "
-            f"{plan.maximum_jobs} target lanes in {plan.active_shards} active shards. "
+            f"The plan tracks all {plan.desired_jobs} target lanes in the "
+            f"{plan.maximum_jobs}-lane coverage envelope across "
+            f"{plan.active_shards} active shards. "
             "Pure-host and fixture-only repositories do not create build lanes."
         ),
     ]

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/erb",
+  "repository": "ruby/erb",
+  "upstream_sha": "9907393a1f1dfc027e8e7f2a9f5fcc7c60632762",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/erb/escape/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/erb/escape.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "7be741277cd2f8dacc91116e5d51219593dfe9e8",
+      "trace_sha256": "5abdcf0c2cab165c46e5c6ca19ca0a35ce488aacc8ad73b03aeea53f24938969",
+      "receipts_sha256": "fa316bfd4ab2017cbe43ab15f628cc9c4e27272adc664a7d6925160ace000d8c",
+      "native_receipts": 4,
+      "receipt_tools": {
+        "cc": 3,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 1,
+        "link": 3
+      },
+      "artifact_sha256": "be53e511993dc32786fe0f8c4995433b4db7525318fad7be4567d583f638804b",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.14",
+      "glibc_version_dependencies": 1,
+      "evidence_archive": "ruby-zig-six-adapter-cert-7be7412-evidence.tar.xz",
+      "evidence_sha256": "83b42a7d5fc24c86e52c028d4d8cedd95149df6c75b095c4a0205535e8f2cda8",
+      "test": "loads the exact artifact and verifies native HTML escaping, conversion, identity, and encoding behavior"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_escape"
+  },
+  "gaps": [
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

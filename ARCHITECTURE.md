@@ -61,13 +61,50 @@ The maximum coverage envelope is therefore `42 * 9 = 378` lanes. GitHub
 allows at most 256 matrix jobs in one workflow run. The controller uses two
 contiguous capacity shards: 252 lanes in shard 1 and 126 in shard 2.
 
-The number is a ceiling, not a reason to run every possible lane. The initial
-executable lock contains six lanes: GNU and musl for `bigdecimal`, `json`,
-and `prism`. All other coverage remains explicitly pending. Each immutable
-executable source entry in `config/fleet-lock.json` contains a nonempty,
-duplicate-free subset of declared profile IDs. The renderer emits only that
-subset. Requested Rust profiles that are currently blocked remain pending in
-the plan so an unsupported target cannot silently look green.
+The plan keeps all 378 lanes visible. It admits only the 30 repository,
+branch, and profile combinations with executable certified contracts; every
+other lane remains explicitly pending. The ready set is GNU for `bigdecimal`,
+`cgi`, `date`, `debug`, `digest`, `erb`, `etc`, `fcntl`, `fiddle`, `iconv`,
+`io-console`, `io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`,
+`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all four
+maintained CRuby refs, plus GNU and musl for `prism`, with CRuby master also
+admitted for musl. The
+two active shards therefore contain 252 and 126 desired lanes while only
+certified entries are sent to runners. io-console's executable contract loads
+the exact staged extension and exercises terminal behavior on a pseudoterminal.
+
+The pathname, ERB, CGI, Racc, syslog, and SDBM contracts likewise load only
+their staged shared objects. Their runtime proofs cover native string
+operations, escaping, C-backed parsing, daemon-free syslog state, database
+persistence, and adjacent advisory-lock exclusion respectively.
+
+Etc, Iconv, NKF, and Syck also load only their staged shared objects. Their
+runtime proofs cover system-account and platform queries, streaming character
+conversion through the declared GNU platform iconv input, Japanese encoding
+conversion and detection, and isolated parse-and-dump behavior respectively.
+
+Debug's contract exercises MRI frame and instruction-sequence APIs from the
+exact staged extension. Zlib declares the versioned GNU platform library and
+checks its ABI ceiling before loading the staged extension. Fiddle declares a
+size- and SHA-256-pinned libffi source archive, compiles and archives it through
+the Zig wrappers, links it statically, and rejects any dynamic libffi edge. A
+workflow preparation step fetches declared archives into an isolated runner
+cache, exports only their scoped `RZ_DEP_` paths, and records the verified inputs
+beside the normal build provenance.
+
+Each immutable executable source entry in `config/fleet-lock.json` contains a
+nonempty, duplicate-free subset of certified profile IDs. Selected profiles
+may run; unselected profiles stay in the same fleet as pending target backlog
+instead of disappearing from the workload. A selected Rust profile whose link
+status is not `smoke-verified` also remains pending so an unsupported target
+cannot silently look green.
+
+Each executable source keeps source-level `build_script` and `rust` defaults.
+When one selected target needs a different certified contract, an optional
+`profile_overrides` object may replace only those two values for that exact
+profile ID. Override IDs must already be selected by `profiles`, override
+objects are closed to unknown fields, and an absent override preserves the
+existing source contract byte-for-byte in rendered matrices.
 
 The baseline lock remains immutable. After a trusted fast-forward, infra must
 dispatch the allowlisted repository, tracked branch, and exact resulting SHA.
@@ -78,9 +115,18 @@ selected matrix runs on the slower sweep cadence and on demand.
 ## Immutable lane contract
 
 A tracked source-ref record binds an upstream repository, explicit branch
-name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby has
-four such planned records: `master`, `ruby_4_0`, `ruby_3_4`, and
-`ruby_3_3`; EOL `ruby_3_2` is absent.
+name, stable result identity, exact snapshot SHA, and Rust boundary. CRuby
+`master`, `ruby_4_0`, `ruby_3_4`, and `ruby_3_3` all have executable
+native GNU shared baselines. EOL `ruby_3_2` is absent. Master and 4.0 certify
+YJIT and ZJIT; 3.4 and 3.3 are YJIT-only. The older-release certification
+covers 155 built DSOs and a 26-family native-extension smoke set, explicitly
+excluding `fiddle`, `openssl`, `psych`, and `zlib`. A newer tracked-branch
+tip is admitted only as an exact, ancestry-checked continuous candidate derived
+from that branch's immutable baseline. The release baselines are
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`,
+`aac3e36dd4bee40fc89893209553903706fa5666`, and
+`0581089df9f0af0fe6b64cb8167987c211100947` for 4.0, 3.4, and 3.3
+respectively.
 
 A ready executable lock entry additionally binds:
 
@@ -98,9 +144,10 @@ adapter commits on their clean default branches.
 
 The pinned `ruby/setup-ruby` action supplies a prebuilt Ruby interpreter to
 run `extconf.rb`, Rake, and repository tests. That interpreter is an explicit
-external runtime input. It is not built by Zig and is not part of the fleet's
-certification claim. The claim covers only native transformations inside the
-adapter's declared source scope.
+external runtime input rather than a fleet output. The CRuby adapter builds its
+own `miniruby`, `ruby`, and shared `libruby`; certification covers those
+outputs and the native transformations inside each adapter's declared source
+scope.
 
 ## Certification boundary
 
@@ -111,8 +158,13 @@ dependencies.
 
 Linux certification uses a poison `PATH`, process tracing, and wrapper receipt
 correlation. macOS currently records receipts but is not process-trace
-certified. Cross artifacts remain `build-only` until the adapter also inspects
-their ABI and, where a runner exists, executes their tests.
+certified. All cross profiles remain uncertified catalog backlog until the
+adapter inspects their ABI and, where a runner exists, executes their tests;
+none of the four CRuby baseline locks admits a cross profile.
+
+A Ruby extension built against the GNU Ruby SDK is not a certifying musl lane,
+even when Zig emits a musl ELF artifact. That requires a target-native musl Ruby
+SDK and runtime.
 
 ## Operating sequence
 

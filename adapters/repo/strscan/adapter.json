@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/strscan",
+  "repository": "ruby/strscan",
+  "upstream_sha": "63ee0ac310d6b2a89543a3e2755cd72f203bd80f",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/strscan/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/strscan.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "9327f7aebab2671b4929805867d3a7c63252edd5",
+      "trace_sha256": "af763af58b6d32eb1b502b48102777815ee3f9c8fc8ef3fe262f36aa8db8a714",
+      "receipts_sha256": "2283240240c6ce0796ac7eb429b30c10331810d5f20b5c0b50c22b1f97cb8ec9",
+      "native_receipts": 11,
+      "receipt_operations": {
+        "compile": 2,
+        "link": 9
+      },
+      "artifact_sha256": "0d033ba612c9dd693f1ff8c4835b31b5fa0eda20b1bb338441a1c803a87fc93b",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_max": "2.14",
+      "test": "loaded the exact artifact and verified StringScanner scan and position behavior"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "experimental-non-certifying",
+      "controller_sha": "9327f7aebab2671b4929805867d3a7c63252edd5",
+      "trace_sha256": "e3437a0e3dcf9c0e1434e88c1e39d1c65460e3d4abd100781e941b25bf828f41",
+      "receipts_sha256": "8f2d3d2876b140d738c0574180f1d04240a09b981a36df87f0e9b8db64eb7f41",
+      "native_receipts": 11,
+      "receipt_operations": {
+        "compile": 2,
+        "link": 9
+      },
+      "artifact_sha256": "2961e3229c0e07ff6c70a60c232f3267669eba119bfe50768adb605600ffa8f6",
+      "artifact_format": "ELF64 x86-64 shared object"
+    }
+  ],
+  "cross_status": "blocked-missing-target-native-musl-ruby-sdk",
+  "gaps": [
+    "the experimental musl artifact used the GNU Ruby SDK and is not a certifying cross-build",
+    "other declared profiles still need target-compatible Ruby headers and libraries"
+  ]
+}

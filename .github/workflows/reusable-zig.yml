@@ -179,6 +179,18 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
         run: chmod +x toolchain/toolchain/bin/* toolchain/scripts/*.sh "toolchain/$RZ_BUILD_SCRIPT"
 
+      - name: Prepare pinned adapter dependencies
+        shell: bash
+        env:
+          RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
+        run: |
+          python3 toolchain/scripts/prepare-adapter-dependencies.py \
+            --controller-root "$GITHUB_WORKSPACE/toolchain" \
+            --build-script "$RZ_BUILD_SCRIPT" \
+            --destination "$RUNNER_TEMP/ruby-zig/dependencies" \
+            --github-env "$GITHUB_ENV" \
+            --record "$GITHUB_WORKSPACE/toolchain/provenance/adapter-dependencies.json"
+
       - name: Install pinned Rust toolchain and target
         if: inputs.rust
         id: rust
@@ -215,6 +227,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF: ${{ inputs.source-ref }}
           RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
@@ -239,6 +252,7 @@ jobs:
           RZ_BUILD_SCRIPT: ${{ inputs.build-script }}
           RZ_ENABLE_RUST: ${{ inputs.rust }}
           RZ_PROFILE_ID: ${{ matrix.id }}
+          RZ_SOURCE_REF: ${{ inputs.source-ref }}
           RZ_SOURCE_REF_NAME: ${{ inputs.source-ref-name }}
           RZ_RUST_TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
           RZ_ZIG: ${{ steps.zig.outputs.zig }}
@@ -265,7 +279,11 @@ jobs:
             toolchain/receipts/
             toolchain/trace/
             toolchain/provenance/
+            .ruby-zig-artifacts/**
             source/config.log
             source/**/CMakeCache.txt
+            source/.ruby-zig-artifacts/**
+            source/build/ruby-zig/**
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14

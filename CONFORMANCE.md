@@ -35,8 +35,10 @@ unless the profile explicitly marks them as platform inputs.
 
 Every ready lock entry declares an exact numeric Ruby `x.y.z` version. A
 commit-pinned `ruby/setup-ruby` action installs that prebuilt interpreter to
-drive `extconf.rb`, Rake, and tests. The interpreter is not built by this
-fleet, and a green lane does not certify CRuby itself as Zig-built.
+drive `extconf.rb`, Rake, and tests. That prebuilt driver is not built by the
+fleet and is never a certified output. A green non-CRuby extension lane does
+not certify CRuby itself as Zig-built; the dedicated `ruby/ruby` adapter may
+make that claim only for the CRuby artifacts it builds and audits.
 
 Pure Ruby, documentation, JavaScript, metadata, and fixture-only repositories
 remain in discovery but do not create build lanes. They are recorded as
@@ -61,10 +63,11 @@ for affected Cortex-A53 hardware before that point.
 2. Record the upstream SHA, fork SHA, Zig version and archive digest, exact
    external Ruby runtime, Rust version when used, runner image, target profile,
    and dependency lock state.
-3. Put failing shims for common host compilers and linkers on `PATH`.
+3. Put failing shims for common host compilers, linkers, archivers, and
+   post-link object transformers on `PATH`.
 4. On Linux certification jobs, trace process creation and execution and reject
    direct or absolute invocations of foreign C-family compilers, linkers, and
-   archivers.
+   archivers, along with foreign post-link object transformers.
 5. Bidirectionally correlate wrapper receipts with pinned compiler processes.
    Internal Zig or rustc subprocesses must descend from a receipted driver.
    Probe-only receipts do not qualify a lane.
@@ -72,7 +75,11 @@ for affected Cortex-A53 hardware before that point.
    adapter that ignores a compiler or linker status, uses `|| true`, or exits
    successfully after a failed native command invalidates the lane.
 7. Run negative controls proving that the auditor rejects a forbidden compiler,
-   an unwrapped pinned compiler, and a probe-only false green.
+   a foreign post-link transformer, an unwrapped pinned compiler, and a
+   probe-only false green.
+8. Reject foreign `objcopy`, `strip`, and cross-prefixed or versioned variants
+   until a reviewed Zig-backed wrapper exists and emits receipts that the
+   process auditor can correlate.
 
 Generated `config.log` and CMake cache files are uploaded opportunistically.
 They are not inspected or required by the current build-only workflow, and their

@@ -45,6 +45,21 @@ AArch64 Linux Rust linking is explicitly blocked for Zig 0.16 rather than
 dropping Rust's Cortex-A53 erratum mitigation. The exact boundary and evidence
 rules are in `CONFORMANCE.md`.
 
+Ruby extensions driven by the prebuilt GNU Ruby SDK are executable only on the
+GNU profile. Their musl artifacts remain experimental and non-certifying until
+the fleet has a target-native musl Ruby SDK.
+
+All four maintained CRuby refs have executable native GNU shared baselines:
+`master` at `89d3b11eace35b8e279b970b4ff5125f171d0d4b`, `ruby_4_0` at
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`, `ruby_3_4` at
+`aac3e36dd4bee40fc89893209553903706fa5666`, and `ruby_3_3` at
+`0581089df9f0af0fe6b64cb8167987c211100947`. Master and 4.0 certify YJIT
+and ZJIT; 3.4 and 3.3 are YJIT-only releases. Each older-release baseline built
+155 DSOs and passed a 26-family native-extension smoke set. `fiddle`,
+`openssl`, `psych`, and `zlib` are explicitly outside that certified scope.
+Exact descendants are admitted only through continuous graph proof; the 4.0
+candidate `2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef` has also passed independently.
+
 ## Branches
 
 - The upstream default branch is an unmodified, fast-forward-only mirror.
@@ -79,7 +94,8 @@ controller, so a source fork remains a clean fast-forward of upstream.
 Each lock entry declares an exact Ruby `x.y.z` runtime. The reusable workflow
 installs that prebuilt runtime with a commit-pinned `ruby/setup-ruby` action to
 drive `extconf.rb`, Rake, and tests. That interpreter is an external build
-input, not a CRuby artifact built or certified by this fleet.
+driver, not a fleet output. The CRuby lane builds its own `miniruby`, `ruby`,
+and shared `libruby` through the declared Zig and Rust boundary.
 
 Privileged synchronization belongs in a separate `ruby-zig/infra` repository.
 That repository has no build logic and passes no credentials to build jobs. A
@@ -93,22 +109,65 @@ The affected fleet has a maximum of 378 jobs: nine target profiles for each of
 jobs per workflow run, so the controller reserves two contiguous capacity
 shards of 252 and 126 lanes.
 
-The first executable lock admits six lanes: GNU and musl builds for
-`bigdecimal`, `json`, and `prism`. Their source SHAs, controller adapters,
-two-profile subsets, and Ruby 3.2.3 driver runtime are explicit. The remaining
-coverage stays pending instead of creating false green jobs.
+The executable lock admits 30 lanes: GNU builds for `bigdecimal`, `cgi`,
+`date`, `debug`, `digest`, `erb`, `etc`, `fcntl`, `fiddle`, `iconv`,
+`io-console`, `io-nonblock`, `io-wait`, `json`, `nkf`, `pathname`, `racc`,
+`sdbm`, `stringio`, `strscan`, `syck`, `syslog`, `zlib`, and all four
+maintained CRuby refs, plus GNU and musl builds for `prism`, with CRuby master
+also admitted for musl. Their source SHAs,
+controller adapters, certified profile subsets, and Ruby 3.2.3 driver runtime
+are explicit. The full plan still contains all 378 desired lanes, split into
+active shards of 252 and 126; the other 348 lanes remain pending.
 
-That is a ceiling, not the routine workload. Each immutable executable
-fleet-lock entry binds a repository and branch result identity, then selects
-the profiles meaningful for its adapter; only those selected lanes are
-runnable. A requested Rust lane whose target is blocked remains visible as
-pending instead of disappearing. Fixture-only and no-native repositories do
-not consume runner jobs.
+The io-console lane loads the exact built extension and exercises raw, noecho,
+window-size, and getpass behavior on a pseudoterminal. The fcntl lane verifies
+descriptor flag changes, while io-nonblock verifies nonblocking pipe transfer
+and flag restoration. The io-wait lane loads its exact compiled compatibility
+stub, then exercises the wait behavior built into Ruby.
+
+The six newest GNU lanes also load only their staged artifacts. Pathname and
+ERB cover their native string operations, CGI covers its HTML, form, and URI
+escaping paths, and Racc parses through its C transition engine. Syslog checks
+state and masks without emitting a message, while SDBM proves persistence and
+adjacent advisory-lock exclusion.
+
+The next four GNU lanes keep the same exact-artifact boundary. Etc checks
+account, group, platform, directory, and sysconf behavior; NKF converts and
+detects UTF-8, EUC-JP, and JIS. Syck parses and emits through its isolated Ruby
+layer. Iconv covers streaming, round trips, close semantics, and invalid
+encodings while declaring the GNU platform's glibc iconv implementation as an
+input.
+
+Debug exercises frame capture and instruction-sequence helpers from its exact
+staged extension. Zlib declares the GNU runner's versioned `libz.so.1` input
+and covers compression, CRC, gzip metadata, and corrupt-input rejection.
+Fiddle uses an official libffi 3.4.6 archive pinned by size and SHA-256, builds
+that dependency statically through the Zig wrappers, and proves both a foreign
+call and a freed closure callback without a dynamic libffi dependency. The
+reusable workflow fetches declared archives into an isolated runner cache and
+records their verified contracts in build provenance; it does not install a
+global package.
+
+That is the visible coverage workload, not the number of jobs routinely sent
+to runners. Each immutable executable fleet-lock entry binds a repository and
+branch result identity, then selects the profiles certified for its adapter;
+only those selected lanes are runnable. Unselected profiles remain explicit
+pending lanes in the target backlog. A selected Rust lane whose link path is
+not `smoke-verified` also remains visible as pending instead of disappearing.
+Fixture-only and no-native repositories do not consume runner jobs.
 
 The baseline lock remains immutable. Continuous sync must dispatch the exact
 post-sync commit SHA together with an allowlisted repository and tracked branch;
-a build job never resolves a moving branch ref. A weekly or manually requested
-sweep exercises the complete selected scope.
+a build job never resolves a moving branch ref. CRuby `master` therefore keeps
+the verified `89d3b11eace35b8e279b970b4ff5125f171d0d4b` baseline while a
+newer synchronized master tip is supplied only as the exact, ancestry-checked
+continuous candidate. CRuby `ruby_4_0` likewise keeps verified
+`f3a72fe0a6d35583e215422e8887d3df0a1670b8`; its independently certified
+`2da9a6ef3f423fb85acfd5c41150bb22cdeb14ef` descendant demonstrates the same
+continuous path. The `ruby_3_4` and `ruby_3_3` locks keep
+`aac3e36dd4bee40fc89893209553903706fa5666` and
+`0581089df9f0af0fe6b64cb8167987c211100947` respectively. A weekly or manually
+requested sweep exercises the complete selected scope.
 
 ## Repository layout
 
@@ -123,6 +182,8 @@ sweep exercises the complete selected scope.
   link status.
 - `toolchain/bin/` contains the compiler and linker drivers.
 - `adapters/` contains controller-owned repository build entry points.
+- `scripts/prepare-adapter-dependencies.py` verifies and stages any external
+  source archives declared by an adapter.
 - `scripts/` inventories, forks, synchronizes, installs, and audits the fleet.
 - `.github/workflows/` contains reusable runner workflows.
 

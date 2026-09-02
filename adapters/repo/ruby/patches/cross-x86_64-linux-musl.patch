@@ -1,0 +1,54 @@
+diff --git a/tool/dump_ast.mkmf.rb b/tool/dump_ast.mkmf.rb
+--- a/tool/dump_ast.mkmf.rb
++++ b/tool/dump_ast.mkmf.rb
+@@ -4,6 +4,7 @@ require 'pathname'
+ require 'fileutils'
+ 
+ workdir, src, *objs = ARGV
++workdir = Pathname(workdir).expand_path
+ src = Pathname(src)
+ tooldir = src.parent.relative_path_from(workdir)
+ srcdir = tooldir.parent
+diff --git a/common.mk b/common.mk
+--- a/common.mk
++++ b/common.mk
+@@ -1349,7 +1349,8 @@ build-tool/Makefile: $(tooldir)/dump_ast.mkmf.rb prism-srcs prism-incs
+ 	    build-tool $(tooldir)/dump_ast.c dump_ast.$(OBJEXT) $(LIBPRISM_OBJS)
+ 
+ build-tool/dump_ast$(BUILD_EXEEXT): build-tool/Makefile
+-	cd build-tool && MAKEFLAGS= MFLAGS= && unset MAKEFLAGS MFLAGS && $(MAKE) Q=$(Q)
++	cd build-tool && MAKEFLAGS= MFLAGS= && unset MAKEFLAGS MFLAGS && \
++	    $(MAKE) Q=$(Q) CC="$(BUILD_CC)" CXX="$(BUILD_CXX)" AR="$(AR_FOR_BUILD)"
+ 
+ clean-local:: clean-build-tool
+ clean-build-tool:
+diff --git a/thread_pthread.c b/thread_pthread.c
+--- a/thread_pthread.c
++++ b/thread_pthread.c
+@@ -2445,6 +2445,14 @@ native_thread_init_main_thread_stack(void *addr)
+         void* stackaddr;
+         size_t size;
+         if (get_main_stack(&stackaddr, &size) == 0) {
++#if defined(HAVE_GETRLIMIT)
++            struct rlimit rlim;
++            /* musl reports only the currently mapped part of the main stack. */
++            if (getrlimit(RLIMIT_STACK, &rlim) == 0 &&
++                rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur > size) {
++                size = (size_t)rlim.rlim_cur;
++            }
++#endif
+             native_main_thread.stack_maxsize = size;
+             native_main_thread.stack_start = stackaddr;
+             goto bound_check;
+diff --git a/tool/m4/ruby_prog_gnu_ld.m4 b/tool/m4/ruby_prog_gnu_ld.m4
+--- a/tool/m4/ruby_prog_gnu_ld.m4
++++ b/tool/m4/ruby_prog_gnu_ld.m4
+@@ -1,7 +1,7 @@
+ dnl -*- Autoconf -*-
+ AC_DEFUN([RUBY_PROG_GNU_LD],
+ [AC_CACHE_CHECK(whether the linker is GNU ld, rb_cv_prog_gnu_ld,
+-[AS_IF([`$CC $CFLAGS $CPPFLAGS $LDFLAGS --print-prog-name=ld 2>&1` -v 2>&1 | grep "GNU ld" > /dev/null], [
++[AS_IF([$LD -v 2>&1 | grep "GNU ld" > /dev/null], [
+   rb_cv_prog_gnu_ld=yes
+ ], [
+   rb_cv_prog_gnu_ld=no

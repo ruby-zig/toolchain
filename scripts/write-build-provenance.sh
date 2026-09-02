@@ -2,6 +2,17 @@
 
 set -euo pipefail
 
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    printf 'sha256sum or shasum is required\n' >&2
+    return 69
+  fi
+}
+
 : "${GITHUB_EVENT_NAME:?}"
 : "${GITHUB_REPOSITORY:?}"
 : "${GITHUB_RUN_ATTEMPT:?}"
@@ -40,9 +51,33 @@ adapter_manifest="$(dirname "$adapter_script")/adapter.json"
 }
 adapter_id="$(jq -er '.adapter_id | strings' "$adapter_manifest")"
 adapter_schema="$(jq -er '.schema | numbers' "$adapter_manifest")"
-adapter_manifest_sha256="$(shasum -a 256 "$adapter_manifest" | awk '{print $1}')"
-adapter_script_sha256="$(shasum -a 256 "$adapter_script" | awk '{print $1}')"
-fleet_lock_sha256="$(shasum -a 256 "$controller_root/config/fleet-lock.json" | awk '{print $1}')"
+adapter_manifest_sha256="$(sha256_file "$adapter_manifest")"
+adapter_script_sha256="$(sha256_file "$adapter_script")"
+dependency_count="$(jq -er '
+  (.dependencies // []) as $dependencies |
+  if ($dependencies | type) == "array" then
+    ($dependencies | length)
+  else
+    error("adapter dependencies must be an array")
+  end
+' "$adapter_manifest")"
+dependency_record="$controller_root/provenance/adapter-dependencies.json"
+if [[ -f "$dependency_record" ]]; then
+  python3 "$controller_root/scripts/prepare-adapter-dependencies.py" \
+    --controller-root "$controller_root" \
+    --build-script "$RZ_BUILD_SCRIPT" \
+    --verify-record "$dependency_record" >/dev/null
+  adapter_dependencies="$(jq -ce . "$dependency_record")"
+  adapter_dependencies_sha256="$(sha256_file "$dependency_record")"
+elif (( dependency_count > 0 )); then
+  printf 'Adapter declares external dependencies but has no preparation record\n' >&2
+  exit 66
+else
+  adapter_dependencies="$(jq -cn --arg build_script "$RZ_BUILD_SCRIPT" \
+    '{schema: 1, build_script: $build_script, dependencies: []}')"
+  adapter_dependencies_sha256=''
+fi
+fleet_lock_sha256="$(sha256_file "$controller_root/config/fleet-lock.json")"
 profile_json="$(jq -ce --arg id "$RZ_PROFILE_ID" '.profiles[] | select(.id == $id)' "$controller_root/config/targets.json")"
 zig_config="$(jq -ce . "$controller_root/config/zig.json")"
 rust_config="$(jq -ce . "$controller_root/config/rust.json")"
@@ -61,6 +96,8 @@ jq -n \
   --arg adapter_manifest_sha256 "$adapter_manifest_sha256" \
   --arg adapter_script "$RZ_BUILD_SCRIPT" \
   --arg adapter_script_sha256 "$adapter_script_sha256" \
+  --argjson adapter_dependencies "$adapter_dependencies" \
+  --arg adapter_dependencies_sha256 "$adapter_dependencies_sha256" \
   --arg caller_repository "$GITHUB_REPOSITORY" \
   --arg controller_sha "$RZ_CONTROLLER_SHA" \
   --arg event_name "$GITHUB_EVENT_NAME" \
@@ -97,7 +134,13 @@ jq -n \
       schema: $adapter_schema,
       manifest_sha256: $adapter_manifest_sha256,
       build_script: $adapter_script,
-      build_script_sha256: $adapter_script_sha256
+      build_script_sha256: $adapter_script_sha256,
+      dependencies: $adapter_dependencies,
+      dependencies_record_sha256: (
+        if $adapter_dependencies_sha256 == "" then null
+        else $adapter_dependencies_sha256
+        end
+      )
     },
     profile: $profile,
     tools: {

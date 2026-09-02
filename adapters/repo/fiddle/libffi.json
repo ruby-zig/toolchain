@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "name": "libffi",
+  "version": "3.4.6",
+  "release_url": "https://github.com/libffi/libffi/releases/tag/v3.4.6",
+  "archive_url": "https://github.com/libffi/libffi/releases/download/v3.4.6/libffi-3.4.6.tar.gz",
+  "archive_name": "libffi-3.4.6.tar.gz",
+  "archive_root": "libffi-3.4.6",
+  "archive_size": 1391684,
+  "sha256": "b0dea9df23c863a7a50e825440f3ebffabd65df1497108e5d437747843895a4e",
+  "license": "MIT-like",
+  "license_file": "LICENSE"
+}

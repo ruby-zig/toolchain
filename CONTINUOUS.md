@@ -8,7 +8,8 @@ runtime, Rust boundary, compiler version, or build command.
 
 `.github/workflows/continuous.yml` accepts exactly three values:
 
-- `source-repository`: an exact `ruby-zig/<name>` fork in the fleet lock;
+- `source-repository`: an exact `ruby-zig/<name>` fork in the fleet lock (the
+  fork name may differ from its upstream repository after a rename);
 - `source-ref-name`: an exact tracked branch for that fork;
 - `source-sha`: the lowercase 40-character commit produced by synchronization.
 
@@ -16,13 +17,34 @@ runtime, Rust boundary, compiler version, or build command.
 and finds that exact repository/branch identity in `config/fleet-lock.json`.
 The executable entry supplies the controller-owned adapter, selected profile
 subset, exact external Ruby runtime, and Rust boundary. The candidate SHA
-replaces only the baseline source SHA in the derived matrix. There is no input
-through which a caller can broaden the build.
+replaces only the baseline source SHA in the derived matrix. Profile-specific
+`build_script` and `rust` overrides, when declared by the lock, are resolved
+before both fleet and continuous matrix entries reach the same reusable
+workflow. There is no input through which a caller can broaden the build.
 
-A tracked source without an executable entry is rejected. This includes the
-four CRuby branches at present: they remain visible in fleet planning, but no
-continuous CRuby source is executed until a CRuby adapter and baseline are
-explicitly certified in the lock.
+A tracked source without an executable entry is rejected. All four maintained
+CRuby refs have certified native GNU shared baselines and executable entries.
+The immutable baselines are `89d3b11eace35b8e279b970b4ff5125f171d0d4b`
+for `master`, `f3a72fe0a6d35583e215422e8887d3df0a1670b8` for
+`ruby_4_0`, `aac3e36dd4bee40fc89893209553903706fa5666` for
+`ruby_3_4`, and `0581089df9f0af0fe6b64cb8167987c211100947` for
+`ruby_3_3`. Master and 4.0 certify YJIT and ZJIT; 3.4 and 3.3 are
+YJIT-only. Each synchronized descendant is dispatched by exact SHA. Cross
+profiles remain uncertified catalog backlog and are absent from these locks.
+
+## ziguanite caller
+
+`.github/workflows/ziguanite.yml` is the no-input entry point for the CRuby
+fork. It fixes `source-repository` to `ruby-zig/ziguanite`, admits only the four
+maintained branch names, and resolves the newest commit shared by that public
+fork branch and its matching `ruby/ruby` branch. This prevents workflow-only
+commits in the fork from becoming Ruby source while retaining an exact,
+publicly verifiable source SHA.
+The source repository therefore cannot supply a compiler, adapter, target,
+runtime, build command, or alternate source identity. The controller commit is
+derived from the workflow file that defines the controller job rather than the
+caller commit, so a cross-repository reusable call still checks out the exact
+pinned controller revision.
 
 ## Public graph proof
 

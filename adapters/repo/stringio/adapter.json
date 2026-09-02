@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/stringio",
+  "repository": "ruby/stringio",
+  "upstream_sha": "2825dc300741d34e54d59b8fd65d901828d5425d",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/stringio/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/stringio.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "historical-run-evidence",
+      "trace_sha256": "78acd3ab76b7017b967e4301f27d746253631d8f71d7a569b6f1e38afd650557",
+      "receipts_sha256": "f7a499ce62a837058b253ac6cafb48658cb28364fc773a4c189f2865b14e5cd7",
+      "native_receipts": 4,
+      "receipt_operations": {
+        "compile": 2,
+        "link": 2
+      },
+      "artifact_sha256": "4d357f7d86073d9c159dcb15b22a6187c8e698bf57c41cdf7fc662089a7a8f77",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_max": "2.14",
+      "test": "loaded the exact artifact and verified StringIO read and write operations"
+    },
+    {
+      "id": "x86_64-linux-musl",
+      "status": "experimental-non-certifying",
+      "trace_sha256": "6c5fda9973f812229a9c4c04e7362c4b34958d6ccd6afe8754b3fa098d6bab5f",
+      "receipts_sha256": "e1328b013b34b3c8cdaad6db1ba21f06f47579ddc0afda4ddb930430f73df843",
+      "native_receipts": 4,
+      "receipt_operations": {
+        "compile": 2,
+        "link": 2
+      },
+      "artifact_sha256": "d949e4c8a3a79412d2f4682e679e3bca0b1bf1bced0c945f95f412ee0c61f862",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_version_dependencies": 0
+    }
+  ],
+  "cross_status": "blocked-missing-target-native-musl-ruby-sdk",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "historical-baseline-passed",
+    "source_clean_before_build": true,
+    "exported_entrypoint": "Init_stringio"
+  },
+  "gaps": [
+    "the recorded hashes predate the current source-contract and wrapper-identity hardening and are retained as historical baseline evidence",
+    "the experimental musl artifact used the GNU Ruby SDK and is not a certifying cross-build",
+    "other declared profiles still need target-compatible Ruby headers and libraries"
+  ]
+}

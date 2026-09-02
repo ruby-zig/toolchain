@@ -25,10 +25,6 @@ sha_pattern='^[0-9a-f]{40}$'
   printf 'Invalid ruby-zig fork repository: %s\n' "$fork_repository" >&2
   exit 64
 }
-[[ "${upstream_repository#*/}" == "${fork_repository#*/}" ]] || {
-  printf 'Upstream and fork repository names differ\n' >&2
-  exit 64
-}
 bash "$root/scripts/validate-ref-name.sh" "$ref_name"
 [[ "$baseline_sha" =~ $sha_pattern ]] || {
   printf 'Baseline must be a lowercase 40-character commit SHA\n' >&2

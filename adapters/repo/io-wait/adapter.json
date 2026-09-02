@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/io-wait",
+  "repository": "ruby/io-wait",
+  "upstream_sha": "2a8d689fdaeae482cf97d18722a5c8fb8b5c1aeb",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/io/wait/extconf.rb"
+  ],
+  "native_scope": "project-extension-compatibility-stub",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/io/wait.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "5db6238471472e7cdf72c9743916eebf7cdbfbd6",
+      "trace_sha256": "5ed049b07e9992e0b2464cce5f7d17cf23e5cf74c1d0f5b3457b2f03bbc29c60",
+      "receipts_sha256": "bf7615d69c584bc645d9be93617c9a96c84012de336b4b8fbe96e7d965707617",
+      "native_receipts": 2,
+      "receipt_tools": {
+        "cc": 1,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 1,
+        "link": 1
+      },
+      "artifact_sha256": "8b41ca09d682f744caa60f3924bfb3dd3d84ba04caa9de03c6ec6f8217bbb65e",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_version_dependencies": 0,
+      "evidence_archive": "ruby-zig-io-family-cert-5db6238-r3-evidence.tar.xz",
+      "evidence_sha256": "5ecf9b08ade03280548aea913c9b4134147a188b0e5800b01efd9518200fb61c",
+      "test": "loads the exact compatibility artifact and verifies IO readability and writability waits"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_wait"
+  },
+  "gaps": [
+    "the CRuby extension is a compatibility stub because IO wait methods are built into Ruby",
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available"
+  ]
+}

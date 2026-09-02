@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "adapter_id": "repo/iconv",
+  "repository": "ruby/iconv",
+  "upstream_sha": "07cceadf29439d5070b2be62ea644ca01fa7f940",
+  "build_system": "ruby-mkmf-make",
+  "entrypoints": [
+    "ext/iconv/extconf.rb"
+  ],
+  "native_scope": "project-extension",
+  "artifacts": [
+    "$RZ_ARTIFACT_DIR/$RZ_ZIG_TARGET/iconv.so"
+  ],
+  "profiles": [
+    {
+      "id": "x86_64-linux-gnu.2.17",
+      "status": "run-verified",
+      "controller_sha": "34d78376e4b1afc0c68162704ff718508138d1e7",
+      "ruby": "3.2.3",
+      "zig": "0.16.0",
+      "trace_sha256": "84158019201c62b946425503f310c498c44fb2edb82596ed37eb11815de3208f",
+      "receipts_sha256": "700349189cfb5298fa08ce93d0fc61ad5dd6b83068765c3870f05f4513a6b3d2",
+      "native_receipts": 14,
+      "receipt_tools": {
+        "cc": 13,
+        "shared": 1
+      },
+      "receipt_operations": {
+        "compile": 3,
+        "link": 10,
+        "probe": 1
+      },
+      "artifact_sha256": "e41f24e1e9fbbb3a54075d8fcf550dc5b9dadce79d9084ff552ba84fe84954ab",
+      "artifact_format": "ELF64 x86-64 shared object",
+      "glibc_ceiling": "2.17",
+      "glibc_max": "2.2.5",
+      "glibc_version_dependencies": 1,
+      "evidence_archive": "ruby-zig-iconv-x86_64-linux-gnu.2.17-cert-34d7837-evidence.tar.xz",
+      "evidence_sha256": "f832801d5c73f3178396e9cb6d2756a1ae71fb28c1b63ad11a6ceb66450582d4",
+      "test": "loads the exact artifact and exercises ISO-8859-1 to UTF-8 conversion, streaming conversion, round-trip bytes, close semantics, and invalid-encoding errors"
+    }
+  ],
+  "cross_status": "pending-target-native-ruby-sdks-and-runtimes",
+  "validation": {
+    "runner": "atlas-tree Ubuntu 24.04 x86_64",
+    "zig": "0.16.0",
+    "ruby": "3.2.3",
+    "process_audit": "passed",
+    "foreign_compiler_linker_invocations": 0,
+    "source_clean_before_build": true,
+    "source_clean_after_build": true,
+    "exported_entrypoint": "Init_iconv"
+  },
+  "gaps": [
+    "cross profiles remain pending until target-native Ruby SDKs and meaningful target runtime tests are available",
+    "the GNU lane treats the glibc iconv implementation as a declared platform input; non-glibc targets need a separately pinned iconv implementation"
+  ]
+}
